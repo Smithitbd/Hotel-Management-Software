@@ -592,17 +592,17 @@ const Router = createBrowserRouter([
       {
         path: "settings/hotels",
         element: (
-          <PrivateRoute>
+          <AdminRoute>
             <Hotels />
-          </PrivateRoute>
+          </AdminRoute>
         ),
       },
       {
         path: "settings/hotel_information",
         element: (
-          <AdminRoute>
+          <PrivateRoute>
             <HotelInformation />
-          </AdminRoute>
+          </PrivateRoute>
         ),
       },
       {
