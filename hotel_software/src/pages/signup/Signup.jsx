@@ -113,14 +113,27 @@ const Signup = () => {
                 <label className="label">
                   <span className="label-text font-medium">Property Type</span>
                 </label>
-                <input
+                <select
                   {...register("propertyType", {
                     required: "Property type is required",
                   })}
-                  type="text"
-                  className="input input-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  placeholder="e.g. Hotel, Resort, Guest House..."
-                />
+                  className="select select-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select property type
+                  </option>
+                  <option value="Hotel">Hotel</option>
+                  <option value="Motel">Motel</option>
+                  <option value="Resort">Resort</option>
+                  <option value="Guest House">Guest House</option>
+                  <option value="Boutique Hotel">Boutique Hotel</option>
+                  <option value="Apartment Hotel">Apartment Hotel</option>
+                  <option value="Hostel">Hostel</option>
+                  <option value="Villa">Villa</option>
+                  <option value="Homestay">Homestay</option>
+                  <option value="Other">Other</option>
+                </select>
                 {errors.propertyType && (
                   <p className="text-error text-sm mt-1">
                     {errors.propertyType.message}

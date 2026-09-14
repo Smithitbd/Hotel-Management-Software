@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
-import { RiHome3Line } from "react-icons/ri";
 import { MdOutlinePlaylistAddCheckCircle } from "react-icons/md";
 import { FaArrowLeft, FaUserEdit } from "react-icons/fa";
-import { IoMdTrash } from "react-icons/io";
 import Swal from "sweetalert2";
 
 const PresentGuestList = () => {

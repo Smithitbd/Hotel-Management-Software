@@ -1,23 +1,31 @@
 import { useForm } from "react-hook-form";
 import { MdOutlinePlaylistAddCheckCircle } from "react-icons/md";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
+import { useEffect } from "react";
 
 const CheckIn = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Room data coming from AllRooms page
+  const prefilledRoom = location.state?.room;
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
       advancePayment: 0,
+      roomVariant: prefilledRoom?.variantId || "",
+      roomNumber: prefilledRoom?.roomNo || "",
     },
   });
 
@@ -46,6 +54,18 @@ const CheckIn = () => {
     },
     enabled: !!selectedVariantId,
   });
+
+  // Auto select room variant + room number when coming from AllRooms
+  useEffect(() => {
+    if (prefilledRoom) {
+      setValue("roomVariant", prefilledRoom.variantId);
+
+      // Wait until rooms of that variant are loaded, then set room number
+      if (rooms.length > 0) {
+        setValue("roomNumber", prefilledRoom.roomNo);
+      }
+    }
+  }, [prefilledRoom, rooms, setValue]);
 
   // Selected variant object
   const selectedVariant = roomVariants.find((v) => v._id === selectedVariantId);
@@ -116,21 +136,30 @@ const CheckIn = () => {
     formData.append("specialRequests", data.specialRequests || "");
     formData.append("status", "Normal");
 
-    const res = await axiosInstance.post("/check-in", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    if (res.data.insertedId) {
-      await Swal.fire({
-        title: "Success!",
-        text: "Guest checked in successfully.",
-        icon: "success",
-        confirmButtonColor: "#9f1239",
+    try {
+      const res = await axiosInstance.post("/check-in", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      navigate("/dashboard/check_in_out");
+      if (res.data.insertedId) {
+        await Swal.fire({
+          title: "Success!",
+          text: "Guest checked in successfully.",
+          icon: "success",
+          confirmButtonColor: "#9f1239",
+        });
+
+        navigate("/dashboard/check_in_out");
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: error?.response?.data?.message || "Failed to check in guest.",
+        icon: "error",
+        confirmButtonColor: "#9f1239",
+      });
     }
   };
 
@@ -153,6 +182,14 @@ const CheckIn = () => {
             <p className="text-gray-500 ml-12">
               Manage guest check-ins, room assignments, and stay details.
             </p>
+
+            {/* Show prefilled room info */}
+            {prefilledRoom && (
+              <p className="ml-12 mt-2 text-sm font-medium text-rose-600">
+                Booking → Room {prefilledRoom.roomNo} (
+                {prefilledRoom.variantName || prefilledRoom.baseRoomType})
+              </p>
+            )}
           </div>
 
           <Link to="/dashboard/check_in_out">
@@ -312,7 +349,6 @@ const CheckIn = () => {
                 required: "Room variant is required",
               })}
               className="select select-bordered w-full bg-white"
-              defaultValue=""
             >
               <option value="" disabled>
                 {variantsLoading
@@ -342,7 +378,6 @@ const CheckIn = () => {
                 required: "Room number is required",
               })}
               className="select select-bordered w-full bg-white"
-              defaultValue=""
               disabled={!selectedVariantId || roomsLoading}
             >
               <option value="" disabled>
@@ -457,7 +492,6 @@ const CheckIn = () => {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Price Per Night */}
             <div>
               <p className="text-sm text-gray-500">Price / Night</p>
               <p className="text-lg font-semibold text-gray-800">
@@ -465,13 +499,11 @@ const CheckIn = () => {
               </p>
             </div>
 
-            {/* Number of Nights */}
             <div>
               <p className="text-sm text-gray-500">Number of Nights</p>
               <p className="text-lg font-semibold text-gray-800">{nights}</p>
             </div>
 
-            {/* Total Amount */}
             <div>
               <p className="text-sm text-gray-500">Total Amount</p>
               <p className="text-lg font-bold text-rose-700">
@@ -479,7 +511,6 @@ const CheckIn = () => {
               </p>
             </div>
 
-            {/* Due Amount */}
             <div>
               <p className="text-sm text-gray-500">Due Amount</p>
               <p className="text-lg font-bold text-orange-600">
@@ -488,7 +519,6 @@ const CheckIn = () => {
             </div>
           </div>
 
-          {/* Advance Payment Input */}
           <div className="max-w-xs mt-4">
             <label className="label">
               <span className="label-text font-medium">Advance Payment</span>

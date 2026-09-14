@@ -70,6 +70,7 @@ import UnderPreview from "../pages/error_pages/UnderPreview";
 import UnderDue from "../pages/error_pages/UnderDue";
 import PrivateRoute from "../routes/PrivateRoute";
 import AdminRoute from "../routes/AdminRoute";
+import AllRooms from "../pages/dashboard/rooms/all-rooms/AllRooms";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -196,6 +197,14 @@ const Router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Maintenance />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "rooms/all-rooms",
+        element: (
+          <PrivateRoute>
+            <AllRooms />
           </PrivateRoute>
         ),
       },
