@@ -71,6 +71,8 @@ import UnderDue from "../pages/error_pages/UnderDue";
 import PrivateRoute from "../routes/PrivateRoute";
 import AdminRoute from "../routes/AdminRoute";
 import AllRooms from "../pages/dashboard/rooms/all-rooms/AllRooms";
+import MainReserve from "../pages/dashboard/reservations/MainReserve";
+import ChangeRoom from "../pages/dashboard/rooms/change-room/ChangeRoom";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -157,6 +159,14 @@ const Router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <AddRoomVariant />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "rooms/change-room",
+        element: (
+          <PrivateRoute>
+            <ChangeRoom />
           </PrivateRoute>
         ),
       },
@@ -503,6 +513,14 @@ const Router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <ReservationsHistory />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "reservations/main-reserve",
+        element: (
+          <PrivateRoute>
+            <MainReserve />
           </PrivateRoute>
         ),
       },

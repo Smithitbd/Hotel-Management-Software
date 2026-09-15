@@ -2,12 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
 import { FaUsers, FaMoneyBillWave } from "react-icons/fa";
 import { MdHotel } from "react-icons/md";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 const AllRooms = () => {
   const axiosInstance = useAxios();
   const imageBaseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Detect if coming from reservation calendar
+  const mode = searchParams.get("mode"); // "reserve" or null
+  const selectedDate = searchParams.get("date");
+
   const {
     data: rooms = [],
     isLoading,
@@ -51,15 +57,40 @@ const AllRooms = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-700">
-          <MdHotel className="text-xl text-white" />
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-700">
+            <MdHotel className="text-xl text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-rose-700">
+              {mode === "reserve" ? "Select Room to Reserve" : "All Rooms"}
+            </h1>
+            {mode === "reserve" && selectedDate && (
+              <p className="text-sm text-gray-500">
+                Selected Date:{" "}
+                <span className="font-medium text-rose-700">
+                  {selectedDate}
+                </span>
+              </p>
+            )}
+          </div>
         </div>
-        <h1 className="text-lg font-bold text-rose-700">All Rooms</h1>
+
+        {mode === "reserve" && (
+          <button
+            onClick={() => navigate("/dashboard/reservations")}
+            className="btn btn-sm btn-outline border-rose-700 text-rose-700"
+          >
+            ← Back to Calendar
+          </button>
+        )}
       </div>
 
       <p className="mb-6 text-gray-500">
-        Manage rooms and make bookings easily.
+        {mode === "reserve"
+          ? "Choose a room and click Reserve Now."
+          : "Manage rooms and make bookings easily."}
       </p>
 
       {/* Room Count */}
@@ -82,7 +113,6 @@ const AllRooms = () => {
           </div>
         </div>
       ) : (
-        /* Compact Rooms Grid */
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {rooms.map((room) => {
             const imageUrl = room.image
@@ -91,12 +121,14 @@ const AllRooms = () => {
                 : `${imageBaseURL}${room.image}`
               : "https://images.unsplash.com/photo-1566665797739-1674de7a421a";
 
+            const isAvailable = room.roomStatus?.toLowerCase() === "available";
+
             return (
               <div
                 key={room._id}
                 className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-[#BF1E2E] hover:shadow-xl"
               >
-                {/* Smaller Image */}
+                {/* Image */}
                 <figure className="h-40 overflow-hidden bg-gray-100">
                   <img
                     src={imageUrl}
@@ -109,9 +141,8 @@ const AllRooms = () => {
                   />
                 </figure>
 
-                {/* Compact Card Body */}
+                {/* Card Body */}
                 <div className="p-4">
-                  {/* Room Number + Status */}
                   <div className="mb-3 flex items-start justify-between gap-2">
                     <div>
                       <h2 className="text-base font-bold text-rose-700">
@@ -124,7 +155,7 @@ const AllRooms = () => {
 
                     <span
                       className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        room.roomStatus?.toLowerCase() === "available"
+                        isAvailable
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                       }`}
@@ -133,7 +164,6 @@ const AllRooms = () => {
                     </span>
                   </div>
 
-                  {/* Only Price + Capacity */}
                   <div className="mb-4 flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1.5 text-gray-600">
                       <FaMoneyBillWave className="text-[#BF1E2E]" />
@@ -146,19 +176,28 @@ const AllRooms = () => {
                     </div>
                   </div>
 
-                  {/* Button */}
-                  {room.roomStatus?.toLowerCase() === "available" ? (
+                  {/* Button Logic */}
+                  {isAvailable ? (
                     <button
                       className="w-full rounded-lg bg-[#BF1E2E] py-2 text-sm font-medium text-white transition hover:bg-rose-800"
                       onClick={() => {
-                        navigate("/dashboard/check_in_out/check_in", {
-                          state: {
-                            room: room, // full room object
-                          },
-                        });
+                        if (mode === "reserve") {
+                          // Go to MainReserve page
+                          navigate(`/dashboard/reservations/main-reserve`, {
+                            state: {
+                              room: room,
+                              date: selectedDate,
+                            },
+                          });
+                        } else {
+                          // Normal Check-in flow
+                          navigate("/dashboard/check_in_out/check_in", {
+                            state: { room },
+                          });
+                        }
                       }}
                     >
-                      Book Room
+                      {mode === "reserve" ? "Reserve Now" : "Book Room"}
                     </button>
                   ) : (
                     <button

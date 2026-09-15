@@ -55,17 +55,34 @@ const MainCheckout = () => {
   };
 
   // ====================== CALCULATIONS ======================
+  const previousRoomsCharge = (guest?.roomChangeHistory || []).reduce(
+    (sum, item) => sum + (Number(item.charge) || 0),
+    0,
+  );
+
+  const alreadyChargedNights = (guest?.roomChangeHistory || []).reduce(
+    (sum, item) => sum + (Number(item.daysStayed) || 0),
+    0,
+  );
+
   let actualNights = Number(guest?.numberOfNights) || 0;
-  let actualRoomCharge = Number(guest?.totalAmount) || 0;
+  let currentRoomNights = actualNights;
+  let currentRoomCharge = Number(guest?.totalAmount) || 0;
 
   if (guest && actualCheckoutDate && guest.checkInDate) {
     const inDate = new Date(guest.checkInDate);
     const outDate = new Date(actualCheckoutDate);
     const diffTime = outDate - inDate;
-    const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    actualNights = nights > 0 ? nights : 1;
-    actualRoomCharge = actualNights * Number(guest.pricePerNight || 0);
+    const totalNights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    actualNights = totalNights > 0 ? totalNights : 1;
+
+    // Nights stayed only in the current room
+    currentRoomNights = Math.max(actualNights - alreadyChargedNights, 0);
+    currentRoomCharge = currentRoomNights * Number(guest.pricePerNight || 0);
   }
+
+  // Final Room Charge = Previous rooms + Current room
+  const actualRoomCharge = previousRoomsCharge + currentRoomCharge;
 
   const advance = Number(guest?.advancePayment) || 0;
 
@@ -81,18 +98,17 @@ const MainCheckout = () => {
     .filter((order) => getOrderStatus(order) !== "Paid")
     .reduce((sum, order) => sum + (Number(order.fare) || 0), 0);
 
-  // Total charges (room + unpaid services)
+  // Total charges
   const totalCharges =
     actualRoomCharge + restaurantDue + laundryDue + transportDue;
 
   // Final amount
-  const balance = totalCharges - advance; // positive = Due, negative = Refund
-
+  const balance = totalCharges - advance;
   const isRefund = balance < 0;
   const finalAmount = Math.abs(balance);
 
   const originalRoomTotal = Number(guest?.totalAmount) || 0;
-  const roomDifference = originalRoomTotal - actualRoomCharge;
+  const roomDifference = originalRoomTotal - currentRoomCharge;
   const isEarlyCheckout = actualNights < Number(guest?.numberOfNights || 0);
 
   // ====================== CHECKOUT HANDLER ======================
@@ -102,7 +118,9 @@ const MainCheckout = () => {
       html: `
       <div class="text-left space-y-1 text-sm">
           <p>Actual Nights: <b>${actualNights}</b></p>
-          <p>Room Charge: <b>৳${actualRoomCharge.toLocaleString()}</b></p>
+          <p>Previous Rooms Charge: <b>৳${previousRoomsCharge.toLocaleString()}</b></p>
+          <p>Current Room Charge: <b>৳${currentRoomCharge.toLocaleString()}</b></p>
+          <p>Total Room Charge: <b>৳${actualRoomCharge.toLocaleString()}</b></p>
           <p>Restaurant Due: <b>৳${restaurantDue.toLocaleString()}</b></p>
           <p>Laundry Due: <b>৳${laundryDue.toLocaleString()}</b></p>
           <p>Transport Due: <b>৳${transportDue.toLocaleString()}</b></p>
@@ -127,7 +145,6 @@ const MainCheckout = () => {
     if (!result.isConfirmed) return;
 
     try {
-      // Show loading
       Swal.fire({
         title: "Processing Checkout...",
         text: "Please wait",
@@ -161,7 +178,6 @@ const MainCheckout = () => {
           showConfirmButton: false,
         });
 
-        // Redirect to checkout list page
         navigate("/dashboard/check_in_out/check_out");
       }
     } catch (error) {
@@ -190,7 +206,7 @@ const MainCheckout = () => {
         </p>
         <Link
           to="/dashboard/check_in_out/check_out"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none mt-4"
           title="Back"
         >
           <FaArrowLeft />
@@ -228,7 +244,7 @@ const MainCheckout = () => {
             <button
               type="button"
               className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
-              title="Back to Dashboard"
+              title="Back"
             >
               <IoArrowBackCircleSharp className="text-2xl" />
             </button>
@@ -288,7 +304,7 @@ const MainCheckout = () => {
               <div className="flex items-start gap-3">
                 <FaBed className="text-rose-600 mt-1" />
                 <div>
-                  <p className="text-gray-500">Room</p>
+                  <p className="text-gray-500">Current Room</p>
                   <p className="font-medium">
                     {guest.roomVariantName} (Room {guest.roomNumber})
                   </p>
@@ -319,7 +335,7 @@ const MainCheckout = () => {
               </div>
 
               <div>
-                <p className="text-gray-500">Price per Night</p>
+                <p className="text-gray-500">Price per Night (Current)</p>
                 <p className="font-medium">
                   ৳{Number(guest.pricePerNight).toLocaleString()}
                 </p>
@@ -348,14 +364,16 @@ const MainCheckout = () => {
               </div>
 
               <div>
-                <p className="text-sm text-gray-500 mb-1">Actual Nights</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  Total Actual Nights
+                </p>
                 <p className="text-2xl font-bold text-gray-800">
                   {actualNights}
                 </p>
               </div>
 
               <div>
-                <p className="text-sm text-gray-500 mb-1">Room Charge</p>
+                <p className="text-sm text-gray-500 mb-1">Total Room Charge</p>
                 <p className="text-2xl font-bold text-rose-700">
                   ৳{actualRoomCharge.toLocaleString()}
                 </p>
@@ -364,10 +382,7 @@ const MainCheckout = () => {
 
             {isEarlyCheckout && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                Early checkout detected. Original: ৳
-                {originalRoomTotal.toLocaleString()} → New: ৳
-                {actualRoomCharge.toLocaleString()}
-                (Saved ৳{roomDifference.toLocaleString()})
+                Early checkout detected.
               </div>
             )}
           </div>
@@ -628,21 +643,44 @@ const MainCheckout = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">
-                  Room Charge ({actualNights} nights)
-                </span>
-                <span className="font-medium">
-                  ৳{actualRoomCharge.toLocaleString()}
-                </span>
+              {/* ---------- Room Charge Breakdown ---------- */}
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-3">
+                  Room Charge Breakdown
+                </p>
+
+                {/* Previous Rooms (from transfers) */}
+                {(guest?.roomChangeHistory || []).map((history, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between text-sm text-gray-600 mb-1.5"
+                  >
+                    <span>
+                      Room {history.fromRoom} ({history.fromVariant}) ×{" "}
+                      {history.daysStayed}n
+                    </span>
+                    <span>৳{Number(history.charge).toLocaleString()}</span>
+                  </div>
+                ))}
+
+                {/* Current Room */}
+                <div className="flex justify-between text-sm text-gray-600 mb-1.5">
+                  <span>
+                    Room {guest.roomNumber} ({guest.roomVariantName}) ×{" "}
+                    {currentRoomNights}n
+                  </span>
+                  <span>৳{currentRoomCharge.toLocaleString()}</span>
+                </div>
+
+                <div className="flex justify-between text-sm font-semibold mt-3 pt-2 border-t border-dashed border-gray-200">
+                  <span>Total Room Charge</span>
+                  <span className="text-rose-700">
+                    ৳{actualRoomCharge.toLocaleString()}
+                  </span>
+                </div>
               </div>
 
-              {isEarlyCheckout && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Early Checkout Discount</span>
-                  <span>- ৳{roomDifference.toLocaleString()}</span>
-                </div>
-              )}
+              <div className="border-t border-dashed border-gray-200 my-2"></div>
 
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Restaurant Due</span>
