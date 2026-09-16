@@ -3,16 +3,22 @@ import useAxios from "../../../../hooks/useAxios";
 import { FaUsers, FaMoneyBillWave } from "react-icons/fa";
 import { MdHotel } from "react-icons/md";
 import { useNavigate, useSearchParams } from "react-router";
+import useAuth from "../../../../hooks/useAuth";
 
 const AllRooms = () => {
   const axiosInstance = useAxios();
   const imageBaseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user, loading } = useAuth();
 
   // Detect if coming from reservation calendar
   const mode = searchParams.get("mode"); // "reserve" or null
   const selectedDate = searchParams.get("date");
+
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     data: rooms = [],
@@ -23,7 +29,9 @@ const AllRooms = () => {
   } = useQuery({
     queryKey: ["all-rooms"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/rooms");
+      const res = await axiosInstance.get("/rooms", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

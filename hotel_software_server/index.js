@@ -330,7 +330,8 @@ async function run() {
     });
 
     app.get("/rooms", async (req, res) => {
-      const rooms = await roomCollection.find().toArray();
+      const hotelEmail = req.query.hotelEmail;
+      const rooms = await roomCollection.find({ hotelEmail }).toArray();
       res.send(rooms);
     });
 
