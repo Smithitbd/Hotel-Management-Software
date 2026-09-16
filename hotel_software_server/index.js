@@ -572,6 +572,7 @@ async function run() {
         description: req.body.description || "",
         image: `/uploads/room-variants/${uniqueName}`,
         createdAt: new Date(),
+        hotelEmail: req.body.hotelEmail,
       };
 
       const result = await roomVariantCollection.insertOne(roomVariant);
@@ -579,7 +580,10 @@ async function run() {
     });
 
     app.get("/room-variants", async (req, res) => {
-      const result = await roomVariantCollection.find().toArray();
+      const hotelEmail = req.query.hotelEmail;
+      const result = await roomVariantCollection
+        .find({ hotelEmail: hotelEmail })
+        .toArray();
       res.send(result);
     });
 

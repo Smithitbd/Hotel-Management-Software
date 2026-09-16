@@ -4,10 +4,16 @@ import { FaLayerGroup, FaArrowLeft, FaSave } from "react-icons/fa";
 import Swal from "sweetalert2";
 import useAxios from "../../../../hooks/useAxios";
 import { RiHome3Line } from "react-icons/ri";
+import useAuth from "../../../../hooks/useAuth";
 
 const AddRoomVariant = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -49,6 +55,7 @@ const AddRoomVariant = () => {
     formData.append("bedType", data.bedType || "");
     formData.append("amenities", data.amenities || "");
     formData.append("description", data.description || "");
+    formData.append("hotelEmail", user.email);
 
     const res = await axiosInstance.post("/add-room-variant", formData, {
       headers: {
