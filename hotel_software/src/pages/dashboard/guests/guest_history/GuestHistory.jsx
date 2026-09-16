@@ -52,7 +52,6 @@ const GuestHistory = () => {
   // ========== Load last full checkout of a guest ==========
   const handlePrintInvoice = async (guest) => {
     try {
-      // Fetch all checkouts of this hotel and find the last one of this guest
       const res = await axiosInstance.get("/check-out", {
         params: { hotelEmail: user?.email },
       });
@@ -86,27 +85,57 @@ const GuestHistory = () => {
     );
   }
 
-  // ========== SHOW INVOICE ==========
+  // ========== SHOW BOTH INVOICES ==========
   if (showInvoice && selectedCheckout) {
     return (
       <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-bold text-rose-900">Guest Invoice</h1>
-          <button
-            onClick={() => {
-              setShowInvoice(false);
-              setSelectedCheckout(null);
-            }}
-            className="btn btn-outline border-rose-900 text-rose-900 gap-2"
-          >
-            <FaArrowLeft /> Back to Guest List
-          </button>
+        {/* Header + Actions (hidden when printing) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
+          <h1 className="text-xl font-bold text-rose-900">Guest Invoices</h1>
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => window.print()}
+              className="btn bg-rose-900 hover:bg-rose-800 text-white border-none gap-2"
+            >
+              <FaPrint /> Print Both Invoices
+            </button>
+
+            <button
+              onClick={() => {
+                setShowInvoice(false);
+                setSelectedCheckout(null);
+              }}
+              className="btn btn-outline border-rose-900 text-rose-900 gap-2"
+            >
+              <FaArrowLeft /> Back to Guest List
+            </button>
+          </div>
         </div>
 
-        <CheckoutInvoice
-          checkoutData={selectedCheckout}
-          hotelInfo={hotelInfo}
+        {/* Guest Invoice */}
+        <div className="mb-12">
+          <CheckoutInvoice
+            checkoutData={selectedCheckout}
+            hotelInfo={hotelInfo}
+            variant="guest"
+          />
+        </div>
+
+        {/* Page break for printing */}
+        <div
+          className="hidden print:block"
+          style={{ pageBreakAfter: "always" }}
         />
+
+        {/* Hotel Copy */}
+        <div>
+          <CheckoutInvoice
+            checkoutData={selectedCheckout}
+            hotelInfo={hotelInfo}
+            variant="hotel"
+          />
+        </div>
       </div>
     );
   }
@@ -216,7 +245,7 @@ const GuestHistory = () => {
                       </div>
                     </td>
 
-                    <td>
+                    <td className="p-5 w-full h-full">
                       <span className="badge badge-ghost font-medium">
                         {guest.totalStays}{" "}
                         {guest.totalStays > 1 ? "times" : "time"}
