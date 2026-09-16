@@ -44,61 +44,64 @@ const DashboardLayout = () => {
         <label htmlFor="dashboard-drawer" className="drawer-overlay"></label>
 
         <aside className="w-72 min-h-full bg-rose-700 text-white">
-          <div className="p-6 border-b border-amber-700">
-            <Logo />
+          <div className="p-4">
+            <Logo></Logo>
           </div>
 
-          <ul className="menu p-4 gap-2">
+          <ul className="menu gap-2">
             {/* ===== Approved users ===== */}
             {status === "Approved" && (
               <>
                 <li>
-                  <NavLink to="/dashboard">
+                  <NavLink className="text-lg -mt-10" to="/dashboard">
                     <MdDashboard /> Dashboard
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/rooms">
+                  <NavLink className="text-lg" to="/dashboard/rooms">
                     <FaHome /> Rooms
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/services">
+                  <NavLink className="text-lg" to="/dashboard/services">
                     <MdOutlineDesignServices /> Services
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/billing_and_payments">
+                  <NavLink
+                    className="text-lg"
+                    to="/dashboard/billing_and_payments"
+                  >
                     <FaRegMoneyBillAlt /> Billing & Payments
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/check_in_out">
+                  <NavLink className="text-lg" to="/dashboard/check_in_out">
                     <FaBuildingCircleCheck /> Check In & Out
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/employees">
+                  <NavLink className="text-lg" to="/dashboard/employees">
                     <BsPersonWorkspace /> Employees
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/guests">
+                  <NavLink className="text-lg" to="/dashboard/guests">
                     <FaPersonCircleCheck /> Guests
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/reservations">
+                  <NavLink className="text-lg" to="/dashboard/reservations">
                     <TbReservedLine /> Reservations
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/reports">
+                  <NavLink className="text-lg" to="/dashboard/reports">
                     <TbReport /> Reports
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/dashboard/settings">
+                  <NavLink className="text-lg" to="/dashboard/settings">
                     <IoSettingsSharp /> Settings
                   </NavLink>
                 </li>
@@ -109,7 +112,7 @@ const DashboardLayout = () => {
             {status === "Admin" && (
               <>
                 <li>
-                  <NavLink to="/dashboard/settings">
+                  <NavLink className="text-lg" to="/dashboard/settings">
                     <IoSettingsSharp /> Settings
                   </NavLink>
                 </li>
