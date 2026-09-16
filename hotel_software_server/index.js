@@ -335,9 +335,17 @@ async function run() {
     });
 
     app.get("/rooms/maintenance", async (req, res) => {
-      const rooms = await roomCollection
-        .find({ roomStatus: { $in: ["Maintenance", "In Progress"] } })
-        .toArray();
+      const hotelEmail = req.query.hotelEmail;
+
+      const query = {
+        roomStatus: { $in: ["Maintenance", "In Progress"] },
+      };
+
+      if (hotelEmail) {
+        query.hotelEmail = hotelEmail;
+      }
+
+      const rooms = await roomCollection.find(query).toArray();
       res.send(rooms);
     });
 
@@ -699,10 +707,24 @@ async function run() {
       res.send(result);
     });
 
+    // Get rooms by variantId
     app.get("/rooms/variant/:variantId", async (req, res) => {
-      const { variantId } = req.params;
-      const rooms = await roomCollection.find({ variantId }).toArray();
-      res.send(rooms);
+      try {
+        const { variantId } = req.params;
+
+        if (!variantId) {
+          return res.status(400).send({ message: "variantId is required" });
+        }
+
+        const result = await roomCollection
+          .find({ variantId: variantId }) // ← filter only by variantId
+          .toArray();
+
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching rooms by variant:", error);
+        res.status(500).send({ message: "Failed to fetch rooms" });
+      }
     });
 
     // =========================================================

@@ -5,11 +5,17 @@ import Swal from "sweetalert2";
 import { RiHome3Line } from "react-icons/ri";
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import useAxios from "../../../../../hooks/useAxios";
+import useAuth from "../../../../../hooks/useAuth";
 
 const AddRoom = () => {
   const axiosInstance = useAxios();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -58,6 +64,7 @@ const AddRoom = () => {
       amenities: variant.amenities,
       description: variant.description,
       image: variant.image,
+      hotelEmail: user.email,
 
       // Room information
       roomStatus: data.roomStatus,

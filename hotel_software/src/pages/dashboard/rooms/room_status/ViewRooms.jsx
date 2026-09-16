@@ -4,13 +4,16 @@ import useAxios from "../../../../hooks/useAxios";
 import { IoMdSkipBackward } from "react-icons/io";
 import Swal from "sweetalert2";
 import { MdOutlineViewInAr } from "react-icons/md";
+import useAuth from "../../../../hooks/useAuth";
 
 const ViewRooms = () => {
   const { id } = useParams();
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     data: rooms = [],
     isLoading,

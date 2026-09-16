@@ -5,9 +5,14 @@ import { RiHome3Line } from "react-icons/ri";
 import { AiFillEdit } from "react-icons/ai";
 import { FaHistory } from "react-icons/fa";
 import { LuNetwork } from "react-icons/lu";
+import useAuth from "../../../../hooks/useAuth";
 
 const Maintenance = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     data: rooms = [],
@@ -18,7 +23,11 @@ const Maintenance = () => {
   } = useQuery({
     queryKey: ["rooms-maintenance"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/rooms/maintenance");
+      const res = await axiosInstance.get("/rooms/maintenance", {
+        params: {
+          hotelEmail: user?.email, // logged-in hotel email
+        },
+      });
       return res.data;
     },
   });

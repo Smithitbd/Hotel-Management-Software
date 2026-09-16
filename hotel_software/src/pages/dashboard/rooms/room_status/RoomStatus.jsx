@@ -5,14 +5,23 @@ import { RiHome3Line } from "react-icons/ri";
 import { FaLayerGroup, FaPlus } from "react-icons/fa";
 import { FaEye } from "react-icons/fa6";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const RoomStatus = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const { data: variants = [], isLoading } = useQuery({
     queryKey: ["room-variants"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/room-variants");
+      const res = await axiosInstance.get("/room-variants", {
+        params: {
+          hotelEmail: user.email, // or whatever your logged-in hotel email is
+        },
+      });
       return res.data;
     },
   });
