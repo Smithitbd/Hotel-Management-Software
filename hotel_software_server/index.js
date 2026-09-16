@@ -851,7 +851,12 @@ async function run() {
     });
 
     app.get("/check-in", async (req, res) => {
-      const result = await checkInCollection.find().toArray();
+      const hotelEmail = req.query.hotelEmail;
+      const query = {};
+      if (hotelEmail) {
+        query.hotelEmail = hotelEmail;
+      }
+      const result = await checkInCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -1018,12 +1023,23 @@ async function run() {
     });
 
     app.get("/room-service", async (req, res) => {
-      const { active } = req.query;
-      const filter = active ? { active_status: "active" } : {};
+      const { active, hotelEmail } = req.query;
+
+      const filter = {};
+
+      if (active) {
+        filter.active_status = "active";
+      }
+
+      if (hotelEmail) {
+        filter.hotelEmail = hotelEmail;
+      }
+
       const result = await roomServiceCollection
         .find(filter)
         .sort({ createdAt: -1 })
         .toArray();
+
       res.send(result);
     });
 

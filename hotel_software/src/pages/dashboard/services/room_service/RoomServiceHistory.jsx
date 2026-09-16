@@ -3,9 +3,14 @@ import { MdRoomService, MdWorkHistory } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const RoomServiceHistory = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     data: roomServices = [],
@@ -14,7 +19,11 @@ const RoomServiceHistory = () => {
   } = useQuery({
     queryKey: ["room-service-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/room-service");
+      const res = await axiosInstance.get("/room-service", {
+        params: {
+          hotelEmail: user?.email,
+        },
+      });
       return res.data;
     },
   });

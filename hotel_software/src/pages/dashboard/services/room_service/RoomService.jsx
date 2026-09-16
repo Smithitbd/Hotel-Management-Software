@@ -5,11 +5,15 @@ import { RiHome3Line } from "react-icons/ri";
 import { Link, useNavigate } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
+import useAuth from "../../../../hooks/useAuth";
 
 const RoomService = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     register,
     handleSubmit,
@@ -22,7 +26,11 @@ const RoomService = () => {
   const { data: checkIns = [], isLoading } = useQuery({
     queryKey: ["check-ins"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-in");
+      const res = await axiosInstance.get("/check-in", {
+        params: {
+          hotelEmail: user?.email,
+        },
+      });
       return res.data;
     },
   });
@@ -38,6 +46,7 @@ const RoomService = () => {
       roomVariantName: selectedCheckIn?.roomVariantName || "",
       nidNumber: selectedCheckIn?.nidNumber || "",
       orderedBy: selectedCheckIn?.guestName || "",
+      hotelEmail: selectedCheckIn?.hotelEmail || "",
     };
 
     const res = await axiosInstance.post("/room-service", serviceData);
