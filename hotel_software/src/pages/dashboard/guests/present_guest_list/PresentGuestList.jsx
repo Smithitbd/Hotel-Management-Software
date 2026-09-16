@@ -4,10 +4,14 @@ import useAxios from "../../../../hooks/useAxios";
 import { MdOutlinePlaylistAddCheckCircle } from "react-icons/md";
 import { FaArrowLeft, FaUserEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
+import useAuth from "../../../../hooks/useAuth";
 
 const PresentGuestList = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     data: checkIns = [],
     isLoading,
@@ -17,7 +21,11 @@ const PresentGuestList = () => {
   } = useQuery({
     queryKey: ["check-ins"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-in");
+      const res = await axiosInstance.get("/check-in", {
+        params: {
+          hotelEmail: user?.email,
+        },
+      });
       return res.data;
     },
   });
@@ -37,6 +45,7 @@ const PresentGuestList = () => {
       refetch();
     } else {
       const bannedGuest = {
+        hotelEmail: checkIn.hotelEmail,
         checkinId: checkIn._id,
         designation: checkIn.designation,
         guestName: checkIn.guestName,

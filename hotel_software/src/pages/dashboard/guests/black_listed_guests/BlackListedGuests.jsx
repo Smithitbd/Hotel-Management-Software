@@ -4,10 +4,14 @@ import useAxios from "../../../../hooks/useAxios";
 import { RiHome3Line } from "react-icons/ri";
 import { MdBlock } from "react-icons/md";
 import { FaArrowLeft } from "react-icons/fa";
+import useAuth from "../../../../hooks/useAuth";
 
 const BlackListedGuests = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     data: bannedGuests = [],
     isLoading,
@@ -16,7 +20,11 @@ const BlackListedGuests = () => {
   } = useQuery({
     queryKey: ["banned-guests"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/banned-guests");
+      const res = await axiosInstance.get("/banned-guests", {
+        params: {
+          hotelEmail: user?.email,
+        },
+      });
       return res.data;
     },
   });

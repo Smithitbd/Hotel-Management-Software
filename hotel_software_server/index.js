@@ -938,6 +938,7 @@ async function run() {
       );
 
       const result = await bannedGuestCollection.insertOne({
+        hotelEmail: checkIn.hotelEmail,
         checkinId: checkIn._id,
         designation: checkIn.designation,
         guestName: checkIn.guestName,
@@ -962,7 +963,15 @@ async function run() {
     });
 
     app.get("/banned-guests", async (req, res) => {
-      const result = await bannedGuestCollection.find().toArray();
+      const hotelEmail = req.query.hotelEmail;
+
+      const query = {};
+
+      if (hotelEmail) {
+        query.hotelEmail = hotelEmail;
+      }
+
+      const result = await bannedGuestCollection.find(query).toArray();
       res.send(result);
     });
 
