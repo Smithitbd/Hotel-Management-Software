@@ -12,6 +12,7 @@ import { MdDashboard } from "react-icons/md";
 import useAxios from "../../../hooks/useAxios";
 import useUserStatus from "../../../hooks/useUserStatus";
 import { Navigate } from "react-router";
+import PageHeader from "../../../components/PageHeader"; // adjust path if needed
 
 const Root = () => {
   const axiosInstance = useAxios();
@@ -129,25 +130,20 @@ const Root = () => {
   }
 
   return (
-    <div className="p-6">
-      {/* ====================== HEADER ====================== */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
-          <MdDashboard className="text-xl text-white" />
-        </div>
-        <h1 className="text-lg font-bold text-rose-900">Dashboard</h1>
-      </div>
-
-      <p className="text-gray-500 mb-10">
-        Overview of your hotel performance, guests, rooms and revenue.
-      </p>
+    <div className="mx-auto p-4 sm:p-6 max-w-7xl">
+      {/* ===== Page Header (Title + Logout) ===== */}
+      <PageHeader
+        title="Dashboard"
+        subtitle="Overview of your hotel performance, guests, rooms and revenue."
+        icon={<MdDashboard className="text-xl text-white" />}
+      />
 
       {/* ====================== TOP STATS CARDS ====================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 sm:gap-6 mb-10">
         {/* Current Guests */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-[#BF1E2E]">
-          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-[#BF1E2E]">
-            <FaUsers className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
+          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
+            <FaUsers className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Current Guests</p>
           <p className="text-2xl font-bold text-rose-900">
@@ -156,9 +152,9 @@ const Root = () => {
         </div>
 
         {/* Current Employees */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-[#BF1E2E]">
-          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-[#BF1E2E]">
-            <FaUserTie className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
+          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
+            <FaUserTie className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Current Employees</p>
           <p className="text-2xl font-bold text-rose-900">
@@ -167,9 +163,9 @@ const Root = () => {
         </div>
 
         {/* Available Rooms */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-[#BF1E2E]">
-          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-[#BF1E2E]">
-            <FaDoorOpen className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
+          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
+            <FaDoorOpen className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Available Rooms</p>
           <p className="text-2xl font-bold text-rose-900">
@@ -178,9 +174,9 @@ const Root = () => {
         </div>
 
         {/* Occupied Rooms */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-[#BF1E2E]">
-          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-[#BF1E2E]">
-            <FaBed className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
+          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
+            <FaBed className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Occupied Rooms</p>
           <p className="text-2xl font-bold text-rose-900">
@@ -189,9 +185,9 @@ const Root = () => {
         </div>
 
         {/* This Month Earning */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-[#BF1E2E]">
-          <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-[#BF1E2E]">
-            <FaMoneyBillWave className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
+          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
+            <FaMoneyBillWave className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">This Month Earning</p>
           <p className="text-2xl font-bold text-rose-900">
@@ -201,9 +197,9 @@ const Root = () => {
       </div>
 
       {/* ====================== CHARTS ====================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Bar Chart - Customers per Month */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:border-[#BF1E2E]">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:border-rose-900">
           <h3 className="text-lg font-bold text-rose-900 mb-5">
             Customers Per Month
           </h3>
@@ -222,7 +218,7 @@ const Root = () => {
         </div>
 
         {/* Pie Chart - Revenue by Service */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:border-[#BF1E2E] flex flex-col items-center">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:border-rose-900 flex flex-col items-center">
           <h3 className="text-lg font-bold text-rose-900 mb-5 self-start">
             Revenue by Service
           </h3>

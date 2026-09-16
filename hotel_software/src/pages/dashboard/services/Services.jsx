@@ -6,23 +6,19 @@ import {
   FaShuttleVan,
 } from "react-icons/fa";
 import { MdHomeRepairService } from "react-icons/md";
+import PageHeader from "../../../components/PageHeader"; // adjust path if needed
 
 const Services = () => {
   return (
     <div className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
-          <MdHomeRepairService className="text-xl text-white" />
-        </div>
+      {/* ===== Page Header with Logout ===== */}
+      <PageHeader
+        title="Hotel Services"
+        subtitle="Manage all guest services offered by the hotel."
+        icon={<MdHomeRepairService className="text-xl text-white" />}
+      />
 
-        <h1 className="text-lg font-bold text-rose-900">Hotel Services</h1>
-      </div>
-
-      <p className="text-gray-500 mb-10">
-        Manage all guest services offered by the hotel.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mt-6">
         {/* Room Service */}
         <Link
           to="/dashboard/services/room_service"

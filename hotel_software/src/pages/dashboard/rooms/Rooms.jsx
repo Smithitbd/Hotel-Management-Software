@@ -3,24 +3,19 @@ import { FaBed, FaDoorOpen, FaTools, FaLayerGroup } from "react-icons/fa";
 import { MdMeetingRoom } from "react-icons/md";
 import { SiHomeassistant } from "react-icons/si";
 import { MdChangeCircle } from "react-icons/md";
+import PageHeader from "../../../components/PageHeader"; // adjust path if needed
 
 const Rooms = () => {
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
-          <MdMeetingRoom className="text-xl text-white" />
-        </div>
+      {/* ===== Page Header with Logout ===== */}
+      <PageHeader
+        title="Room Management"
+        subtitle="Manage hotel rooms, availability, and maintenance."
+        icon={<MdMeetingRoom className="text-xl text-white" />}
+      />
 
-        <h1 className="text-lg font-bold text-rose-900">Room Management</h1>
-      </div>
-
-      <p className="text-gray-500 mb-10">
-        Manage hotel rooms, availability, and maintenance.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mt-6">
         {/* Room Overview */}
         <Link
           to="/dashboard/rooms/room_overview"
@@ -88,6 +83,7 @@ const Rooms = () => {
             Track rooms under maintenance and schedule repairs.
           </p>
         </Link>
+
         {/* All Rooms */}
         <Link
           to="/dashboard/rooms/all-rooms"
@@ -104,6 +100,7 @@ const Rooms = () => {
             guest-ready.
           </p>
         </Link>
+
         {/* Change Rooms */}
         <Link
           to="/dashboard/rooms/change-room"

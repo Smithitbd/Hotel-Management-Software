@@ -1,30 +1,19 @@
 import { Link } from "react-router";
-import {
-  FaChartLine,
-  FaBed,
-  FaMoneyCheckAlt,
-  FaReceipt,
-  FaConciergeBell,
-} from "react-icons/fa";
+import { FaChartLine, FaBed, FaMoneyCheckAlt, FaReceipt } from "react-icons/fa";
 import { MdAssessment } from "react-icons/md";
+import PageHeader from "../../../components/PageHeader"; // adjust path if needed
 
 const Reports = () => {
   return (
     <div className="p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
-          <MdAssessment className="text-xl text-white" />
-        </div>
+      {/* ===== Page Header with Logout ===== */}
+      <PageHeader
+        title="Reports"
+        subtitle="View and generate detailed reports for sales, rooms, salaries, expenses, and services."
+        icon={<MdAssessment className="text-xl text-white" />}
+      />
 
-        <h1 className="text-lg font-bold text-rose-900">Reports</h1>
-      </div>
-
-      <p className="text-gray-500 mb-10">
-        View and generate detailed reports for sales, rooms, salaries, expenses,
-        and services.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mt-6">
         {/* Sales Report */}
         <Link
           to="/dashboard/reports/sales_report"
