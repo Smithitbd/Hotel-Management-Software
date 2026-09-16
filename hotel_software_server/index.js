@@ -1908,6 +1908,7 @@ async function run() {
           advancePayment,
           finalAmount,
           isRefund,
+          hotelEmail,
         } = req.body;
 
         const checkoutData = {
@@ -1925,6 +1926,7 @@ async function run() {
           advancePayment: Number(advancePayment) || checkIn.advancePayment,
           finalAmount: Number(finalAmount) || 0,
           isRefund: Boolean(isRefund),
+          hotelEmail: checkIn.hotelEmail,
           checkedOutAt: new Date(),
           restaurantOrders: (checkIn.restaurantOrders || []).map((order) => ({
             ...order,
@@ -2039,8 +2041,15 @@ async function run() {
     // =========================================================
     app.get("/unique-guests", async (req, res) => {
       try {
+        const hotelEmail = req.query.hotelEmail;
+
+        if (!hotelEmail) {
+          return res.status(400).send({ message: "hotelEmail is required" });
+        }
+
         const uniqueGuests = await checkOutCollection
           .aggregate([
+            { $match: { hotelEmail: hotelEmail } }, // ← filter by hotel
             { $sort: { checkedOutAt: -1 } },
             {
               $group: {
@@ -2086,7 +2095,6 @@ async function run() {
         res.status(500).send({ message: "Failed to get unique guests" });
       }
     });
-
     app.get("/refunded-checkouts", async (req, res) => {
       try {
         const { fromDate, toDate, contactNumber } = req.query;

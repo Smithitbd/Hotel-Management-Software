@@ -17,11 +17,16 @@ import { MdCheckCircleOutline } from "react-icons/md";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
+import useAuth from "../../../../../hooks/useAuth";
 
 const MainCheckout = () => {
   const { id } = useParams();
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     data: guest,
@@ -104,6 +109,7 @@ const MainCheckout = () => {
 
   // Final amount
   const balance = totalCharges - advance;
+  const hotelEmail = user.email;
   const isRefund = balance < 0;
   const finalAmount = Math.abs(balance);
 
@@ -165,6 +171,7 @@ const MainCheckout = () => {
         advancePayment: advance,
         finalAmount,
         isRefund,
+        hotelEmail,
       };
 
       const res = await axiosInstance.post(`/check-out/${id}`, payload);

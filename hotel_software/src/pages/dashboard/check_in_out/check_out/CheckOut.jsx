@@ -3,10 +3,14 @@ import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { MdCheckCircleOutline } from "react-icons/md";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
+import useAuth from "../../../../hooks/useAuth";
 
 const CheckOut = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     data: checkIns = [],
     isLoading,
@@ -14,7 +18,11 @@ const CheckOut = () => {
   } = useQuery({
     queryKey: ["check-ins-for-checkout"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-in");
+      const res = await axiosInstance.get("/check-in", {
+        params: {
+          hotelEmail: user?.email,
+        },
+      });
       // Only show guests who are still checked-in (not already checked-out)
       return res.data;
     },

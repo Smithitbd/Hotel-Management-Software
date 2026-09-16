@@ -11,14 +11,23 @@ import { MdPeople } from "react-icons/md";
 import useAxios from "../../../../hooks/useAxios";
 import { Link } from "react-router";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
+import useAuth from "../../../../hooks/useAuth";
 
 const GuestHistory = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const { data: guests = [], isLoading } = useQuery({
     queryKey: ["unique-guests"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/unique-guests");
+      const res = await axiosInstance.get("/unique-guests", {
+        params: {
+          hotelEmail: user?.email,
+        },
+      });
       return res.data;
     },
   });
