@@ -2016,16 +2016,25 @@ async function run() {
       }
     });
 
+    // app.get("/check-out", async (req, res) => {
+    //   try {
+    //     const result = await checkOutCollection
+    //       .find()
+    //       .sort({ checkedOutAt: -1 })
+    //       .toArray();
+    //     res.send(result);
+    //   } catch (error) {
+    //     res.status(500).send({ message: "Failed to get checkout list" });
+    //   }
+    // });
+
     app.get("/check-out", async (req, res) => {
-      try {
-        const result = await checkOutCollection
-          .find()
-          .sort({ checkedOutAt: -1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to get checkout list" });
-      }
+      const hotelEmail = req.query.hotelEmail;
+      const result = await checkOutCollection
+        .find({ hotelEmail })
+        .sort({ checkedOutAt: -1 })
+        .toArray();
+      res.send(result);
     });
 
     app.get("/check-out/:id", async (req, res) => {

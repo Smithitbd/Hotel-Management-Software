@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useNavigate, Link } from "react-router";
+import { useParams, Link } from "react-router";
 import { useForm } from "react-hook-form";
 import {
   FaBed,
@@ -12,18 +13,22 @@ import {
   FaMapMarkerAlt,
   FaCalendarAlt,
   FaArrowLeft,
+  FaPrint,
 } from "react-icons/fa";
 import { MdCheckCircleOutline } from "react-icons/md";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
 import useAuth from "../../../../../hooks/useAuth";
+import CheckoutInvoice from "../../../../../components/CheckoutInvoice";
 
 const MainCheckout = () => {
   const { id } = useParams();
   const axiosInstance = useAxios();
-  const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [isCheckedOut, setIsCheckedOut] = useState(false);
+  const [checkoutData, setCheckoutData] = useState(null);
+
   if (loading) {
     return <span className="loading loading-spinner text-error"></span>;
   }
@@ -35,10 +40,24 @@ const MainCheckout = () => {
   } = useQuery({
     queryKey: ["check-in-details", id],
     queryFn: async () => {
-      const res = await axiosInstance.get(`/check-in/${id}`);
+      const res = await axiosInstance.get(`/check-in/${id}`, {
+        params: { hotelEmail: user?.email },
+      });
       return res.data;
     },
-    enabled: !!id,
+    enabled: !!id && !!user?.email,
+  });
+
+  // Get Hotel Info
+  const { data: hotelInfo } = useQuery({
+    queryKey: ["hotel-info", user?.email],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/hotels/by-email", {
+        params: { email: user?.email },
+      });
+      return res.data;
+    },
+    enabled: !!user?.email,
   });
 
   // ====================== FORM FOR ACTUAL CHECKOUT DATE ======================
@@ -81,14 +100,11 @@ const MainCheckout = () => {
     const totalNights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     actualNights = totalNights > 0 ? totalNights : 1;
 
-    // Nights stayed only in the current room
     currentRoomNights = Math.max(actualNights - alreadyChargedNights, 0);
     currentRoomCharge = currentRoomNights * Number(guest.pricePerNight || 0);
   }
 
-  // Final Room Charge = Previous rooms + Current room
   const actualRoomCharge = previousRoomsCharge + currentRoomCharge;
-
   const advance = Number(guest?.advancePayment) || 0;
 
   const restaurantDue = (guest?.restaurantOrders || [])
@@ -103,18 +119,14 @@ const MainCheckout = () => {
     .filter((order) => getOrderStatus(order) !== "Paid")
     .reduce((sum, order) => sum + (Number(order.fare) || 0), 0);
 
-  // Total charges
   const totalCharges =
     actualRoomCharge + restaurantDue + laundryDue + transportDue;
 
-  // Final amount
   const balance = totalCharges - advance;
-  const hotelEmail = user.email;
+  const hotelEmail = user?.email;
   const isRefund = balance < 0;
   const finalAmount = Math.abs(balance);
 
-  const originalRoomTotal = Number(guest?.totalAmount) || 0;
-  const roomDifference = originalRoomTotal - currentRoomCharge;
   const isEarlyCheckout = actualNights < Number(guest?.numberOfNights || 0);
 
   // ====================== CHECKOUT HANDLER ======================
@@ -177,15 +189,22 @@ const MainCheckout = () => {
       const res = await axiosInstance.post(`/check-out/${id}`, payload);
 
       if (res.data.success) {
+        // Prepare full data for invoice
+        setCheckoutData({
+          ...guest,
+          ...payload,
+          _id: res.data.checkoutId || guest._id,
+          checkedOutAt: new Date(),
+        });
+
+        setIsCheckedOut(true);
+
         await Swal.fire({
           icon: "success",
           title: "Checkout Successful!",
-          text: "Guest has been checked out and moved to Checkout List.",
-          timer: 2000,
-          showConfirmButton: false,
+          text: "Guest has been checked out. You can now print the invoices.",
+          confirmButtonColor: "#be123c",
         });
-
-        navigate("/dashboard/check_in_out/check_out");
       }
     } catch (error) {
       console.error("Checkout error:", error);
@@ -222,6 +241,59 @@ const MainCheckout = () => {
     );
   }
 
+  // ========== SHOW INVOICE AFTER CHECKOUT ==========
+  // Inside MainCheckout.jsx – the isCheckedOut block
+
+  if (isCheckedOut && checkoutData) {
+    return (
+      <div className="mx-auto p-4 sm:p-6 max-w-7xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
+          <h1 className="text-xl font-bold text-rose-900">Checkout Invoices</h1>
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => window.print()}
+              className="btn bg-rose-900 hover:bg-rose-800 text-white border-none gap-2"
+            >
+              <FaPrint /> Print Both Invoices
+            </button>
+
+            <Link to="/dashboard/check_in_out/check_out">
+              <button className="btn btn-outline border-rose-900 text-rose-900 gap-2">
+                <FaArrowLeft /> Back to Checkout List
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Guest Invoice */}
+        <div className="mb-12">
+          <CheckoutInvoice
+            checkoutData={checkoutData}
+            hotelInfo={hotelInfo}
+            variant="guest"
+          />
+        </div>
+
+        {/* Page break for printing */}
+        <div
+          className="hidden print:block"
+          style={{ pageBreakAfter: "always" }}
+        />
+
+        {/* Hotel Copy */}
+        <div>
+          <CheckoutInvoice
+            checkoutData={checkoutData}
+            hotelInfo={hotelInfo}
+            variant="hotel"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto p-6 max-w-6xl">
       {/* ====================== HEADER ====================== */}
@@ -239,13 +311,15 @@ const MainCheckout = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleCheckout}
-            className="btn bg-rose-900 hover:bg-rose-900 text-white border-none gap-2 shadow-md"
-          >
-            <FaMoneyBillWave />
-            Complete Checkout
-          </button>
+          {!isCheckedOut && (
+            <button
+              onClick={handleCheckout}
+              className="btn bg-rose-900 hover:bg-rose-900 text-white border-none gap-2 shadow-md"
+            >
+              <FaMoneyBillWave />
+              Complete Checkout
+            </button>
+          )}
 
           <Link to="/dashboard/check_in_out/check_out">
             <button
@@ -366,6 +440,7 @@ const MainCheckout = () => {
                   className="input input-bordered w-full bg-white"
                   min={guest.checkInDate}
                   defaultValue={guest.checkOutDate}
+                  disabled={isCheckedOut}
                   {...register("actualCheckoutDate")}
                 />
               </div>
@@ -650,13 +725,11 @@ const MainCheckout = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              {/* ---------- Room Charge Breakdown ---------- */}
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-3">
                   Room Charge Breakdown
                 </p>
 
-                {/* Previous Rooms (from transfers) */}
                 {(guest?.roomChangeHistory || []).map((history, index) => (
                   <div
                     key={index}
@@ -670,7 +743,6 @@ const MainCheckout = () => {
                   </div>
                 ))}
 
-                {/* Current Room */}
                 <div className="flex justify-between text-sm text-gray-600 mb-1.5">
                   <span>
                     Room {guest.roomNumber} ({guest.roomVariantName}) ×{" "}
@@ -726,7 +798,6 @@ const MainCheckout = () => {
 
               <div className="border-t border-dashed border-gray-200 my-2"></div>
 
-              {/* Final Amount */}
               <div
                 className={`rounded-xl p-4 ${
                   isRefund ? "bg-green-50" : "bg-rose-50"
@@ -750,13 +821,17 @@ const MainCheckout = () => {
                 </div>
               </div>
 
-              <button
-                onClick={handleCheckout}
-                className="btn bg-rose-900 hover:bg-rose-900 text-white border-none w-full mt-4 gap-2"
-              >
-                <FaMoneyBillWave />
-                Complete Checkout
-              </button>
+              <div className="flex flex-col gap-2 mt-4">
+                {!isCheckedOut && (
+                  <button
+                    onClick={handleCheckout}
+                    className="btn bg-rose-900 hover:bg-rose-900 text-white border-none w-full gap-2"
+                  >
+                    <FaMoneyBillWave />
+                    Complete Checkout
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
