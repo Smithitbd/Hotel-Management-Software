@@ -6,14 +6,20 @@ import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import { useEffect } from "react";
+import useAuth from "../../../../hooks/useAuth";
 
 const CheckIn = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
 
   // Room data coming from AllRooms page
   const prefilledRoom = location.state?.room;
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -38,7 +44,11 @@ const CheckIn = () => {
   const { data: roomVariants = [], isLoading: variantsLoading } = useQuery({
     queryKey: ["room-variants"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/room-variants");
+      const res = await axiosInstance.get("/room-variants", {
+        params: {
+          hotelEmail: user.email, // or whatever your logged-in hotel email is
+        },
+      });
       return res.data;
     },
   });
@@ -135,6 +145,7 @@ const CheckIn = () => {
 
     formData.append("specialRequests", data.specialRequests || "");
     formData.append("status", "Normal");
+    formData.append("hotelEmail", user.email);
 
     try {
       const res = await axiosInstance.post("/check-in", formData, {

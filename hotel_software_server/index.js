@@ -804,6 +804,7 @@ async function run() {
         await personImage.mv(path.join(uploadDir, personUniqueName));
 
         const checkInData = {
+          hotelEmail: req.body.hotelEmail,
           guestName: req.body.guestName,
           guestAddress: req.body.guestAddress,
           contactNumber: req.body.contactNumber,
