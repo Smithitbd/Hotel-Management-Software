@@ -156,7 +156,7 @@ const MakeSalary = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -167,10 +167,10 @@ const MakeSalary = () => {
       <div className="flex justify-between mb-5">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <FaMoneyCheckAlt className="text-xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-700">Make Salary</h1>
+            <h1 className="text-lg font-bold text-rose-900">Make Salary</h1>
           </div>
           <p className="text-gray-500 ml-12">
             Generate monthly salary for this staff member.
@@ -180,7 +180,7 @@ const MakeSalary = () => {
         <Link to="/dashboard/employees">
           <button
             type="button"
-            className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
             <RiHome3Line className="text-xl" />
           </button>
@@ -271,7 +271,7 @@ const MakeSalary = () => {
           </div>
 
           {/* Salary Components (Read only) */}
-          <h3 className="text-base font-semibold text-rose-700 mb-4">
+          <h3 className="text-base font-semibold text-rose-900 mb-4">
             Salary Components
           </h3>
 
@@ -315,7 +315,7 @@ const MakeSalary = () => {
                 className="checkbox checkbox-error"
               />
               <div>
-                <p className="font-semibold text-rose-800">
+                <p className="font-semibold text-rose-900">
                   Include Festival Bonus this month?
                 </p>
                 <p className="text-sm text-gray-500">
@@ -389,7 +389,7 @@ const MakeSalary = () => {
               </span>
             </div>
             <div className="border-t border-rose-200 pt-3 flex justify-between">
-              <span className="font-bold text-rose-800 text-lg">Net Pay</span>
+              <span className="font-bold text-rose-900 text-lg">Net Pay</span>
               <span className="font-bold text-green-600 text-2xl">
                 ৳{netPay.toLocaleString()}
               </span>

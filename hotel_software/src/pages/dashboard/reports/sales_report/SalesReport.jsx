@@ -9,16 +9,16 @@ const SalesReport = () => {
       <div className="flex items-center justify-between mb-6">
         {/* Left side - Title */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdAssessment className="text-xl text-white" />
           </div>
-          <h1 className="text-lg font-bold text-rose-700">Sales Report</h1>
+          <h1 className="text-lg font-bold text-rose-900">Sales Report</h1>
         </div>
 
         {/* Right side - Back Icon Button */}
         <Link
           to="/dashboard/reports"
-          className="w-9 h-9 flex items-center justify-center bg-rose-700 text-white rounded-lg hover:bg-[#BF1E2E] transition-all duration-300 shadow-md"
+          className="w-9 h-9 flex items-center justify-center bg-rose-900 text-white rounded-lg hover:bg-[#BF1E2E] transition-all duration-300 shadow-md"
           title="Back"
         >
           <FaArrowLeft className="text-lg" />
@@ -41,7 +41,7 @@ const SalesReport = () => {
             <FaCar className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Transportation Sales
           </h2>
 
@@ -59,7 +59,7 @@ const SalesReport = () => {
             <FaUtensils className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Restaurant Sales
           </h2>
 
@@ -77,7 +77,7 @@ const SalesReport = () => {
             <FaTshirt className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Laundry Sales
           </h2>
 

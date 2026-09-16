@@ -220,7 +220,7 @@ const Security = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -234,11 +234,11 @@ const Security = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdSecurity className="text-xl text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-rose-700">Security</h1>
+            <h1 className="text-lg font-bold text-rose-900">Security</h1>
             <p className="text-sm text-gray-500">
               Update password, email & logo
             </p>
@@ -247,7 +247,7 @@ const Security = () => {
 
         <Link
           to="/dashboard"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
         >
           <FaArrowLeft />
         </Link>
@@ -257,8 +257,8 @@ const Security = () => {
         {/* ====================== CHANGE PASSWORD ====================== */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
           <div className="flex items-center gap-2 mb-5">
-            <FaLock className="text-rose-700" />
-            <h2 className="text-lg font-bold text-rose-700">Change Password</h2>
+            <FaLock className="text-rose-900" />
+            <h2 className="text-lg font-bold text-rose-900">Change Password</h2>
           </div>
 
           <form
@@ -314,7 +314,7 @@ const Security = () => {
             <button
               type="submit"
               disabled={isPasswordSubmitting}
-              className="btn bg-rose-700 hover:bg-[#BF1E2E] text-white border-none w-full"
+              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none w-full"
             >
               {isPasswordSubmitting ? "Updating..." : "Update Password"}
             </button>
@@ -324,8 +324,8 @@ const Security = () => {
         {/* ====================== CHANGE EMAIL ====================== */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
           <div className="flex items-center gap-2 mb-5">
-            <FaEnvelope className="text-rose-700" />
-            <h2 className="text-lg font-bold text-rose-700">Change Email</h2>
+            <FaEnvelope className="text-rose-900" />
+            <h2 className="text-lg font-bold text-rose-900">Change Email</h2>
           </div>
 
           <form
@@ -359,7 +359,7 @@ const Security = () => {
             <button
               type="submit"
               disabled={isEmailSubmitting}
-              className="btn bg-rose-700 hover:bg-[#BF1E2E] text-white border-none w-full"
+              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none w-full"
             >
               {isEmailSubmitting ? "Updating..." : "Update Email"}
             </button>
@@ -369,8 +369,8 @@ const Security = () => {
         {/* ====================== CHANGE LOGO ====================== */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 lg:col-span-2">
           <div className="flex items-center gap-2 mb-5">
-            <FaImage className="text-rose-700" />
-            <h2 className="text-lg font-bold text-rose-700">Update Logo</h2>
+            <FaImage className="text-rose-900" />
+            <h2 className="text-lg font-bold text-rose-900">Update Logo</h2>
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-8">
@@ -388,7 +388,7 @@ const Security = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-rose-700 font-bold text-3xl">
+                <span className="text-rose-900 font-bold text-3xl">
                   {hotel?.hotelName?.charAt(0) || "H"}
                 </span>
               )}
@@ -406,7 +406,7 @@ const Security = () => {
                 type="button"
                 onClick={handleLogoUpload}
                 disabled={!selectedLogo}
-                className="btn bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+                className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
               >
                 Upload New Logo
               </button>

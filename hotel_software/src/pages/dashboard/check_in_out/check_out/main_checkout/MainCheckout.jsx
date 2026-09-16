@@ -129,7 +129,7 @@ const MainCheckout = () => {
           <hr class="my-2"/>
           <p class="text-lg">
           ${isRefund ? "Refund Amount" : "Total Due"}: 
-          <b class="${isRefund ? "text-green-600" : "text-rose-700"}">
+          <b class="${isRefund ? "text-green-600" : "text-rose-900"}">
               ৳${finalAmount.toLocaleString()}
           </b>
           </p>
@@ -193,7 +193,7 @@ const MainCheckout = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -206,7 +206,7 @@ const MainCheckout = () => {
         </p>
         <Link
           to="/dashboard/check_in_out/check_out"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none mt-4"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none mt-4"
           title="Back"
         >
           <FaArrowLeft />
@@ -220,11 +220,11 @@ const MainCheckout = () => {
       {/* ====================== HEADER ====================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-rose-700 flex items-center justify-center shadow-lg">
+          <div className="w-12 h-12 rounded-full bg-rose-900 flex items-center justify-center shadow-lg">
             <MdCheckCircleOutline className="text-2xl text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-rose-700">Guest Checkout</h1>
+            <h1 className="text-xl font-bold text-rose-900">Guest Checkout</h1>
             <p className="text-sm text-gray-500">
               Review full bill & complete checkout
             </p>
@@ -234,7 +234,7 @@ const MainCheckout = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleCheckout}
-            className="btn bg-rose-700 hover:bg-rose-800 text-white border-none gap-2 shadow-md"
+            className="btn bg-rose-900 hover:bg-rose-900 text-white border-none gap-2 shadow-md"
           >
             <FaMoneyBillWave />
             Complete Checkout
@@ -243,7 +243,7 @@ const MainCheckout = () => {
           <Link to="/dashboard/check_in_out/check_out">
             <button
               type="button"
-              className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+              className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
               title="Back"
             >
               <IoArrowBackCircleSharp className="text-2xl" />
@@ -257,7 +257,7 @@ const MainCheckout = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* ---------- Guest Profile Card ---------- */}
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-rose-700 to-rose-600 p-6 text-white">
+            <div className="bg-gradient-to-r from-rose-900 to-rose-600 p-6 text-white">
               <div className="flex items-center gap-5">
                 <div className="w-20 h-20 rounded-full border-4 border-white/30 overflow-hidden bg-white/20 flex-shrink-0">
                   {guest.personImage ? (
@@ -374,7 +374,7 @@ const MainCheckout = () => {
 
               <div>
                 <p className="text-sm text-gray-500 mb-1">Total Room Charge</p>
-                <p className="text-2xl font-bold text-rose-700">
+                <p className="text-2xl font-bold text-rose-900">
                   ৳{actualRoomCharge.toLocaleString()}
                 </p>
               </div>
@@ -398,7 +398,7 @@ const MainCheckout = () => {
                   Restaurant Orders
                 </h3>
               </div>
-              <span className="text-lg font-bold text-rose-700">
+              <span className="text-lg font-bold text-rose-900">
                 Due: ৳{restaurantDue.toLocaleString()}
               </span>
             </div>
@@ -450,7 +450,7 @@ const MainCheckout = () => {
                           className={
                             status === "Paid"
                               ? "text-green-600"
-                              : "text-rose-700"
+                              : "text-rose-900"
                           }
                         >
                           ৳{order.totalAmount}
@@ -479,7 +479,7 @@ const MainCheckout = () => {
                   Laundry Orders
                 </h3>
               </div>
-              <span className="text-lg font-bold text-rose-700">
+              <span className="text-lg font-bold text-rose-900">
                 Due: ৳{laundryDue.toLocaleString()}
               </span>
             </div>
@@ -537,7 +537,7 @@ const MainCheckout = () => {
                           className={
                             status === "Paid"
                               ? "text-green-600"
-                              : "text-rose-700"
+                              : "text-rose-900"
                           }
                         >
                           ৳{order.totalCost}
@@ -566,7 +566,7 @@ const MainCheckout = () => {
                   Transport Orders
                 </h3>
               </div>
-              <span className="text-lg font-bold text-rose-700">
+              <span className="text-lg font-bold text-rose-900">
                 Due: ৳{transportDue.toLocaleString()}
               </span>
             </div>
@@ -616,7 +616,7 @@ const MainCheckout = () => {
                           className={
                             status === "Paid"
                               ? "text-green-600"
-                              : "text-rose-700"
+                              : "text-rose-900"
                           }
                         >
                           ৳{order.fare}
@@ -638,7 +638,7 @@ const MainCheckout = () => {
         {/* ====================== RIGHT SIDE - BILL SUMMARY ====================== */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 sticky top-6 overflow-hidden">
-            <div className="bg-rose-700 text-white px-6 py-4">
+            <div className="bg-rose-900 text-white px-6 py-4">
               <h3 className="text-lg font-bold">Bill Summary</h3>
             </div>
 
@@ -674,7 +674,7 @@ const MainCheckout = () => {
 
                 <div className="flex justify-between text-sm font-semibold mt-3 pt-2 border-t border-dashed border-gray-200">
                   <span>Total Room Charge</span>
-                  <span className="text-rose-700">
+                  <span className="text-rose-900">
                     ৳{actualRoomCharge.toLocaleString()}
                   </span>
                 </div>
@@ -728,14 +728,14 @@ const MainCheckout = () => {
                 <div className="flex justify-between items-center">
                   <span
                     className={`font-bold ${
-                      isRefund ? "text-green-800" : "text-rose-800"
+                      isRefund ? "text-green-800" : "text-rose-900"
                     }`}
                   >
                     {isRefund ? "Refund Amount" : "Total Due"}
                   </span>
                   <span
                     className={`text-2xl font-bold ${
-                      isRefund ? "text-green-700" : "text-rose-700"
+                      isRefund ? "text-green-700" : "text-rose-900"
                     }`}
                   >
                     ৳{finalAmount.toLocaleString()}
@@ -745,7 +745,7 @@ const MainCheckout = () => {
 
               <button
                 onClick={handleCheckout}
-                className="btn bg-rose-700 hover:bg-rose-800 text-white border-none w-full mt-4 gap-2"
+                className="btn bg-rose-900 hover:bg-rose-900 text-white border-none w-full mt-4 gap-2"
               >
                 <FaMoneyBillWave />
                 Complete Checkout

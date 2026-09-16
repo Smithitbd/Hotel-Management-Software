@@ -44,10 +44,10 @@ const AllGuestDues = () => {
       <div className="flex justify-between mb-5">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <MdPayments className="text-xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               Services Total Dues
             </h1>
           </div>
@@ -59,7 +59,7 @@ const AllGuestDues = () => {
         <Link to="/dashboard/billing_and_payments">
           <button
             type="button"
-            className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
             <RiHome3Line className="text-xl" />
           </button>
@@ -83,7 +83,7 @@ const AllGuestDues = () => {
       <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table w-full">
-            <thead className="bg-rose-700 text-white">
+            <thead className="bg-rose-900 text-white">
               <tr>
                 <th className="text-white">#</th>
                 <th className="text-white">Room</th>
@@ -118,7 +118,7 @@ const AllGuestDues = () => {
                 filteredDues.map((item, index) => (
                   <tr key={item._id} className="hover:bg-rose-50">
                     <td>{index + 1}</td>
-                    <td className="font-semibold text-rose-700">
+                    <td className="font-semibold text-rose-900">
                       {item.roomNumber}
                     </td>
                     <td>{item.guestName}</td>
@@ -137,7 +137,7 @@ const AllGuestDues = () => {
                     <td className="text-right">
                       ৳{(item.transportDue || 0).toLocaleString()}
                     </td>
-                    <td className="text-right font-bold text-rose-700">
+                    <td className="text-right font-bold text-rose-900">
                       ৳{(item.totalDue || 0).toLocaleString()}
                     </td>
                   </tr>
@@ -175,7 +175,7 @@ const AllGuestDues = () => {
                       .reduce((s, i) => s + (i.transportDue || 0), 0)
                       .toLocaleString()}
                   </td>
-                  <td className="text-right text-rose-700 text-lg">
+                  <td className="text-right text-rose-900 text-lg">
                     ৳{grandTotal.toLocaleString()}
                   </td>
                 </tr>

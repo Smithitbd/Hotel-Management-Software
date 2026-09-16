@@ -11,11 +11,11 @@ const Services = () => {
   return (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
           <MdHomeRepairService className="text-xl text-white" />
         </div>
 
-        <h1 className="text-lg font-bold text-rose-700">Hotel Services</h1>
+        <h1 className="text-lg font-bold text-rose-900">Hotel Services</h1>
       </div>
 
       <p className="text-gray-500 mb-10">
@@ -32,7 +32,7 @@ const Services = () => {
             <FaConciergeBell className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Room Service</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Room Service</h2>
 
           <p className="text-gray-600 text-sm">
             Manage room service requests and track their completion.
@@ -48,7 +48,7 @@ const Services = () => {
             <FaUtensils className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Restaurant Orders
           </h2>
 
@@ -66,7 +66,7 @@ const Services = () => {
             <FaTshirt className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Laundry Service
           </h2>
 
@@ -84,7 +84,7 @@ const Services = () => {
             <FaShuttleVan className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Transport Service
           </h2>
 

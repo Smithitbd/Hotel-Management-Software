@@ -146,7 +146,7 @@ const MainReserve = () => {
         <p className="text-xl text-gray-500">No room selected.</p>
         <button
           onClick={() => navigate("/dashboard/reservations")}
-          className="btn bg-rose-700 text-white mt-4"
+          className="btn bg-rose-900 text-white mt-4"
         >
           Back to Calendar
         </button>
@@ -158,11 +158,11 @@ const MainReserve = () => {
     <div className="mx-auto p-6 max-w-3xl">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-full bg-rose-700 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-rose-900 flex items-center justify-center">
           <LuBookImage className="text-xl text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-rose-700">
+          <h1 className="text-2xl font-bold text-rose-900">
             Complete Reservation
           </h1>
           <p className="text-gray-500">
@@ -183,13 +183,13 @@ const MainReserve = () => {
           }}
         />
         <div>
-          <h3 className="font-bold text-lg text-rose-800">
+          <h3 className="font-bold text-lg text-rose-900">
             {room.variantName || room.baseRoomType}
           </h3>
           <p className="text-sm text-gray-600">
             {room.bedType} • Max {room.maxOccupancy} guests
           </p>
-          <p className="text-xl font-bold text-rose-700 mt-1">
+          <p className="text-xl font-bold text-rose-900 mt-1">
             ৳{Number(room.price || 0).toLocaleString()} / night
           </p>
         </div>
@@ -312,7 +312,7 @@ const MainReserve = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="btn btn-outline border-rose-700 text-rose-700"
+            className="btn btn-outline border-rose-900 text-rose-900"
           >
             Back
           </button>

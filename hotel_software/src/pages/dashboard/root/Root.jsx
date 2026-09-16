@@ -20,7 +20,7 @@ const Root = () => {
   if (statusLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -123,7 +123,7 @@ const Root = () => {
   if (statsLoading || customersLoading || revenueLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -132,10 +132,10 @@ const Root = () => {
     <div className="p-6">
       {/* ====================== HEADER ====================== */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
           <MdDashboard className="text-xl text-white" />
         </div>
-        <h1 className="text-lg font-bold text-rose-700">Dashboard</h1>
+        <h1 className="text-lg font-bold text-rose-900">Dashboard</h1>
       </div>
 
       <p className="text-gray-500 mb-10">
@@ -150,7 +150,7 @@ const Root = () => {
             <FaUsers className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Current Guests</p>
-          <p className="text-2xl font-bold text-rose-700">
+          <p className="text-2xl font-bold text-rose-900">
             {stats?.currentGuests || 0}
           </p>
         </div>
@@ -161,7 +161,7 @@ const Root = () => {
             <FaUserTie className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Current Employees</p>
-          <p className="text-2xl font-bold text-rose-700">
+          <p className="text-2xl font-bold text-rose-900">
             {stats?.currentEmployees || 0}
           </p>
         </div>
@@ -172,7 +172,7 @@ const Root = () => {
             <FaDoorOpen className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Available Rooms</p>
-          <p className="text-2xl font-bold text-rose-700">
+          <p className="text-2xl font-bold text-rose-900">
             {stats?.totalAvailableRooms || 0}
           </p>
         </div>
@@ -183,7 +183,7 @@ const Root = () => {
             <FaBed className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Occupied Rooms</p>
-          <p className="text-2xl font-bold text-rose-700">
+          <p className="text-2xl font-bold text-rose-900">
             {stats?.totalOccupiedRooms || 0}
           </p>
         </div>
@@ -194,7 +194,7 @@ const Root = () => {
             <FaMoneyBillWave className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
           <p className="text-sm text-gray-500 mb-1">This Month Earning</p>
-          <p className="text-2xl font-bold text-rose-700">
+          <p className="text-2xl font-bold text-rose-900">
             ৳{(stats?.currentMonthEarning || 0).toLocaleString()}
           </p>
         </div>
@@ -204,7 +204,7 @@ const Root = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Bar Chart - Customers per Month */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:border-[#BF1E2E]">
-          <h3 className="text-lg font-bold text-rose-700 mb-5">
+          <h3 className="text-lg font-bold text-rose-900 mb-5">
             Customers Per Month
           </h3>
           {customersData?.series?.[0]?.data?.length > 0 ? (
@@ -223,7 +223,7 @@ const Root = () => {
 
         {/* Pie Chart - Revenue by Service */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:border-[#BF1E2E] flex flex-col items-center">
-          <h3 className="text-lg font-bold text-rose-700 mb-5 self-start">
+          <h3 className="text-lg font-bold text-rose-900 mb-5 self-start">
             Revenue by Service
           </h3>
           {revenueData?.series?.some((v) => v > 0) ? (

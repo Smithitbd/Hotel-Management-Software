@@ -58,7 +58,7 @@ const EditEmployee = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -79,11 +79,11 @@ const EditEmployee = () => {
       <div className="flex justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-full bg-rose-700 flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-full bg-rose-900 flex items-center justify-center shadow-md">
               <FaUserEdit className="text-xl text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-rose-700">Edit Employee</h1>
+              <h1 className="text-lg font-bold text-rose-900">Edit Employee</h1>
               <p className="text-sm text-gray-500">
                 Update employee information
               </p>
@@ -94,7 +94,7 @@ const EditEmployee = () => {
         <Link to="/dashboard/employees">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
             title="Back to Employees"
           >
             <IoArrowBackCircleSharp className="text-xl" />
@@ -105,7 +105,7 @@ const EditEmployee = () => {
       {/* Form Card */}
       <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
         {/* Card Header */}
-        <div className="bg-rose-700 text-white px-6 py-4">
+        <div className="bg-rose-900 text-white px-6 py-4">
           <h2 className="text-lg font-bold">Employee Details</h2>
           <p className="text-sm text-rose-100">
             {employee?.FullName || "Loading..."}
@@ -317,7 +317,7 @@ const EditEmployee = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn bg-rose-700 text-white hover:bg-rose-800 border-none px-8"
+              className="btn bg-rose-900 text-white hover:bg-rose-900 border-none px-8"
             >
               {isSubmitting ? (
                 <span className="loading loading-spinner loading-sm"></span>

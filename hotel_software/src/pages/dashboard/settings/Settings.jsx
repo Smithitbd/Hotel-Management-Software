@@ -54,15 +54,15 @@ const Settings = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <RiSettings5Line className="text-xl text-white" />
           </div>
-          <h1 className="text-lg font-bold text-rose-700">Settings</h1>
+          <h1 className="text-lg font-bold text-rose-900">Settings</h1>
         </div>
 
         <button
           onClick={handleLogout}
-          className="btn btn-sm bg-rose-700 hover:bg-rose-800 text-white border-none gap-2"
+          className="btn btn-sm bg-rose-900 hover:bg-rose-900 text-white border-none gap-2"
         >
           <FaSignOutAlt />
           Logout
@@ -84,7 +84,7 @@ const Settings = () => {
               <FaHotel className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
             </div>
 
-            <h2 className="text-lg font-bold text-rose-700 mb-3">
+            <h2 className="text-lg font-bold text-rose-900 mb-3">
               Hotel Information
             </h2>
 
@@ -104,7 +104,7 @@ const Settings = () => {
               <FaUserShield className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
             </div>
 
-            <h2 className="text-lg font-bold text-rose-700 mb-3">Hotels</h2>
+            <h2 className="text-lg font-bold text-rose-900 mb-3">Hotels</h2>
 
             <p className="text-gray-600 text-sm">
               Manage staff accounts, permissions, and access levels.
@@ -121,7 +121,7 @@ const Settings = () => {
             <FaLock className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Security</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Security</h2>
 
           <p className="text-gray-600 text-sm">
             Change passwords, configure authentication, and manage security
@@ -137,7 +137,7 @@ const Settings = () => {
             <FaLock className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Add Sub User</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Add Sub User</h2>
 
           <p className="text-gray-600 text-sm">
             The sub-user usually has restricted permissions (view-only, specific

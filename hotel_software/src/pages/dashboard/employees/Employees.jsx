@@ -8,11 +8,11 @@ const Employee = () => {
     <div className="p-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
           <SiStaffbase className="text-xl text-white" />
         </div>
 
-        <h1 className="text-lg font-bold text-rose-700">Employee Management</h1>
+        <h1 className="text-lg font-bold text-rose-900">Employee Management</h1>
       </div>
 
       <p className="text-gray-500 mb-10">
@@ -29,7 +29,7 @@ const Employee = () => {
             <FaUsers className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Current Employees
           </h2>
 
@@ -47,7 +47,7 @@ const Employee = () => {
             <FaUserClock className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Past Employees
           </h2>
 
@@ -65,7 +65,7 @@ const Employee = () => {
             <FaMoneyCheckDollar className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Payroll</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Payroll</h2>
 
           <p className="text-gray-600 text-sm">
             Manage employee salaries, payroll records, allowances, and
@@ -82,7 +82,7 @@ const Employee = () => {
             <FaUserPlus className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Add Employee</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Add Employee</h2>
 
           <p className="text-gray-600 text-sm">
             Register a new employee, assign their department, role, and manage

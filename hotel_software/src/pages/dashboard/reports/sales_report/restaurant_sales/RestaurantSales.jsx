@@ -48,17 +48,17 @@ const RestaurantSales = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdAssessment className="text-xl text-white" />
           </div>
-          <h1 className="text-lg font-bold text-rose-700">
+          <h1 className="text-lg font-bold text-rose-900">
             Restaurant Sales Report
           </h1>
         </div>
 
         <Link
           to="/dashboard/reports/sales_report"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
         >
           <FaArrowLeft />
         </Link>
@@ -110,7 +110,7 @@ const RestaurantSales = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="btn bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+            className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
           >
             <FaSearch />
             Generate Report
@@ -128,7 +128,7 @@ const RestaurantSales = () => {
 
         {isFetching && (
           <div className="py-16 text-center">
-            <span className="loading loading-spinner loading-lg text-rose-700"></span>
+            <span className="loading loading-spinner loading-lg text-rose-900"></span>
           </div>
         )}
 
@@ -142,7 +142,7 @@ const RestaurantSales = () => {
               <>
                 <div className="overflow-x-auto">
                   <table className="table">
-                    <thead className="bg-rose-700 text-white">
+                    <thead className="bg-rose-900 text-white">
                       <tr>
                         <th>#</th>
                         <th>Guest</th>
@@ -177,7 +177,7 @@ const RestaurantSales = () => {
                           <td>{item.orderTime}</td>
                           <td>{item.assignedWaiter}</td>
                           <td>{item.paymentMethod}</td>
-                          <td className="font-semibold text-rose-700">
+                          <td className="font-semibold text-rose-900">
                             ৳{item.totalAmount}
                           </td>
                         </tr>
@@ -190,7 +190,7 @@ const RestaurantSales = () => {
                 <div className="flex justify-end p-5 border-t border-gray-100 bg-gray-50">
                   <div className="text-right">
                     <p className="text-sm text-gray-500">Total Earned</p>
-                    <p className="text-2xl font-bold text-rose-700">
+                    <p className="text-2xl font-bold text-rose-900">
                       ৳{totalEarned.toLocaleString()}
                     </p>
                   </div>

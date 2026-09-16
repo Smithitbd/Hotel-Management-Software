@@ -86,10 +86,10 @@ const AddEmployee = () => {
       <div className="flex justify-between mb-5">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <FaUserPlus className="text-xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-700">Add Employee</h1>
+            <h1 className="text-lg font-bold text-rose-900">Add Employee</h1>
           </div>
           <p className="text-gray-500 ml-12">
             Add a new employee to the hotel management system.
@@ -99,7 +99,7 @@ const AddEmployee = () => {
         <Link to="/dashboard/employees">
           <button
             type="button"
-            className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
             <RiHome3Line className="text-xl" />
           </button>

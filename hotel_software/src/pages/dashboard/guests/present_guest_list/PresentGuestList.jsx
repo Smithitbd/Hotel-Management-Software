@@ -79,7 +79,7 @@ const PresentGuestList = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -99,10 +99,10 @@ const PresentGuestList = () => {
       <div className="flex flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <MdOutlinePlaylistAddCheckCircle className="text-xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               Present Guest/s List
             </h1>
           </div>
@@ -114,7 +114,7 @@ const PresentGuestList = () => {
         {/* Back Button */}
         <Link
           to="/dashboard/guests"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
           title="Back"
         >
           <FaArrowLeft />
@@ -124,7 +124,7 @@ const PresentGuestList = () => {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="table table-zebra w-full">
-          <thead className="bg-rose-700 text-white">
+          <thead className="bg-rose-900 text-white">
             <tr className="text-center">
               <th>Guest Name</th>
               <th>Guest Id</th>

@@ -26,7 +26,7 @@ const GuestHistory = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -36,11 +36,11 @@ const GuestHistory = () => {
       {/* ====================== HEADER ====================== */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdPeople className="text-xl text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-rose-700">Unique Guests</h1>
+            <h1 className="text-lg font-bold text-rose-900">Unique Guests</h1>
             <p className="text-sm text-gray-500">
               All unique guests who have stayed in the hotel
             </p>
@@ -50,7 +50,7 @@ const GuestHistory = () => {
         {/* Back Button */}
         <Link
           to="/dashboard/guests"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
           title="Back"
         >
           <FaArrowLeft />
@@ -59,7 +59,7 @@ const GuestHistory = () => {
 
       {/* Total count */}
       <div className="mb-6">
-        <span className="badge badge-lg bg-rose-100 text-rose-700 border-none">
+        <span className="badge badge-lg bg-rose-100 text-rose-900 border-none">
           Total Unique Guests: {guests.length}
         </span>
       </div>
@@ -68,7 +68,7 @@ const GuestHistory = () => {
       <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table w-full">
-            <thead className="bg-rose-50 text-rose-800">
+            <thead className="bg-rose-50 text-rose-900">
               <tr>
                 <th className="font-semibold">Guest</th>
                 <th className="font-semibold">Contact</th>
@@ -105,7 +105,7 @@ const GuestHistory = () => {
                                 className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-lg">
+                              <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-900 font-bold text-lg">
                                 {guest.guestName?.charAt(0)?.toUpperCase()}
                               </div>
                             )}
@@ -171,7 +171,7 @@ const GuestHistory = () => {
 
                     {/* Total Spent */}
                     <td>
-                      <div className="flex items-center gap-1 font-bold text-rose-700">
+                      <div className="flex items-center gap-1 font-bold text-rose-900">
                         <FaMoneyBillWave className="text-xs" />৳
                         {(guest.totalSpent || 0).toLocaleString()}
                       </div>

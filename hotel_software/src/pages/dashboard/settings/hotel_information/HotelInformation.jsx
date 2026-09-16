@@ -82,7 +82,7 @@ const HotelInformation = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -104,11 +104,11 @@ const HotelInformation = () => {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdHotel className="text-xl text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               Hotel Information
             </h1>
             <p className="text-sm text-gray-500">Loaded with {user.email}</p>
@@ -117,7 +117,7 @@ const HotelInformation = () => {
 
         <Link
           to="/dashboard/settings"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
         >
           <FaArrowLeft />
         </Link>
@@ -138,7 +138,7 @@ const HotelInformation = () => {
                 }}
               />
             ) : (
-              <span className="text-rose-700 font-bold text-xl">
+              <span className="text-rose-900 font-bold text-xl">
                 {hotel.hotelName?.charAt(0) || "H"}
               </span>
             )}
@@ -155,16 +155,16 @@ const HotelInformation = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-sm">
           <p className="flex items-center gap-2 text-gray-600">
-            <FaMapMarkerAlt className="text-rose-700" /> {hotel.address}
+            <FaMapMarkerAlt className="text-rose-900" /> {hotel.address}
           </p>
           <p className="flex items-center gap-2 text-gray-600">
-            <FaUser className="text-rose-700" /> {hotel.ownerName}
+            <FaUser className="text-rose-900" /> {hotel.ownerName}
           </p>
           <p className="flex items-center gap-2 text-gray-600">
-            <FaPhone className="text-rose-700" /> {hotel.phone}
+            <FaPhone className="text-rose-900" /> {hotel.phone}
           </p>
           <p className="flex items-center gap-2 text-gray-600">
-            <FaEnvelope className="text-rose-700" /> {hotel.email}
+            <FaEnvelope className="text-rose-900" /> {hotel.email}
           </p>
         </div>
       </div>
@@ -174,7 +174,7 @@ const HotelInformation = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
       >
-        <h3 className="text-lg font-bold text-rose-700 mb-6">Edit details</h3>
+        <h3 className="text-lg font-bold text-rose-900 mb-6">Edit details</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="form-control md:col-span-2">
@@ -255,7 +255,7 @@ const HotelInformation = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+            className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
           >
             {isSubmitting ? "Updating..." : "Update"}
           </button>

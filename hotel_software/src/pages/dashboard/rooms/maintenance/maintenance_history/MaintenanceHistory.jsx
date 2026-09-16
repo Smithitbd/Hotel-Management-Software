@@ -50,7 +50,7 @@ const MaintenanceHistory = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <span className="loading loading-spinner loading-lg text-rose-800"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -60,7 +60,7 @@ const MaintenanceHistory = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdManageHistory className="text-2xl text-white" />
           </div>
 
@@ -72,7 +72,7 @@ const MaintenanceHistory = () => {
         </div>
 
         <Link to="/dashboard/rooms">
-          <button className="flex items-center justify-center w-11 h-11 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors">
+          <button className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
             <RiHome3Line className="text-xl" />
           </button>
         </Link>
@@ -87,16 +87,16 @@ const MaintenanceHistory = () => {
           {history.map((item) => (
             <div
               key={item._id}
-              className="card bg-white shadow-md border border-gray-100 hover:shadow-xl hover:border-rose-800 transition-all duration-300 hover:-translate-y-1"
+              className="card bg-white shadow-md border border-gray-100 hover:shadow-xl hover:border-rose-900 transition-all duration-300 hover:-translate-y-1"
             >
               <div className="card-body">
                 {/* Status */}
                 <div className="flex justify-between items-center mb-3">
-                  <h2 className="card-title text-lg text-rose-800">
+                  <h2 className="card-title text-lg text-rose-900">
                     Maintenance Record
                   </h2>
 
-                  <span className="badge bg-rose-800 text-white border-none">
+                  <span className="badge bg-rose-900 text-white border-none">
                     {item.roomStatus || "Maintenance"}
                   </span>
                 </div>
@@ -142,7 +142,7 @@ const MaintenanceHistory = () => {
                   {/* Cost */}
                   <div className="flex justify-between gap-4">
                     <span className="text-gray-500">Cost:</span>
-                    <span className="font-bold text-rose-800">
+                    <span className="font-bold text-rose-900">
                       ৳{item.maintenanceCost ?? "0"}
                     </span>
                   </div>
@@ -163,7 +163,7 @@ const MaintenanceHistory = () => {
                   >
                     <button
                       type="button"
-                      className="btn btn-sm bg-rose-700 hover:bg-rose-900 text-white border-none transition-colors duration-200"
+                      className="btn btn-sm bg-rose-900 hover:bg-rose-900 text-white border-none transition-colors duration-200"
                     >
                       <AiFillEdit className="text-lg" />
                       Edit
@@ -173,7 +173,7 @@ const MaintenanceHistory = () => {
                   <button
                     type="button"
                     onClick={() => handleDelete(item._id)}
-                    className="btn btn-sm bg-rose-800 hover:bg-rose-950 text-white border-none transition-colors duration-200"
+                    className="btn btn-sm bg-rose-900 hover:bg-rose-950 text-white border-none transition-colors duration-200"
                   >
                     <AiFillDelete className="text-lg" />
                     Delete

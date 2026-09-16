@@ -114,10 +114,10 @@ const ChangeRoom = () => {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <MdSwapHoriz className="text-xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-700">Change Room</h1>
+            <h1 className="text-lg font-bold text-rose-900">Change Room</h1>
           </div>
           <p className="text-gray-500 ml-12">
             Transfer a guest from one room to another.
@@ -125,7 +125,7 @@ const ChangeRoom = () => {
         </div>
 
         <Link to="/dashboard/check_in_out">
-          <button className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors">
+          <button className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
             <IoArrowBackCircleSharp className="text-3xl" />
           </button>
         </Link>
@@ -164,7 +164,7 @@ const ChangeRoom = () => {
         {/* Show Old Room Info */}
         {selectedCheckIn && (
           <div className="bg-rose-50 border border-rose-200 rounded-xl p-5">
-            <h3 className="font-bold text-rose-700 mb-3">Current Stay Info</h3>
+            <h3 className="font-bold text-rose-900 mb-3">Current Stay Info</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-gray-500">Guest</p>
@@ -245,7 +245,7 @@ const ChangeRoom = () => {
               </div>
               <div className="flex justify-between">
                 <span>Cost so far (Old Room):</span>
-                <span className="font-medium text-rose-700">
+                <span className="font-medium text-rose-900">
                   ৳
                   {(daysStayed || calculateDaysStayed()) *
                     selectedCheckIn.pricePerNight}

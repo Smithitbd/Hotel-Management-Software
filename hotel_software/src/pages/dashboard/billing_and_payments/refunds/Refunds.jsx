@@ -55,11 +55,11 @@ const Refunds = () => {
       {/* ====================== HEADER ====================== */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdMoneyOff className="text-xl text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               Refunded Checkouts
             </h1>
             <p className="text-sm text-gray-500">Guests who received refund</p>
@@ -68,7 +68,7 @@ const Refunds = () => {
 
         <Link
           to="/dashboard/billing_and_payments"
-          className="btn btn-circle bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
         >
           <FaArrowLeft />
         </Link>
@@ -120,7 +120,7 @@ const Refunds = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="btn bg-rose-700 hover:bg-[#BF1E2E] text-white border-none"
+            className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
           >
             <FaSearch />
             Generate Report
@@ -140,7 +140,7 @@ const Refunds = () => {
         {/* Loading */}
         {isFetching && (
           <div className="py-16 text-center">
-            <span className="loading loading-spinner loading-lg text-rose-700"></span>
+            <span className="loading loading-spinner loading-lg text-rose-900"></span>
           </div>
         )}
 
@@ -168,7 +168,7 @@ const Refunds = () => {
 
                 <div className="overflow-x-auto">
                   <table className="table w-full">
-                    <thead className="bg-rose-700 text-white">
+                    <thead className="bg-rose-900 text-white">
                       <tr>
                         <th>#</th>
                         <th>Guest</th>
@@ -203,7 +203,7 @@ const Refunds = () => {
                                       className="object-cover"
                                     />
                                   ) : (
-                                    <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold">
+                                    <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-900 font-bold">
                                       {item.guestName?.charAt(0)?.toUpperCase()}
                                     </div>
                                   )}

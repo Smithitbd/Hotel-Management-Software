@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 import { FaHome, FaBars, FaRegMoneyBillAlt } from "react-icons/fa";
 import Logo from "../components/Logo";
 import { MdDashboard, MdOutlineDesignServices } from "react-icons/md";
@@ -7,6 +7,7 @@ import { BsPersonWorkspace } from "react-icons/bs";
 import { TbReport, TbReservedLine } from "react-icons/tb";
 import { IoSettingsSharp } from "react-icons/io5";
 import useUserStatus from "../hooks/useUserStatus";
+import { SiNicehash } from "react-icons/si";
 
 const DashboardLayout = () => {
   const { status, statusLoading } = useUserStatus();
@@ -14,7 +15,7 @@ const DashboardLayout = () => {
   if (statusLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -37,13 +38,33 @@ const DashboardLayout = () => {
 
         <div className="p-6">
           <Outlet />
+          <div className="flex flex-row justify-between mt-4 gap-3">
+            <footer className="footer ml-6 w-3/5  sm:footer-horizontal  bg-white text-neutral-content items-center p-4">
+              <aside className="grid-flow-col items-center">
+                <SiNicehash className="text-lg text-black" />
+                <p className="text-black">
+                  Copyright © {new Date().getFullYear()} - All right reserved to
+                  <Link
+                    to="https://smithitbd.com/"
+                    className="text-sm text-rose-900 font-bold underline"
+                  >
+                    {" "}
+                    Smith IT
+                  </Link>
+                </p>
+              </aside>
+            </footer>
+            <div className="text-green-500 font-bold mt-3 bg-white p-4">
+              Made in <span className="text-red-500 ">Bangladesh</span>{" "}
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="drawer-side z-50">
         <label htmlFor="dashboard-drawer" className="drawer-overlay"></label>
 
-        <aside className="w-72 min-h-full bg-rose-700 text-white">
+        <aside className="w-72 min-h-full bg-rose-900 text-white">
           <div className="p-4">
             <Logo></Logo>
           </div>

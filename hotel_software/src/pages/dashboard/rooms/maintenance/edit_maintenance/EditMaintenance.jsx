@@ -68,7 +68,7 @@ const EditMaintenance = () => {
   if (isLoading) {
     return (
       <div className="min-h-96 flex justify-center items-center">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -99,11 +99,11 @@ const EditMaintenance = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <LuNetwork className="text-xl text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-rose-700">
+              <h1 className="text-lg font-bold text-rose-900">
                 Edit Room Maintenance
               </h1>
               <p className="text-gray-500 text-sm mt-0.5">
@@ -113,7 +113,7 @@ const EditMaintenance = () => {
           </div>
 
           <Link to="/dashboard/rooms/maintenance">
-            <button className="flex items-center justify-center w-11 h-11 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors">
+            <button className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
               <RiHome3Line className="text-xl" />
             </button>
           </Link>
@@ -139,13 +139,13 @@ const EditMaintenance = () => {
           {/* Room Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Room Status <span className="text-rose-700">*</span>
+              Room Status <span className="text-rose-900">*</span>
             </label>
             <select
               {...register("roomStatus", {
                 required: "Room status is required",
               })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent bg-white"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent bg-white"
             >
               <option value="Maintenance">Maintenance</option>
               <option value="In Progress">In Progress</option>
@@ -162,14 +162,14 @@ const EditMaintenance = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Work Begins <span className="text-rose-700">*</span>
+                Work Begins <span className="text-rose-900">*</span>
               </label>
               <input
                 type="datetime-local"
                 {...register("workBegins", {
                   required: "Work begins is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
               {errors.workBegins && (
                 <p className="text-red-500 text-sm mt-1">
@@ -180,14 +180,14 @@ const EditMaintenance = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Work Ends <span className="text-rose-700">*</span>
+                Work Ends <span className="text-rose-900">*</span>
               </label>
               <input
                 type="datetime-local"
                 {...register("workEnds", {
                   required: "Work ends is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
               {errors.workEnds && (
                 <p className="text-red-500 text-sm mt-1">
@@ -201,7 +201,7 @@ const EditMaintenance = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assigned Person <span className="text-rose-700">*</span>
+                Assigned Person <span className="text-rose-900">*</span>
               </label>
               <input
                 type="text"
@@ -209,7 +209,7 @@ const EditMaintenance = () => {
                 {...register("assignedPerson", {
                   required: "Assigned person is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
               {errors.assignedPerson && (
                 <p className="text-red-500 text-sm mt-1">
@@ -220,7 +220,7 @@ const EditMaintenance = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Assigned Person Number <span className="text-rose-700">*</span>
+                Assigned Person Number <span className="text-rose-900">*</span>
               </label>
               <input
                 type="tel"
@@ -228,7 +228,7 @@ const EditMaintenance = () => {
                 {...register("assignedPersonNumber", {
                   required: "Phone number is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
               {errors.assignedPersonNumber && (
                 <p className="text-red-500 text-sm mt-1">
@@ -241,7 +241,7 @@ const EditMaintenance = () => {
           {/* Maintenance Cost */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Maintenance Cost <span className="text-rose-700">*</span>
+              Maintenance Cost <span className="text-rose-900">*</span>
             </label>
             <input
               type="number"
@@ -255,7 +255,7 @@ const EditMaintenance = () => {
                   message: "Cost cannot be negative",
                 },
               })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
             />
             {errors.maintenanceCost && (
               <p className="text-red-500 text-sm mt-1">
@@ -273,7 +273,7 @@ const EditMaintenance = () => {
               type="text"
               placeholder="Enter corrective action"
               {...register("correctives")}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
             />
           </div>
 
@@ -290,7 +290,7 @@ const EditMaintenance = () => {
 
             <button
               type="submit"
-              className="px-6 py-2.5 bg-rose-700 hover:bg-rose-800 text-white rounded-lg transition-colors border-none"
+              className="px-6 py-2.5 bg-rose-900 hover:bg-rose-900 text-white rounded-lg transition-colors border-none"
             >
               Save Changes
             </button>

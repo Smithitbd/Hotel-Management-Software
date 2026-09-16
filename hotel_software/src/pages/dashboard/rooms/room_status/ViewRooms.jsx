@@ -82,7 +82,7 @@ const ViewRooms = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <span className="loading loading-spinner loading-lg text-rose-800"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -139,13 +139,13 @@ const ViewRooms = () => {
       <div className="mb-8">
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-5 justify-center items-center">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <MdOutlineViewInAr className="text-2xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-700">View Rooms</h1>
+            <h1 className="text-lg font-bold text-rose-900">View Rooms</h1>
           </div>
           <Link to="/dashboard/rooms/room_status">
-            <button className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors">
+            <button className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
               <IoMdSkipBackward className="text-lg" />
             </button>
           </Link>
@@ -173,7 +173,7 @@ const ViewRooms = () => {
               >
                 <div className="p-5">
                   <div className="flex justify-between items-center gap-3 mb-5">
-                    <h2 className="text-xl font-bold text-rose-800">
+                    <h2 className="text-xl font-bold text-rose-900">
                       Room : {room.roomNo}
                     </h2>
 

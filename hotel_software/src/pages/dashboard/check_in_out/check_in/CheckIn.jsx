@@ -170,11 +170,11 @@ const CheckIn = () => {
         <div className="flex justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
                 <MdOutlinePlaylistAddCheckCircle className="text-xl text-white" />
               </div>
 
-              <h1 className="text-lg font-bold text-rose-700">
+              <h1 className="text-lg font-bold text-rose-900">
                 Guest Check In
               </h1>
             </div>
@@ -195,7 +195,7 @@ const CheckIn = () => {
           <Link to="/dashboard/check_in_out">
             <button
               type="button"
-              className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+              className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
               title="Back to Dashboard"
             >
               <IoArrowBackCircleSharp className="text-3xl" />
@@ -487,7 +487,7 @@ const CheckIn = () => {
 
         {/* ========== PAYMENT SUMMARY ========== */}
         <div className="bg-rose-50 border border-rose-200 rounded-xl p-6 space-y-4">
-          <h3 className="text-lg font-bold text-rose-700 mb-2">
+          <h3 className="text-lg font-bold text-rose-900 mb-2">
             Payment Summary
           </h3>
 
@@ -506,7 +506,7 @@ const CheckIn = () => {
 
             <div>
               <p className="text-sm text-gray-500">Total Amount</p>
-              <p className="text-lg font-bold text-rose-700">
+              <p className="text-lg font-bold text-rose-900">
                 ৳{totalAmount.toLocaleString()}
               </p>
             </div>

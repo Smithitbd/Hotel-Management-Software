@@ -9,11 +9,11 @@ const Rooms = () => {
     <div className="p-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
           <MdMeetingRoom className="text-xl text-white" />
         </div>
 
-        <h1 className="text-lg font-bold text-rose-700">Room Management</h1>
+        <h1 className="text-lg font-bold text-rose-900">Room Management</h1>
       </div>
 
       <p className="text-gray-500 mb-10">
@@ -30,7 +30,7 @@ const Rooms = () => {
             <FaBed className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Room Overview
           </h2>
 
@@ -48,7 +48,7 @@ const Rooms = () => {
             <FaLayerGroup className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Add Room Variant
           </h2>
 
@@ -66,7 +66,7 @@ const Rooms = () => {
             <FaDoorOpen className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Room Status</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Room Status</h2>
 
           <p className="text-gray-600 text-sm">
             Monitor available, occupied, reserved, and vacant rooms.
@@ -82,7 +82,7 @@ const Rooms = () => {
             <FaTools className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Maintenance</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Maintenance</h2>
 
           <p className="text-gray-600 text-sm">
             Track rooms under maintenance and schedule repairs.
@@ -97,7 +97,7 @@ const Rooms = () => {
             <SiHomeassistant className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">All Rooms</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">All Rooms</h2>
 
           <p className="text-gray-600 text-sm">
             Manage room maintenance, track repairs, and ensure every room stays
@@ -113,7 +113,7 @@ const Rooms = () => {
             <MdChangeCircle className="text-3xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Change Room</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Change Room</h2>
 
           <p className="text-gray-600 text-sm">
             Change guest room for better service......

@@ -23,7 +23,7 @@ const RestaurantInvoice = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -53,7 +53,7 @@ const RestaurantInvoice = () => {
     return (
       <div className="invoice-print-content bg-white overflow-hidden">
         {/* Rose top border */}
-        <div className="h-2 bg-rose-700"></div>
+        <div className="h-2 bg-rose-900"></div>
 
         <div className="p-8">
           {/* ================= HEADER ================= */}
@@ -61,7 +61,7 @@ const RestaurantInvoice = () => {
             <div>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center">
-                  <MdRestaurantMenu className="text-2xl text-rose-700" />
+                  <MdRestaurantMenu className="text-2xl text-rose-900" />
                 </div>
 
                 <div>
@@ -79,7 +79,7 @@ const RestaurantInvoice = () => {
             </div>
 
             <div className="text-right">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold uppercase tracking-wider mb-3">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-rose-50 text-rose-900 text-xs font-bold uppercase tracking-wider mb-3">
                 Restaurant Invoice
               </div>
 
@@ -185,7 +185,7 @@ const RestaurantInvoice = () => {
                     <tr key={index} className="border-t border-gray-100">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center text-xs font-bold">
+                          <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-900 flex items-center justify-center text-xs font-bold">
                             {index + 1}
                           </div>
 
@@ -245,7 +245,7 @@ const RestaurantInvoice = () => {
                     <p className="text-xs text-gray-500 mt-1">Amount payable</p>
                   </div>
 
-                  <span className="text-2xl font-extrabold text-rose-700">
+                  <span className="text-2xl font-extrabold text-rose-900">
                     ৳{Number(order.totalAmount || 0).toLocaleString()}
                   </span>
                 </div>
@@ -424,7 +424,7 @@ const RestaurantInvoice = () => {
           {/* ================= NORMAL HEADER ================= */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 print-hidden">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-rose-700 flex items-center justify-center shadow-md">
+              <div className="w-11 h-11 rounded-xl bg-rose-900 flex items-center justify-center shadow-md">
                 <MdRestaurantMenu className="text-2xl text-white" />
               </div>
 
@@ -455,7 +455,7 @@ const RestaurantInvoice = () => {
               <button
                 onClick={() => window.print()}
                 type="button"
-                className="h-10 px-4 rounded-lg bg-rose-700 text-white hover:bg-rose-800 shadow-sm transition-all flex items-center gap-2"
+                className="h-10 px-4 rounded-lg bg-rose-900 text-white hover:bg-rose-900 shadow-sm transition-all flex items-center gap-2"
               >
                 <MdPrint className="text-lg" />
                 Print Invoice

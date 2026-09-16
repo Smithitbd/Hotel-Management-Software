@@ -12,11 +12,11 @@ const Reports = () => {
   return (
     <div className="p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
           <MdAssessment className="text-xl text-white" />
         </div>
 
-        <h1 className="text-lg font-bold text-rose-700">Reports</h1>
+        <h1 className="text-lg font-bold text-rose-900">Reports</h1>
       </div>
 
       <p className="text-gray-500 mb-10">
@@ -34,7 +34,7 @@ const Reports = () => {
             <FaChartLine className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Sales Report</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Sales Report</h2>
 
           <p className="text-gray-600 text-sm">
             Track revenue, bookings, and overall sales performance.
@@ -50,7 +50,7 @@ const Reports = () => {
             <FaBed className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">Room Report</h2>
+          <h2 className="text-lg font-bold text-rose-900 mb-3">Room Report</h2>
 
           <p className="text-gray-600 text-sm">
             Monitor room occupancy, availability, and booking statistics.
@@ -66,7 +66,7 @@ const Reports = () => {
             <FaMoneyCheckAlt className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Salary Report
           </h2>
 
@@ -84,7 +84,7 @@ const Reports = () => {
             <FaReceipt className="text-xl text-[#BF1E2E] transition-all duration-300 group-hover:text-white group-hover:scale-110" />
           </div>
 
-          <h2 className="text-lg font-bold text-rose-700 mb-3">
+          <h2 className="text-lg font-bold text-rose-900 mb-3">
             Expense Report
           </h2>
 

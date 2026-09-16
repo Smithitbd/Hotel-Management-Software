@@ -31,7 +31,7 @@ const AllRooms = () => {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -45,7 +45,7 @@ const AllRooms = () => {
           </p>
           <button
             onClick={refetch}
-            className="rounded-lg bg-[#BF1E2E] px-5 py-2 text-sm font-medium text-white transition hover:bg-rose-800"
+            className="rounded-lg bg-[#BF1E2E] px-5 py-2 text-sm font-medium text-white transition hover:bg-rose-900"
           >
             Try Again
           </button>
@@ -59,17 +59,17 @@ const AllRooms = () => {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-700">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-900">
             <MdHotel className="text-xl text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               {mode === "reserve" ? "Select Room to Reserve" : "All Rooms"}
             </h1>
             {mode === "reserve" && selectedDate && (
               <p className="text-sm text-gray-500">
                 Selected Date:{" "}
-                <span className="font-medium text-rose-700">
+                <span className="font-medium text-rose-900">
                   {selectedDate}
                 </span>
               </p>
@@ -80,7 +80,7 @@ const AllRooms = () => {
         {mode === "reserve" && (
           <button
             onClick={() => navigate("/dashboard/reservations")}
-            className="btn btn-sm btn-outline border-rose-700 text-rose-700"
+            className="btn btn-sm btn-outline border-rose-900 text-rose-900"
           >
             ← Back to Calendar
           </button>
@@ -104,7 +104,7 @@ const AllRooms = () => {
       {rooms.length === 0 ? (
         <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-md">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-rose-700">
+            <h2 className="text-xl font-semibold text-rose-900">
               No Rooms Found
             </h2>
             <p className="mt-2 text-sm text-gray-500">
@@ -145,7 +145,7 @@ const AllRooms = () => {
                 <div className="p-4">
                   <div className="mb-3 flex items-start justify-between gap-2">
                     <div>
-                      <h2 className="text-base font-bold text-rose-700">
+                      <h2 className="text-base font-bold text-rose-900">
                         Room {room.roomNo || "N/A"}
                       </h2>
                       <p className="text-xs text-gray-500">
@@ -179,7 +179,7 @@ const AllRooms = () => {
                   {/* Button Logic */}
                   {isAvailable ? (
                     <button
-                      className="w-full rounded-lg bg-[#BF1E2E] py-2 text-sm font-medium text-white transition hover:bg-rose-800"
+                      className="w-full rounded-lg bg-[#BF1E2E] py-2 text-sm font-medium text-white transition hover:bg-rose-900"
                       onClick={() => {
                         if (mode === "reserve") {
                           // Go to MainReserve page

@@ -19,7 +19,7 @@ const PaymentHistory = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -29,11 +29,11 @@ const PaymentHistory = () => {
       {/* ====================== HEADER ====================== */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdCheckCircleOutline className="text-xl text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-rose-700">Checkout List</h1>
+            <h1 className="text-lg font-bold text-rose-900">Checkout List</h1>
             <p className="text-sm text-gray-500">
               All checked-out guests history
             </p>
@@ -43,7 +43,7 @@ const PaymentHistory = () => {
         <Link to="/dashboard/billing_and_payments">
           <button
             type="button"
-            className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
             title="Back"
           >
             <IoArrowBackCircleSharp className="text-2xl" />
@@ -56,7 +56,7 @@ const PaymentHistory = () => {
         <div className="overflow-x-auto">
           <table className="table w-full">
             {/* head */}
-            <thead className="bg-rose-50 text-rose-800">
+            <thead className="bg-rose-50 text-rose-900">
               <tr>
                 <th className="font-semibold">Guest</th>
                 <th className="font-semibold">Contact</th>
@@ -94,7 +94,7 @@ const PaymentHistory = () => {
                                 className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-700 font-bold text-lg">
+                              <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-900 font-bold text-lg">
                                 {item.guestName?.charAt(0)?.toUpperCase()}
                               </div>
                             )}
@@ -152,7 +152,7 @@ const PaymentHistory = () => {
 
                     {/* Total Amount */}
                     <td>
-                      <div className="font-bold text-rose-700">
+                      <div className="font-bold text-rose-900">
                         ৳
                         {(
                           item.totalCharges ||
@@ -182,7 +182,7 @@ const PaymentHistory = () => {
                     <td className="text-center">
                       <Link
                         to={`/dashboard/billing_and_payments/checkout_details/${item._id}`}
-                        className="btn btn-sm btn-ghost text-rose-700 hover:bg-rose-50"
+                        className="btn btn-sm btn-ghost text-rose-900 hover:bg-rose-50"
                         title="View Details"
                       >
                         <FaEye />

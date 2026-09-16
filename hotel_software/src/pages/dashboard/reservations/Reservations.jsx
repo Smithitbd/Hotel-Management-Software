@@ -94,10 +94,10 @@ const Reservations = () => {
       <div className="flex justify-between items-start mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-rose-900 flex items-center justify-center">
               <LuBookImage className="text-xl text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-rose-700">Reservations</h1>
+            <h1 className="text-2xl font-bold text-rose-900">Reservations</h1>
           </div>
           <p className="text-gray-500 ml-13">
             Select a date to view available rooms and make a reservation.
@@ -105,7 +105,7 @@ const Reservations = () => {
         </div>
 
         <Link to="/dashboard/reservations/reservation_history">
-          <button className="btn btn-outline btn-sm border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white">
+          <button className="btn btn-outline btn-sm border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white">
             <MdWorkHistory className="text-lg" />
             History
           </button>
@@ -115,7 +115,7 @@ const Reservations = () => {
       {/* Live Date & Time */}
       <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 mb-6 text-center">
         <p className="text-sm text-gray-500">Current Date & Time</p>
-        <p className="text-xl font-bold text-rose-700">
+        <p className="text-xl font-bold text-rose-900">
           {now.toLocaleDateString("en-GB", {
             weekday: "long",
             year: "numeric",
@@ -123,7 +123,7 @@ const Reservations = () => {
             day: "numeric",
           })}
         </p>
-        <p className="text-2xl font-mono text-rose-800 mt-1">
+        <p className="text-2xl font-mono text-rose-900 mt-1">
           {now.toLocaleTimeString("en-GB")}
         </p>
       </div>

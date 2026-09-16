@@ -103,10 +103,10 @@ const AssignNewSalaryStructure = () => {
       <div className="flex justify-between mb-5">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <FaMoneyCheckAlt className="text-xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               Assign New Salary Structure
             </h1>
           </div>
@@ -118,7 +118,7 @@ const AssignNewSalaryStructure = () => {
         <Link to="/dashboard/employees/payroll">
           <button
             type="button"
-            className="flex items-center justify-center w-9 h-9 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
             <IoArrowBackCircleSharp className="text-xl" />
           </button>
@@ -197,7 +197,7 @@ const AssignNewSalaryStructure = () => {
         </div>
 
         {/* Salary Components */}
-        <h3 className="text-base font-semibold text-rose-700 mb-4">
+        <h3 className="text-base font-semibold text-rose-900 mb-4">
           Salary Components (Enter Round Amounts)
         </h3>
 
@@ -296,7 +296,7 @@ const AssignNewSalaryStructure = () => {
         {/* Estimated Gross Pay */}
         <div className="mt-8 p-5 bg-rose-50 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <p className="font-semibold text-rose-800">
+            <p className="font-semibold text-rose-900">
               Estimated Gross Monthly Pay:
             </p>
             <p className="text-sm text-gray-500 mt-1">

@@ -152,7 +152,7 @@ const EditGuestInfo = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <span className="loading loading-spinner loading-lg text-rose-800"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -192,10 +192,10 @@ const EditGuestInfo = () => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <div className="flex items-center gap-4">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <MdManageAccounts className="text-xl text-white" />
             </div>
-            <h1 className="text-lg font-bold text-rose-800">
+            <h1 className="text-lg font-bold text-rose-900">
               Edit Guest Information
             </h1>
           </div>
@@ -207,7 +207,7 @@ const EditGuestInfo = () => {
         <Link to="/dashboard/guests/present_guest_list">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
             <IoCaretBackCircleSharp className="text-2xl" />
           </button>
@@ -219,7 +219,7 @@ const EditGuestInfo = () => {
           <div className="card-body p-8 space-y-6">
             {/* Guest Information */}
             <div>
-              <h2 className="text-lg font-bold text-rose-800 mb-5">
+              <h2 className="text-lg font-bold text-rose-900 mb-5">
                 Guest Information
               </h2>
 
@@ -313,7 +313,7 @@ const EditGuestInfo = () => {
 
             {/* Room Information */}
             <div>
-              <h2 className="text-lg font-bold text-rose-800 mb-5">
+              <h2 className="text-lg font-bold text-rose-900 mb-5">
                 Room Information
               </h2>
 
@@ -366,7 +366,7 @@ const EditGuestInfo = () => {
 
             {/* Stay Information */}
             <div>
-              <h2 className="text-lg font-bold text-rose-800 mb-5">
+              <h2 className="text-lg font-bold text-rose-900 mb-5">
                 Stay Information
               </h2>
 
@@ -447,7 +447,7 @@ const EditGuestInfo = () => {
 
             {/* Payment */}
             <div>
-              <h2 className="text-lg font-bold text-rose-800 mb-5">
+              <h2 className="text-lg font-bold text-rose-900 mb-5">
                 Payment Information
               </h2>
 
@@ -519,7 +519,7 @@ const EditGuestInfo = () => {
 
               <button
                 type="submit"
-                className="btn bg-rose-800 hover:bg-rose-900 text-white border-none px-10"
+                className="btn bg-rose-900 hover:bg-rose-900 text-white border-none px-10"
               >
                 Save Changes
               </button>

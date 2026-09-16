@@ -84,7 +84,7 @@ const EditRoomVariant = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <span className="loading loading-spinner loading-lg text-rose-800"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -118,11 +118,11 @@ const EditRoomVariant = () => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <div className="flex items-center gap-4">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <RiHome3Line className="text-xl text-white" />
             </div>
 
-            <h1 className="text-lg font-bold text-rose-800">
+            <h1 className="text-lg font-bold text-rose-900">
               Edit Room Variant
             </h1>
           </div>
@@ -133,7 +133,7 @@ const EditRoomVariant = () => {
         </div>
 
         <Link to="/dashboard/rooms/room_overview">
-          <button className="flex items-center justify-center w-10 h-10 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors">
+          <button className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
             <RiHome3Line className="text-2xl" />
           </button>
         </Link>
@@ -330,7 +330,7 @@ const EditRoomVariant = () => {
 
               <button
                 type="submit"
-                className="btn bg-rose-800 hover:bg-rose-900 text-white border-none px-10"
+                className="btn bg-rose-900 hover:bg-rose-900 text-white border-none px-10"
               >
                 Save Changes
               </button>

@@ -88,7 +88,7 @@ const AddRoom = () => {
   if (isLoading) {
     return (
       <div className="min-h-96 flex justify-center items-center">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -109,11 +109,11 @@ const AddRoom = () => {
       <div className="mb-8">
         <div className="flex justify-between gap-3 mb-2">
           <div className="flex flex-row gap-4 items-center">
-            <MdOutlineAddHomeWork className="bg-rose-700 h-10 w-10 text-white p-2 rounded-full" />
-            <h1 className="text-lg font-bold text-rose-700">Add Room</h1>
+            <MdOutlineAddHomeWork className="bg-rose-900 h-10 w-10 text-white p-2 rounded-full" />
+            <h1 className="text-lg font-bold text-rose-900">Add Room</h1>
           </div>
           <Link to="/dashboard/rooms">
-            <button className="flex items-center justify-center w-11 h-11 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors">
+            <button className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
               <RiHome3Line className="text-xl" />
             </button>
           </Link>
@@ -130,7 +130,7 @@ const AddRoom = () => {
 
       <div className="card shadow-xl mb-8">
         <div className="card-body">
-          <h2 className="card-title text-xl text-rose-700 mb-5">
+          <h2 className="card-title text-xl text-rose-900 mb-5">
             Room Variant Information
           </h2>
 
@@ -198,7 +198,7 @@ const AddRoom = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="card shadow-xl">
         <div className="card-body">
-          <h2 className="card-title text-xl text-rose-700 mb-6">
+          <h2 className="card-title text-xl text-rose-900 mb-6">
             Room Information
           </h2>
 
@@ -358,7 +358,7 @@ const AddRoom = () => {
 
             <button
               type="submit"
-              className="btn bg-rose-700 hover:bg-rose-800 text-white border-none"
+              className="btn bg-rose-900 hover:bg-rose-900 text-white border-none"
             >
               Add Room
             </button>

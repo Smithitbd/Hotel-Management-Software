@@ -84,7 +84,7 @@ const EditRestaurantHistory = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -100,11 +100,11 @@ const EditRestaurantHistory = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-rose-700 flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 rounded-full bg-rose-900 flex items-center justify-center shadow-md">
             <MdRestaurantMenu className="text-xl text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               Edit Restaurant Order
             </h1>
             <p className="text-sm text-gray-500">
@@ -116,7 +116,7 @@ const EditRestaurantHistory = () => {
         <Link to="/dashboard/services/restaurant_orders/restaurant_orders_history">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+            className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
             <RiHome3Line className="text-xl" />
           </button>
@@ -220,14 +220,14 @@ const EditRestaurantHistory = () => {
         {/* ========== Editable: Food Items ========== */}
         <div className="mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold text-rose-700">
+            <h3 className="text-base font-semibold text-rose-900">
               Food Items
             </h3>
 
             <button
               type="button"
               onClick={() => append({ itemName: "", quantity: 1, price: 0 })}
-              className="btn btn-sm bg-rose-700 text-white hover:bg-rose-800 border-none gap-2"
+              className="btn btn-sm bg-rose-900 text-white hover:bg-rose-900 border-none gap-2"
             >
               <FaPlus /> Add Food Item
             </button>
@@ -305,7 +305,7 @@ const EditRestaurantHistory = () => {
           <span className="text-lg font-semibold text-gray-700">
             Total Amount
           </span>
-          <span className="text-2xl font-bold text-rose-700">
+          <span className="text-2xl font-bold text-rose-900">
             ৳{totalAmount.toLocaleString()}
           </span>
         </div>

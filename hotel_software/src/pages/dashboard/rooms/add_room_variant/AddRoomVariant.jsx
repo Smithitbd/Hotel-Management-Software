@@ -74,11 +74,11 @@ const AddRoomVariant = () => {
       <div className="mb-8">
         <div className="flex justify-between">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <FaLayerGroup className="text-xl text-white" />
             </div>
 
-            <h1 className="text-lg font-bold text-rose-700">
+            <h1 className="text-lg font-bold text-rose-900">
               Add Room Variant
             </h1>
           </div>
@@ -86,7 +86,7 @@ const AddRoomVariant = () => {
           <Link to="/dashboard/rooms">
             <button
               type="button"
-              className="flex items-center justify-center w-11 h-11 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+              className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
             >
               <RiHome3Line className="text-xl" />
             </button>
@@ -103,7 +103,7 @@ const AddRoomVariant = () => {
           {/* Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Room Image <span className="text-rose-700">*</span>
+              Room Image <span className="text-rose-900">*</span>
             </label>
 
             <input
@@ -127,7 +127,7 @@ const AddRoomVariant = () => {
             {/* Variant Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Variant Name <span className="text-rose-700">*</span>
+                Variant Name <span className="text-rose-900">*</span>
               </label>
 
               <input
@@ -136,7 +136,7 @@ const AddRoomVariant = () => {
                 {...register("variantName", {
                   required: "Variant name is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
 
               {errors.variantName && (
@@ -149,7 +149,7 @@ const AddRoomVariant = () => {
             {/* Base Room Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Base Room Type <span className="text-rose-700">*</span>
+                Base Room Type <span className="text-rose-900">*</span>
               </label>
 
               <input
@@ -158,7 +158,7 @@ const AddRoomVariant = () => {
                 {...register("baseRoomType", {
                   required: "Base room type is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
 
               {errors.baseRoomType && (
@@ -174,7 +174,7 @@ const AddRoomVariant = () => {
             {/* Price */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price (per night) <span className="text-rose-700">*</span>
+                Price (per night) <span className="text-rose-900">*</span>
               </label>
 
               <input
@@ -184,7 +184,7 @@ const AddRoomVariant = () => {
                 {...register("price", {
                   required: "Price is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
 
               {errors.price && (
@@ -197,7 +197,7 @@ const AddRoomVariant = () => {
             {/* Max Occupancy */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Max Occupancy <span className="text-rose-700">*</span>
+                Max Occupancy <span className="text-rose-900">*</span>
               </label>
 
               <input
@@ -207,7 +207,7 @@ const AddRoomVariant = () => {
                 {...register("maxOccupancy", {
                   required: "Max occupancy is required",
                 })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
 
               {errors.maxOccupancy && (
@@ -227,7 +227,7 @@ const AddRoomVariant = () => {
                 type="text"
                 placeholder="e.g. King"
                 {...register("bedType")}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
               />
             </div>
           </div>
@@ -256,7 +256,7 @@ const AddRoomVariant = () => {
               rows={4}
               placeholder="Write a short description of this room variant..."
               {...register("description")}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-700 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent resize-none"
             />
           </div>
 
@@ -272,7 +272,7 @@ const AddRoomVariant = () => {
 
             <button
               type="submit"
-              className="flex items-center gap-2 px-6 py-2.5 bg-rose-700 hover:bg-rose-800 text-white rounded-lg transition-colors border-none"
+              className="flex items-center gap-2 px-6 py-2.5 bg-rose-900 hover:bg-rose-900 text-white rounded-lg transition-colors border-none"
             >
               <FaSave className="text-sm" />
               Save Variant

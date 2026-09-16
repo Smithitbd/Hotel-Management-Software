@@ -25,11 +25,11 @@ const LaundryServiceHistory = () => {
       <div className="flex justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-full bg-rose-700 flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 rounded-full bg-rose-900 flex items-center justify-center shadow-md">
               <MdWorkHistory className="text-xl text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-rose-700">
+              <h1 className="text-lg font-bold text-rose-900">
                 Laundry Service History
               </h1>
               <p className="text-sm text-gray-500">
@@ -43,7 +43,7 @@ const LaundryServiceHistory = () => {
           <Link to="/dashboard/services/laundry_service">
             <button
               type="button"
-              className="flex items-center justify-center w-10 h-10 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+              className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
               title="New Laundry Request"
             >
               <MdLocalLaundryService className="text-xl" />
@@ -53,7 +53,7 @@ const LaundryServiceHistory = () => {
           <Link to="/dashboard/services">
             <button
               type="button"
-              className="flex items-center justify-center w-10 h-10 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors"
+              className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
               title="Back to Services"
             >
               <RiHome3Line className="text-xl" />
@@ -66,7 +66,7 @@ const LaundryServiceHistory = () => {
       <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <span className="loading loading-spinner loading-lg text-rose-700"></span>
+            <span className="loading loading-spinner loading-lg text-rose-900"></span>
           </div>
         ) : isError ? (
           <div className="text-center py-20 text-red-500 font-medium">
@@ -81,7 +81,7 @@ const LaundryServiceHistory = () => {
             <table className="table w-full">
               {/* head */}
               <thead>
-                <tr className="bg-rose-50 text-rose-800 text-sm">
+                <tr className="bg-rose-50 text-rose-900 text-sm">
                   <th className="font-semibold py-4">#</th>
                   <th className="font-semibold">Room</th>
                   <th className="font-semibold">Guest Name</th>
@@ -112,7 +112,7 @@ const LaundryServiceHistory = () => {
                     <td className="font-medium">{order.guestName || "—"}</td>
 
                     <td>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-700 border border-rose-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-900 border border-rose-200">
                         {order.laundryType}
                       </span>
                     </td>
@@ -149,7 +149,7 @@ const LaundryServiceHistory = () => {
 
                     {/* Total Cost */}
                     <td className="text-right">
-                      <span className="font-bold text-rose-700 text-base">
+                      <span className="font-bold text-rose-900 text-base">
                         ৳{Number(order.totalCost || 0).toLocaleString()}
                       </span>
                     </td>

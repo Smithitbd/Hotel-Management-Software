@@ -20,7 +20,7 @@ const RoomStatus = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
-        <span className="loading loading-spinner loading-lg text-rose-700"></span>
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
@@ -31,11 +31,11 @@ const RoomStatus = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-9 h-9 rounded-full bg-rose-700 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <GiMushroomHouse className="text-2xl text-white" />
             </div>
 
-            <h1 className="text-lg font-bold text-rose-700">Room Status</h1>
+            <h1 className="text-lg font-bold text-rose-900">Room Status</h1>
           </div>
 
           <p className="text-gray-500 ml-9">
@@ -46,7 +46,7 @@ const RoomStatus = () => {
         {/* Header Buttons */}
         <div className="flex items-center gap-3">
           <Link to="/dashboard/rooms">
-            <button className="flex items-center justify-center w-11 h-11 border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white rounded-lg transition-colors">
+            <button className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
               <RiHome3Line className="text-xl" />
             </button>
           </Link>
@@ -69,7 +69,7 @@ const RoomStatus = () => {
           </p>
 
           <Link to="/dashboard/rooms/add_room_variant">
-            <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors">
+            <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-900 text-white rounded-lg transition-colors">
               <FaPlus />
               Add Room Variant
             </button>
@@ -81,7 +81,7 @@ const RoomStatus = () => {
           {variants.map((item) => (
             <div
               key={item._id}
-              className="group bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-700"
+              className="group bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900"
             >
               <div className="flex flex-col sm:flex-row">
                 {/* Image */}
@@ -103,11 +103,11 @@ const RoomStatus = () => {
                 <div className="p-6 flex-1">
                   {/* Title + Price */}
                   <div className="flex justify-between items-start gap-3 mb-4">
-                    <h2 className="text-lg font-bold text-rose-700">
+                    <h2 className="text-lg font-bold text-rose-900">
                       {item.variantName || "Unnamed Variant"}
                     </h2>
 
-                    <span className="px-3 py-1 bg-red-100 text-rose-700 rounded-full text-sm font-semibold whitespace-nowrap">
+                    <span className="px-3 py-1 bg-red-100 text-rose-900 rounded-full text-sm font-semibold whitespace-nowrap">
                       ${item.price || 0}
                     </span>
                   </div>
@@ -149,7 +149,7 @@ const RoomStatus = () => {
                   <div className="flex flex-nowrap justify-end items-center gap-2 mt-6 pt-4 border-t border-gray-100">
                     {/* View Rooms */}
                     <Link to={`/dashboard/rooms/view_rooms/${item._id}`}>
-                      <button className="btn btn-sm h-10 border border-rose-700 text-rose-700 bg-transparent hover:bg-rose-700 hover:text-white gap-1.5">
+                      <button className="btn btn-sm h-10 border border-rose-900 text-rose-900 bg-transparent hover:bg-rose-900 hover:text-white gap-1.5">
                         <FaEye className="text-base" />
                         View Rooms
                       </button>
