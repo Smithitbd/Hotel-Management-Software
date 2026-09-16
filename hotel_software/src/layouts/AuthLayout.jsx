@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet, Link } from "react-router";
 import authImg from "/authImage.png";
-import logo from "/logo.jpg";
+import logo from "/logo.png";
 
 const AuthLayout = () => {
   return (
