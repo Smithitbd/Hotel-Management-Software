@@ -4,10 +4,14 @@ import { MdPayments, MdSearch } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const AllGuestDues = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const { register, watch } = useForm({
     defaultValues: {
       searchRoom: "",
@@ -19,7 +23,9 @@ const AllGuestDues = () => {
   const { data: duesList = [], isLoading } = useQuery({
     queryKey: ["all-dues"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-in/all-dues");
+      const res = await axiosInstance.get("/check-in/all-dues", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

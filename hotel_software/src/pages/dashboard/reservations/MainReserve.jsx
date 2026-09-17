@@ -4,13 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import useAxios from "../../../hooks/useAxios";
 import { LuBookImage } from "react-icons/lu";
+import useAuth from "../../../hooks/useAuth";
 
 const MainReserve = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   // Get data from previous page
   const room = location.state?.room || null;
   const selectedDate = searchParams.get("date") || location.state?.date || "";
@@ -87,6 +91,7 @@ const MainReserve = () => {
     }
 
     const reservationData = {
+      hotelEmail: user.email,
       guestName: data.guestName,
       contactNumber: data.contactNumber,
       arrivingDate: data.arrivingDate,

@@ -4,14 +4,21 @@ import { FaEye, FaPhone, FaIdCard, FaCalendarAlt } from "react-icons/fa";
 import { MdCheckCircleOutline } from "react-icons/md";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const PaymentHistory = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const { data: checkouts = [], isLoading } = useQuery({
     queryKey: ["checkout-list"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-out");
+      const res = await axiosInstance.get("/check-out", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

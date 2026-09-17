@@ -5,11 +5,16 @@ import { FaMoneyCheckAlt } from "react-icons/fa";
 import { RiHome3Line } from "react-icons/ri";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
+import useAuth from "../../../../../hooks/useAuth";
 
 const MakeSalary = () => {
   const { employeeId } = useParams();
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -129,6 +134,7 @@ const MakeSalary = () => {
 
       paymentStatus: "Paid",
       paidAt: new Date(),
+      hotelEmail: user.email,
     };
 
     try {

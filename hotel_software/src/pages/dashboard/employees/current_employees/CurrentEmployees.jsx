@@ -4,15 +4,22 @@ import { Link } from "react-router";
 import { FaUsers } from "react-icons/fa";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import { MdEdit } from "react-icons/md";
+import useAuth from "../../../../hooks/useAuth";
 
 const CurrentEmployees = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   // Active employees
   const { data: employees = [], isLoading: employeesLoading } = useQuery({
     queryKey: ["activeEmployees"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/employees/active");
+      const res = await axiosInstance.get("/employees/active", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

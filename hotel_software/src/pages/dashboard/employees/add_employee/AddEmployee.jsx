@@ -5,11 +5,15 @@ import { Link } from "react-router";
 import { RiHome3Line } from "react-icons/ri";
 import { FaUserPlus } from "react-icons/fa";
 import { useState } from "react";
+import useAuth from "../../../../hooks/useAuth";
 
 const AddEmployee = () => {
   const axiosInstance = useAxios();
   const [imagePreview, setImagePreview] = useState(null);
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     register,
     formState: { errors },
@@ -41,6 +45,7 @@ const AddEmployee = () => {
       formData.append("JoiningDate", data.JoiningDate);
       formData.append("EmploymentStatus", data.EmploymentStatus);
       formData.append("Address", data.Address);
+      formData.append("hotelEmail", user.email);
 
       if (data.Image?.[0]) {
         formData.append("image", data.Image[0]);

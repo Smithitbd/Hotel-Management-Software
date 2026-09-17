@@ -5,10 +5,15 @@ import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
+import useAuth from "../../../../../hooks/useAuth";
 
 const AssignNewSalaryStructure = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -48,7 +53,9 @@ const AssignNewSalaryStructure = () => {
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ["employees-active"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/employees/active");
+      const res = await axiosInstance.get("/employees/active", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });
@@ -73,6 +80,7 @@ const AssignNewSalaryStructure = () => {
       transportAllowance: Number(data.transportAllowance),
       festivalBonus: Number(data.festivalBonus),
       grossMonthlyPay: grossPay,
+      hotelEmail: user.email,
     };
 
     try {

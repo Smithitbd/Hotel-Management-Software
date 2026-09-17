@@ -4,10 +4,14 @@ import { FaArrowLeft, FaSearch } from "react-icons/fa";
 import { MdAssessment } from "react-icons/md";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const RoomReport = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const { register, handleSubmit, getValues } = useForm();
 
   const {
@@ -25,6 +29,7 @@ const RoomReport = () => {
           fromDate,
           toDate,
           roomNumber: roomNumber || undefined,
+          hotelEmail: user.email,
         },
       });
 
@@ -60,7 +65,7 @@ const RoomReport = () => {
         </div>
 
         <Link
-          to="/dashboard/reports/sales_report"
+          to="/dashboard/reports"
           className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
         >
           <FaArrowLeft />

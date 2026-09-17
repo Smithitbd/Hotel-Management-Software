@@ -4,10 +4,14 @@ import { Link } from "react-router";
 import { FaUserSlash } from "react-icons/fa";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import { MdEdit } from "react-icons/md";
+import useAuth from "../../../../hooks/useAuth";
 
 const PastEmployees = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     data: employees = [],
     isLoading,
@@ -16,7 +20,9 @@ const PastEmployees = () => {
   } = useQuery({
     queryKey: ["inactiveEmployees"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/employees/inactive");
+      const res = await axiosInstance.get("/employees/inactive", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

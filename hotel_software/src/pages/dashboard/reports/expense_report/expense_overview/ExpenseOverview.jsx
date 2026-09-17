@@ -66,7 +66,7 @@ const ExpenseOverview = () => {
         </div>
 
         <Link
-          to="/dashboard/reports" // change if needed
+          to="/dashboard/reports/expense_report" // change if needed
           className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
         >
           <FaArrowLeft />

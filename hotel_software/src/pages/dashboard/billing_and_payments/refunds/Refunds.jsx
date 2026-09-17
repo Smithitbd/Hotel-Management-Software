@@ -11,9 +11,14 @@ import {
 } from "react-icons/fa";
 import { MdMoneyOff } from "react-icons/md";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const Refunds = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const { register, handleSubmit, getValues } = useForm();
 
@@ -32,6 +37,7 @@ const Refunds = () => {
           fromDate,
           toDate,
           contactNumber: contactNumber || undefined,
+          hotelEmail: user.email,
         },
       });
 

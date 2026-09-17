@@ -3,10 +3,14 @@ import { Link } from "react-router";
 import { RiHome3Line } from "react-icons/ri";
 import { FaHistory } from "react-icons/fa";
 import useAxios from "../../../../../hooks/useAxios";
+import useAuth from "../../../../../hooks/useAuth";
 
 const PayrollHistory = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     data: payrolls = [],
     isLoading,
@@ -14,7 +18,9 @@ const PayrollHistory = () => {
   } = useQuery({
     queryKey: ["payroll-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/payrolls");
+      const res = await axiosInstance.get("/payrolls", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

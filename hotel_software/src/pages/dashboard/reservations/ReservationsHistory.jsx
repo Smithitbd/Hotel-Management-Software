@@ -4,9 +4,14 @@ import { Link } from "react-router";
 import useAxios from "../../../hooks/useAxios";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import Swal from "sweetalert2";
+import useAuth from "../../../hooks/useAuth";
 
 const ReservationsHistory = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     data: reservations = [],
     isLoading,
@@ -15,7 +20,9 @@ const ReservationsHistory = () => {
   } = useQuery({
     queryKey: ["reservations-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/reservations");
+      const res = await axiosInstance.get("/reservations", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

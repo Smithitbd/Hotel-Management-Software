@@ -273,6 +273,7 @@ async function run() {
           Address: req.body.Address,
           Image: `/uploads/employees/${uniqueName}`,
           createdAt: new Date(),
+          hotelEmail: req.body.hotelEmail,
         };
 
         const result = await employeeCollection.insertOne(employee);
@@ -284,15 +285,23 @@ async function run() {
     });
 
     app.get("/employees/active", async (req, res) => {
+      const { hotelEmail } = req.query;
       const employees = await employeeCollection
-        .find({ EmploymentStatus: { $in: ["Active", "On Leave"] } })
+        .find({
+          hotelEmail,
+          EmploymentStatus: { $in: ["Active", "On Leave"] },
+        })
         .toArray();
       res.send(employees);
     });
 
     app.get("/employees/inactive", async (req, res) => {
+      const { hotelEmail } = req.query;
       const employees = await employeeCollection
-        .find({ EmploymentStatus: { $in: ["Resigned", "Terminated"] } })
+        .find({
+          hotelEmail,
+          EmploymentStatus: { $in: ["Resigned", "Terminated"] },
+        })
         .toArray();
       res.send(employees);
     });
@@ -861,44 +870,44 @@ async function run() {
     });
 
     app.get("/check-in/all-dues", async (req, res) => {
-      try {
-        const checkIns = await checkInCollection
-          .find()
-          .sort({ createdAt: -1 })
-          .toArray();
+      const { hotelEmail } = req.query;
 
-        const duesList = checkIns.map((checkIn) => {
-          const roomDue = Number(checkIn.dueAmount) || 0;
-          const restaurantDue = (checkIn.restaurantOrders || [])
-            .filter((o) => o.paymentStatus === "Due")
-            .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
-          const laundryDue = (checkIn.laundryOrders || [])
-            .filter((o) => o.paymentStatus === "Due")
-            .reduce((sum, o) => sum + (Number(o.totalCost) || 0), 0);
-          const transportDue = (checkIn.transportOrders || [])
-            .filter((o) => o.paymentStatus === "Due")
-            .reduce((sum, o) => sum + (Number(o.fare) || 0), 0);
+      const checkIns = await checkInCollection
+        .find({ hotelEmail })
+        .sort({ createdAt: -1 })
+        .toArray();
 
-          return {
-            _id: checkIn._id,
-            roomNumber: checkIn.roomNumber,
-            guestName: checkIn.guestName,
-            contactNumber: checkIn.contactNumber,
-            checkInDate: checkIn.checkInDate,
-            checkOutDate: checkIn.checkOutDate,
-            roomDue,
-            restaurantDue,
-            laundryDue,
-            transportDue,
-            totalDue: roomDue + restaurantDue + laundryDue + transportDue,
-          };
-        });
+      const duesList = checkIns.map((checkIn) => {
+        const roomDue = Number(checkIn.dueAmount) || 0;
 
-        res.send(duesList);
-      } catch (error) {
-        console.error("Get all dues error:", error);
-        res.status(500).send({ message: "Failed to get dues" });
-      }
+        const restaurantDue = (checkIn.restaurantOrders || [])
+          .filter((o) => o.paymentStatus === "Due")
+          .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
+
+        const laundryDue = (checkIn.laundryOrders || [])
+          .filter((o) => o.paymentStatus === "Due")
+          .reduce((sum, o) => sum + (Number(o.totalCost) || 0), 0);
+
+        const transportDue = (checkIn.transportOrders || [])
+          .filter((o) => o.paymentStatus === "Due")
+          .reduce((sum, o) => sum + (Number(o.fare) || 0), 0);
+
+        return {
+          _id: checkIn._id,
+          roomNumber: checkIn.roomNumber,
+          guestName: checkIn.guestName,
+          contactNumber: checkIn.contactNumber,
+          checkInDate: checkIn.checkInDate,
+          checkOutDate: checkIn.checkOutDate,
+          roomDue,
+          restaurantDue,
+          laundryDue,
+          transportDue,
+          totalDue: roomDue + restaurantDue + laundryDue + transportDue,
+        };
+      });
+
+      res.send(duesList);
     });
 
     app.get("/check-in/:id", async (req, res) => {
@@ -1322,10 +1331,12 @@ async function run() {
     });
 
     app.get("/reservations", async (req, res) => {
+      const { hotelEmail } = req.query;
       const result = await reservationCollection
-        .find()
+        .find({ hotelEmail })
         .sort({ createdAt: -1 })
         .toArray();
+
       res.send(result);
     });
 
@@ -1363,16 +1374,11 @@ async function run() {
     // SALARY & PAYROLL
     // =========================================================
     app.post("/salary-structures", async (req, res) => {
-      try {
-        const result = await salaryStructureCollection.insertOne({
-          ...req.body,
-          createdAt: new Date(),
-        });
-        res.status(201).send(result);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send({ message: "Failed to save salary structure" });
-      }
+      const result = await salaryStructureCollection.insertOne({
+        ...req.body,
+        createdAt: new Date(),
+      });
+      res.status(201).send(result);
     });
 
     app.get("/salary-structures", async (req, res) => {
@@ -1458,15 +1464,12 @@ async function run() {
     });
 
     app.get("/payrolls", async (req, res) => {
-      try {
-        const result = await payrollCollection
-          .find()
-          .sort({ createdAt: -1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to get payroll history" });
-      }
+      const { hotelEmail } = req.query;
+      const result = await payrollCollection
+        .find({ hotelEmail })
+        .sort({ createdAt: -1 })
+        .toArray();
+      res.send(result);
     });
 
     // =========================================================
@@ -1671,150 +1674,137 @@ async function run() {
     // REPORTS
     // =========================================================
     app.get("/transportation-sales", async (req, res) => {
-      try {
-        const { fromDate, toDate, contactNumber } = req.query;
-        if (!fromDate || !toDate) {
-          return res
-            .status(400)
-            .send({ message: "Both fromDate and toDate are required" });
-        }
-
-        const query = {
-          pickupDate: { $gte: fromDate, $lte: toDate },
-        };
-        if (contactNumber) query.contactNumber = contactNumber;
-
-        const result = await transportServiceCollection
-          .find(query)
-          .sort({ pickupDate: 1, pickupTime: 1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res
-          .status(500)
-          .send({ message: "Failed to fetch transportation sales report" });
+      const { fromDate, toDate, contactNumber, hotelEmail } = req.query;
+      if (!fromDate || !toDate) {
+        return res
+          .status(400)
+          .send({ message: "Both fromDate and toDate are required" });
       }
+      const query = {
+        hotelEmail,
+        pickupDate: { $gte: fromDate, $lte: toDate },
+      };
+      if (contactNumber) {
+        query.contactNumber = contactNumber;
+      }
+      const result = await transportServiceCollection
+        .find(query)
+        .sort({ pickupDate: 1, pickupTime: 1 })
+        .toArray();
+
+      res.send(result);
     });
 
     app.get("/room-sales", async (req, res) => {
-      try {
-        const { fromDate, toDate, roomNumber } = req.query;
-        if (!fromDate || !toDate) {
-          return res
-            .status(400)
-            .send({ message: "Both fromDate and toDate are required" });
-        }
-
-        const query = {
-          checkedOutAt: {
-            $gte: new Date(fromDate),
-            $lte: new Date(toDate + "T23:59:59.999Z"),
-          },
-        };
-        if (roomNumber) query.roomNumber = roomNumber;
-
-        const result = await checkOutCollection
-          .find(query)
-          .sort({ checkedOutAt: 1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to fetch room sales report" });
+      const { fromDate, toDate, roomNumber, hotelEmail } = req.query;
+      if (!fromDate || !toDate) {
+        return res
+          .status(400)
+          .send({ message: "Both fromDate and toDate are required" });
       }
+      const query = {
+        checkedOutAt: {
+          $gte: new Date(fromDate),
+          $lte: new Date(toDate + "T23:59:59.999Z"),
+        },
+      };
+      if (roomNumber) {
+        query.roomNumber = roomNumber;
+      }
+      if (hotelEmail) {
+        query.hotelEmail = hotelEmail;
+      }
+      const result = await checkOutCollection
+        .find(query)
+        .sort({ checkedOutAt: 1 })
+        .toArray();
+      res.send(result);
     });
 
     app.get("/restaurant-sales", async (req, res) => {
-      try {
-        const { fromDate, toDate, contactNumber } = req.query;
-        if (!fromDate || !toDate) {
-          return res
-            .status(400)
-            .send({ message: "Both fromDate and toDate are required" });
-        }
-
-        const query = {
-          orderDate: { $gte: fromDate, $lte: toDate },
-        };
-        if (contactNumber) {
-          query["checkInInfo.contactNumber"] = contactNumber;
-        }
-
-        const result = await restaurantOrderCollection
-          .find(query)
-          .sort({ orderDate: 1, orderTime: 1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res
-          .status(500)
-          .send({ message: "Failed to fetch restaurant sales report" });
+      const { fromDate, toDate, contactNumber, hotelEmail } = req.query;
+      if (!fromDate || !toDate) {
+        return res
+          .status(400)
+          .send({ message: "Both fromDate and toDate are required" });
       }
+      const query = {
+        hotelEmail,
+        orderDate: { $gte: fromDate, $lte: toDate },
+      };
+      if (contactNumber) {
+        query["checkInInfo.contactNumber"] = contactNumber;
+      }
+      const result = await restaurantOrderCollection
+        .find(query)
+        .sort({ orderDate: 1, orderTime: 1 })
+        .toArray();
+
+      res.send(result);
     });
 
     app.get("/laundry-sales", async (req, res) => {
-      try {
-        const { fromDate, toDate, contactNumber } = req.query;
-        if (!fromDate || !toDate) {
-          return res
-            .status(400)
-            .send({ message: "Both fromDate and toDate are required" });
-        }
-
-        const query = {
-          pickupDate: { $gte: fromDate, $lte: toDate },
-        };
-        if (contactNumber) query.contactNumber = contactNumber;
-
-        const result = await laundryServiceCollection
-          .find(query)
-          .sort({ pickupDate: 1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res
-          .status(500)
-          .send({ message: "Failed to fetch laundry sales report" });
+      const { fromDate, toDate, contactNumber, hotelEmail } = req.query;
+      if (!fromDate || !toDate) {
+        return res
+          .status(400)
+          .send({ message: "Both fromDate and toDate are required" });
       }
+      const query = {
+        pickupDate: { $gte: fromDate, $lte: toDate },
+      };
+      if (contactNumber) {
+        query.contactNumber = contactNumber;
+      }
+      if (hotelEmail) {
+        query.hotelEmail = hotelEmail;
+      }
+      const result = await laundryServiceCollection
+        .find(query)
+        .sort({ pickupDate: 1 })
+        .toArray();
+
+      res.send(result);
     });
 
     app.get("/salary-report", async (req, res) => {
-      try {
-        const { fromDate, toDate, employeeId } = req.query;
-        if (!fromDate || !toDate) {
-          return res
-            .status(400)
-            .send({ message: "Both fromDate and toDate are required" });
-        }
-
-        const query = {
-          paidAt: {
-            $gte: fromDate,
-            $lte: toDate + "T23:59:59.999Z",
-          },
-        };
-        if (employeeId) query.employeeID = employeeId;
-
-        const payrolls = await payrollCollection
-          .find(query)
-          .sort({ paidAt: -1 })
-          .toArray();
-
-        const result = await Promise.all(
-          payrolls.map(async (payroll) => {
-            let employee = null;
-            if (payroll.employeeId) {
-              employee = await employeeCollection.findOne({
-                _id: new ObjectId(payroll.employeeId),
-              });
-            }
-            return { ...payroll, employeeDetails: employee || null };
-          }),
-        );
-
-        res.send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to fetch salary report" });
+      const { fromDate, toDate, employeeId, hotelEmail } = req.query;
+      if (!fromDate || !toDate) {
+        return res
+          .status(400)
+          .send({ message: "Both fromDate and toDate are required" });
       }
+      const query = {
+        paidAt: {
+          $gte: fromDate,
+          $lte: toDate + "T23:59:59.999Z",
+        },
+      };
+      if (employeeId) {
+        query.employeeID = employeeId;
+      }
+      if (hotelEmail) {
+        query.hotelEmail = hotelEmail;
+      }
+      const payrolls = await payrollCollection
+        .find(query)
+        .sort({ paidAt: -1 })
+        .toArray();
+      const result = await Promise.all(
+        payrolls.map(async (payroll) => {
+          let employee = null;
+          if (payroll.employeeId) {
+            employee = await employeeCollection.findOne({
+              _id: new ObjectId(payroll.employeeId),
+            });
+          }
+          return {
+            ...payroll,
+            employeeDetails: employee || null,
+          };
+        }),
+      );
+      res.send(result);
     });
 
     // =========================================================
@@ -2119,35 +2109,40 @@ async function run() {
         res.status(500).send({ message: "Failed to get unique guests" });
       }
     });
+
     app.get("/refunded-checkouts", async (req, res) => {
-      try {
-        const { fromDate, toDate, contactNumber } = req.query;
-        if (!fromDate || !toDate) {
-          return res
-            .status(400)
-            .send({ message: "Both fromDate and toDate are required" });
-        }
+      const { fromDate, toDate, contactNumber, hotelEmail } = req.query;
 
-        const query = {
-          isRefund: true,
-          checkedOutAt: {
-            $gte: new Date(fromDate),
-            $lte: new Date(toDate + "T23:59:59.999Z"),
-          },
-        };
-        if (contactNumber) {
-          query.contactNumber = { $regex: contactNumber, $options: "i" };
-        }
-
-        const result = await checkOutCollection
-          .find(query)
-          .sort({ checkedOutAt: -1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to get refunded checkouts" });
+      if (!fromDate || !toDate) {
+        return res
+          .status(400)
+          .send({ message: "Both fromDate and toDate are required" });
       }
+
+      const query = {
+        hotelEmail,
+        isRefund: true,
+        checkedOutAt: {
+          $gte: new Date(fromDate),
+          $lte: new Date(toDate + "T23:59:59.999Z"),
+        },
+      };
+
+      if (contactNumber) {
+        query.contactNumber = {
+          $regex: contactNumber,
+          $options: "i",
+        };
+      }
+
+      const result = await checkOutCollection
+        .find(query)
+        .sort({ checkedOutAt: -1 })
+        .toArray();
+
+      res.send(result);
     });
+
     // =========================================================
     // USER STATUS (for PrivateRoute)
     // =========================================================

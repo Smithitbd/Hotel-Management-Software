@@ -4,10 +4,14 @@ import { FaArrowLeft, FaSearch } from "react-icons/fa";
 import { MdAssessment } from "react-icons/md";
 import { Link } from "react-router";
 import useAxios from "../../../../../hooks/useAxios";
+import useAuth from "../../../../../hooks/useAuth";
 
 const RestaurantSales = () => {
   const axiosInstance = useAxios();
-
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const { register, handleSubmit, getValues } = useForm();
 
   const {
@@ -25,6 +29,7 @@ const RestaurantSales = () => {
           fromDate,
           toDate,
           contactNumber: contactNumber || undefined,
+          hotelEmail: user.email,
         },
       });
 
