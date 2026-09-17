@@ -24,7 +24,9 @@ const DashboardLayout = () => {
     <div className="drawer lg:drawer-open min-h-screen bg-gray-100">
       <input id="dashboard-drawer" type="checkbox" className="drawer-toggle" />
 
-      <div className="drawer-content flex flex-col">
+      {/* ===================== MAIN CONTENT ===================== */}
+      <div className="drawer-content flex flex-col min-h-screen">
+        {/* Mobile Navbar */}
         <div className="navbar bg-white shadow-md lg:hidden">
           <div className="flex-none">
             <label htmlFor="dashboard-drawer" className="btn btn-square">
@@ -36,37 +38,45 @@ const DashboardLayout = () => {
           </div>
         </div>
 
-        <div className="p-6">
-          <Outlet />
-          <div className="flex flex-row justify-between mt-4 gap-3">
-            <footer className="footer ml-6 w-3/5  sm:footer-horizontal  text-neutral-content items-center p-4">
-              <aside className="grid-flow-col items-center">
-                <SiNicehash className="text-lg text-black" />
-                <p className="text-black">
-                  Copyright © {new Date().getFullYear()} - All right reserved to
+        {/* Page Content + Footer */}
+        <div className="flex flex-col flex-1">
+          {/* Main content grows */}
+          <div className="flex-1 p-6">
+            <Outlet />
+          </div>
+
+          {/* ===== FOOTER (always at bottom) ===== */}
+          <div className=" px-6 py-4 mt-auto m-6  ">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <SiNicehash className="text-base text-black" />
+                <p>
+                  Copyright © {new Date().getFullYear()} - All right reserved to{" "}
                   <Link
                     to="https://smithitbd.com/"
-                    className="text-sm text-rose-900 font-bold underline"
+                    target="_blank"
+                    className="text-rose-900 font-bold underline"
                   >
-                    {" "}
                     Smith IT
                   </Link>
                 </p>
-              </aside>
-            </footer>
-            <div className="text-green-500 font-bold mt-3  p-4">
-              Made in <span className="text-red-500 ">Bangladesh</span>{" "}
+              </div>
+
+              <div className="text-sm font-bold">
+                Made in <span className="text-red-500">Bangladesh</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* ===================== SIDEBAR ===================== */}
       <div className="drawer-side z-50">
         <label htmlFor="dashboard-drawer" className="drawer-overlay"></label>
 
         <aside className="w-72 min-h-full bg-rose-900 text-white">
           <div className="p-4">
-            <Logo></Logo>
+            <Logo />
           </div>
 
           <ul className="menu gap-2">
