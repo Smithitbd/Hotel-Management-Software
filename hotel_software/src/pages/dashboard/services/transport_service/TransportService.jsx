@@ -6,10 +6,15 @@ import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import useAxios from "../../../../hooks/useAxios";
 import { MdWorkHistory } from "react-icons/md";
+import useAuth from "../../../../hooks/useAuth";
 
 const TransportService = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -24,7 +29,11 @@ const TransportService = () => {
   const { data: checkIns = [], isLoading } = useQuery({
     queryKey: ["check-ins"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-in");
+      const res = await axiosInstance.get("/check-in", {
+        params: {
+          hotelEmail: user.email,
+        },
+      });
       return res.data;
     },
   });
@@ -50,6 +59,7 @@ const TransportService = () => {
       checkinId: selectedCheckIn._id,
       guestName: selectedCheckIn.guestName || "",
       contactNumber: selectedCheckIn.contactNumber || "",
+      hotelEmail: user.email,
     };
 
     try {

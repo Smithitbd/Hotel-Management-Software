@@ -1096,8 +1096,9 @@ async function run() {
     });
 
     app.get("/transport-service", async (req, res) => {
+      const { hotelEmail } = req.query;
       const result = await transportServiceCollection
-        .find()
+        .find({ hotelEmail })
         .sort({ createdAt: -1 })
         .toArray();
       res.send(result);

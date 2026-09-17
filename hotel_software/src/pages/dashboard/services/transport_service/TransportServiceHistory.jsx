@@ -3,9 +3,14 @@ import { MdDirectionsCar, MdWorkHistory } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const TransportServiceHistory = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     data: transportOrders = [],
@@ -14,7 +19,11 @@ const TransportServiceHistory = () => {
   } = useQuery({
     queryKey: ["transport-service-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/transport-service");
+      const res = await axiosInstance.get("/transport-service", {
+        params: {
+          hotelEmail: user.email,
+        },
+      });
       return res.data;
     },
   });
