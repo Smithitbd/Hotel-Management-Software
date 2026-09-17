@@ -140,57 +140,57 @@ const Root = () => {
 
       {/* ====================== TOP STATS CARDS ====================== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 sm:gap-6 mb-10">
-        {/* Current Guests */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
-          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
-            <FaUsers className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        {/* Current Guests - Rose */}
+        <div className="group bg-white rounded-2xl shadow-md border border-rose-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-rose-300">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center mb-5 shadow-md shadow-rose-200 group-hover:scale-110 transition-transform">
+            <FaUsers className="text-xl text-white" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Current Guests</p>
-          <p className="text-2xl font-bold text-rose-900">
+          <p className="text-3xl font-bold text-rose-700">
             {stats?.currentGuests || 0}
           </p>
         </div>
 
-        {/* Current Employees */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
-          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
-            <FaUserTie className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        {/* Current Employees - Violet */}
+        <div className="group bg-white rounded-2xl shadow-md border border-violet-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-violet-300">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center mb-5 shadow-md shadow-violet-200 group-hover:scale-110 transition-transform">
+            <FaUserTie className="text-xl text-white" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Current Employees</p>
-          <p className="text-2xl font-bold text-rose-900">
+          <p className="text-3xl font-bold text-violet-700">
             {stats?.currentEmployees || 0}
           </p>
         </div>
 
-        {/* Available Rooms */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
-          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
-            <FaDoorOpen className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        {/* Available Rooms - Emerald */}
+        <div className="group bg-white rounded-2xl shadow-md border border-emerald-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-emerald-300">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mb-5 shadow-md shadow-emerald-200 group-hover:scale-110 transition-transform">
+            <FaDoorOpen className="text-xl text-white" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Available Rooms</p>
-          <p className="text-2xl font-bold text-rose-900">
+          <p className="text-3xl font-bold text-emerald-700">
             {stats?.totalAvailableRooms || 0}
           </p>
         </div>
 
-        {/* Occupied Rooms */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
-          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
-            <FaBed className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        {/* Occupied Rooms - Amber */}
+        <div className="group bg-white rounded-2xl shadow-md border border-amber-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-amber-300">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center mb-5 shadow-md shadow-amber-200 group-hover:scale-110 transition-transform">
+            <FaBed className="text-xl text-white" />
           </div>
           <p className="text-sm text-gray-500 mb-1">Occupied Rooms</p>
-          <p className="text-2xl font-bold text-rose-900">
+          <p className="text-3xl font-bold text-amber-700">
             {stats?.totalOccupiedRooms || 0}
           </p>
         </div>
 
-        {/* This Month Earning */}
-        <div className="group bg-white rounded-2xl shadow-md border border-gray-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900">
-          <div className="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-5 transition-all duration-300 group-hover:bg-rose-900">
-            <FaMoneyBillWave className="text-xl text-rose-900 transition-all duration-300 group-hover:text-white group-hover:scale-110" />
+        {/* This Month Earning - Sky */}
+        <div className="group bg-white rounded-2xl shadow-md border border-sky-100 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-sky-300">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 flex items-center justify-center mb-5 shadow-md shadow-sky-200 group-hover:scale-110 transition-transform">
+            <FaMoneyBillWave className="text-xl text-white" />
           </div>
           <p className="text-sm text-gray-500 mb-1">This Month Earning</p>
-          <p className="text-2xl font-bold text-rose-900">
+          <p className="text-3xl font-bold text-sky-700">
             ৳{(stats?.currentMonthEarning || 0).toLocaleString()}
           </p>
         </div>
