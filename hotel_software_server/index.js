@@ -1147,10 +1147,12 @@ async function run() {
     });
 
     app.get("/laundry-service", async (req, res) => {
+      const { hotelEmail } = req.query;
       const result = await laundryServiceCollection
-        .find()
+        .find({ hotelEmail })
         .sort({ createdAt: -1 })
         .toArray();
+
       res.send(result);
     });
 

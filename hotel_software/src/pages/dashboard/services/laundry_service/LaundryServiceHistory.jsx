@@ -3,9 +3,14 @@ import { MdLocalLaundryService, MdWorkHistory } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const LaundryServiceHistory = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     data: laundryOrders = [],
@@ -14,7 +19,9 @@ const LaundryServiceHistory = () => {
   } = useQuery({
     queryKey: ["laundry-service-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/laundry-service");
+      const res = await axiosInstance.get("/laundry-service", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

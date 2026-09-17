@@ -7,10 +7,16 @@ import { FaPlus, FaTrash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
+import useAuth from "../../../../hooks/useAuth";
 
 const LaundryService = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -29,7 +35,9 @@ const LaundryService = () => {
   const { data: checkIns = [], isLoading } = useQuery({
     queryKey: ["check-ins"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-in");
+      const res = await axiosInstance.get("/check-in", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });
@@ -76,6 +84,7 @@ const LaundryService = () => {
       contactNumber: selectedCheckIn.contactNumber || "",
       clothItems,
       totalCost,
+      hotelEmail: user.email,
     };
 
     try {
