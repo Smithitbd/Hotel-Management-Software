@@ -1,15 +1,19 @@
 import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
-import { MdAttachMoney, MdWorkHistory } from "react-icons/md";
-import { Link, useNavigate } from "react-router";
+import { MdAttachMoney } from "react-icons/md";
+import { Link } from "react-router";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
 import { FaArrowLeft } from "react-icons/fa";
+import useAuth from "../../../../../hooks/useAuth";
 
 const EntryReport = () => {
   const axiosInstance = useAxios();
-  const navigate = useNavigate();
 
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
   const {
     register,
     handleSubmit,
@@ -21,7 +25,9 @@ const EntryReport = () => {
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["expense-categories"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/expense-categories");
+      const res = await axiosInstance.get("/expense-categories", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });
@@ -30,6 +36,7 @@ const EntryReport = () => {
     try {
       const expenseData = {
         ...data,
+        hotelEmail: user.email,
         amount: Number(data.amount),
       };
 

@@ -1811,75 +1811,68 @@ async function run() {
     // EXPENSE
     // =========================================================
     app.post("/expense-categories", async (req, res) => {
-      try {
-        const { categoryName } = req.body;
-        if (!categoryName || categoryName.trim() === "") {
-          return res.status(400).send({ message: "Category name is required" });
-        }
-
-        const exists = await expenseCategoryCollection.findOne({
-          categoryName: categoryName.trim(),
-        });
-        if (exists) {
-          return res.status(400).send({ message: "Category already exists" });
-        }
-
-        const result = await expenseCategoryCollection.insertOne({
-          categoryName: categoryName.trim(),
-          createdAt: new Date(),
-        });
-        res.status(201).send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to add category" });
+      const { categoryName, hotelEmail } = req.body;
+      if (!categoryName || categoryName.trim() === "") {
+        return res.status(400).send({ message: "Category name is required" });
       }
+      if (!hotelEmail || hotelEmail.trim() === "") {
+        return res.status(400).send({ message: "Hotel email is required" });
+      }
+      const exists = await expenseCategoryCollection.findOne({
+        categoryName: categoryName.trim(),
+        hotelEmail: hotelEmail.trim(),
+      });
+      if (exists) {
+        return res.status(400).send({ message: "Category already exists" });
+      }
+      const result = await expenseCategoryCollection.insertOne({
+        categoryName: categoryName.trim(),
+        hotelEmail: hotelEmail.trim(),
+        createdAt: new Date(),
+      });
+      res.status(201).send(result);
     });
 
     app.get("/expense-categories", async (req, res) => {
-      try {
-        const result = await expenseCategoryCollection
-          .find()
-          .sort({ createdAt: -1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to get categories" });
+      const { hotelEmail } = req.query;
+      if (!hotelEmail) {
+        return res.status(400).send({ message: "Hotel email is required" });
       }
+      const result = await expenseCategoryCollection
+        .find({ hotelEmail })
+        .sort({ createdAt: -1 })
+        .toArray();
+      res.send(result);
     });
 
     app.post("/expense-entries", async (req, res) => {
-      try {
-        const expense = { ...req.body, createdAt: new Date() };
-        const result = await expenseEntryCollection.insertOne(expense);
-        res.send(result);
-      } catch (error) {
-        res.status(500).send({ message: "Failed to add expense entry" });
-      }
+      const expense = { ...req.body, createdAt: new Date() };
+      const result = await expenseEntryCollection.insertOne(expense);
+      res.send(result);
     });
 
     app.get("/expense-overview", async (req, res) => {
-      try {
-        const { fromDate, toDate, categoryName } = req.query;
-        if (!fromDate || !toDate) {
-          return res
-            .status(400)
-            .send({ message: "Both fromDate and toDate are required" });
-        }
-
-        const query = {
-          expenseDate: { $gte: fromDate, $lte: toDate },
-        };
-        if (categoryName) query.categoryName = categoryName;
-
-        const result = await expenseEntryCollection
-          .find(query)
-          .sort({ expenseDate: 1 })
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        res
-          .status(500)
-          .send({ message: "Failed to fetch expense overview report" });
+      const { fromDate, toDate, categoryName, hotelEmail } = req.query;
+      if (!fromDate || !toDate) {
+        return res
+          .status(400)
+          .send({ message: "Both fromDate and toDate are required" });
       }
+      if (!hotelEmail) {
+        return res.status(400).send({ message: "Hotel email is required" });
+      }
+      const query = {
+        expenseDate: { $gte: fromDate, $lte: toDate },
+        hotelEmail,
+      };
+      if (categoryName) {
+        query.categoryName = categoryName;
+      }
+      const result = await expenseEntryCollection
+        .find(query)
+        .sort({ expenseDate: 1 })
+        .toArray();
+      res.send(result);
     });
 
     // =========================================================

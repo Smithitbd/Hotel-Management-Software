@@ -10,10 +10,15 @@ import { MdAssessment } from "react-icons/md";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2"; // optional (for success message)
 import useAxios from "../../../../hooks/useAxios";
+import useAuth from "../../../../hooks/useAuth";
 
 const ExpenseReport = () => {
   const axiosInstance = useAxios();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -26,6 +31,7 @@ const ExpenseReport = () => {
     try {
       const res = await axiosInstance.post("/expense-categories", {
         categoryName: data.categoryName,
+        hotelEmail: user.email,
       });
 
       if (res.data.insertedId) {
