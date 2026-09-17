@@ -39,7 +39,7 @@ const DashboardLayout = () => {
         <div className="p-6">
           <Outlet />
           <div className="flex flex-row justify-between mt-4 gap-3">
-            <footer className="footer ml-6 w-3/5  sm:footer-horizontal  bg-white text-neutral-content items-center p-4">
+            <footer className="footer ml-6 w-3/5  sm:footer-horizontal  text-neutral-content items-center p-4">
               <aside className="grid-flow-col items-center">
                 <SiNicehash className="text-lg text-black" />
                 <p className="text-black">
@@ -54,7 +54,7 @@ const DashboardLayout = () => {
                 </p>
               </aside>
             </footer>
-            <div className="text-green-500 font-bold mt-3 bg-white p-4">
+            <div className="text-green-500 font-bold mt-3  p-4">
               Made in <span className="text-red-500 ">Bangladesh</span>{" "}
             </div>
           </div>
