@@ -31,7 +31,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
   const final = Number(finalAmount) || 0;
   const isHotelCopy = variant === "hotel";
 
-  // Number to words (supports up to Lakh)
+  // Number to words
   const numberToWords = (num) => {
     const ones = [
       "",
@@ -97,14 +97,6 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
 
   const amountInWords = numberToWords(Math.round(final)) + " Taka Only";
 
-  const getOrderStatus = (order) => {
-    if (order.paymentStatus) return order.paymentStatus;
-    if (order.foodItems?.some((item) => item.paymentStatus === "Paid")) {
-      return "Paid";
-    }
-    return "Due";
-  };
-
   const handlePrint = () => {
     window.print();
   };
@@ -117,7 +109,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
 
   return (
     <div className="bg-white invoice-page">
-      {/* Print Button - hidden when printing */}
+      {/* Print Button */}
       <div className="flex justify-end mb-3 print:hidden">
         <button
           onClick={handlePrint}
@@ -134,9 +126,18 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
           <h1 className="text-xl sm:text-2xl font-bold text-rose-700 tracking-wide">
             {hotelInfo?.hotelName || "YOUR HOTEL NAME"}
           </h1>
+
+          {/* Hotel Location */}
+          {hotelInfo?.address && (
+            <p className="text-[11px] text-gray-700 mt-0.5 font-medium">
+              {hotelInfo.address}
+            </p>
+          )}
+
           <p className="text-[10px] italic text-gray-500 mt-0.5">
             {hotelInfo?.tagline || "A luxury hotel of your comfort"}
           </p>
+
           <p className="text-[10px] text-gray-600 mt-0.5">
             {hotelInfo?.email && `E-mail: ${hotelInfo.email}`}
             {hotelInfo?.website && ` | ${hotelInfo.website}`}
@@ -280,10 +281,9 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
                 </td>
               </tr>
 
-              {/* Restaurant Items */}
-              {restaurantOrders.map((order, idx) => {
-                if (getOrderStatus(order) === "Paid") return null;
-                return (order.foodItems || []).map((item, i) => (
+              {/* Restaurant Items - SHOW ALL */}
+              {restaurantOrders.map((order, idx) =>
+                (order.foodItems || []).map((item, i) => (
                   <tr key={`rest-${idx}-${i}`}>
                     <td className="border border-gray-400 px-1.5 py-1">
                       {order.orderDate || actualCheckoutDate || checkOutDate}
@@ -307,13 +307,12 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
                       {formatMoney(item.totalPrice)}
                     </td>
                   </tr>
-                ));
-              })}
+                )),
+              )}
 
-              {/* Laundry Items */}
-              {laundryOrders.map((order, idx) => {
-                if (getOrderStatus(order) === "Paid") return null;
-                return (order.clothItems || []).map((item, i) => (
+              {/* Laundry Items - SHOW ALL */}
+              {laundryOrders.map((order, idx) =>
+                (order.clothItems || []).map((item, i) => (
                   <tr key={`lnd-${idx}-${i}`}>
                     <td className="border border-gray-400 px-1.5 py-1">
                       {order.orderDate || actualCheckoutDate || checkOutDate}
@@ -338,39 +337,36 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
                       {formatMoney(item.totalPrice)}
                     </td>
                   </tr>
-                ));
-              })}
+                )),
+              )}
 
-              {/* Transport */}
-              {transportOrders.map((order, idx) => {
-                if (getOrderStatus(order) === "Paid") return null;
-                return (
-                  <tr key={`trn-${idx}`}>
-                    <td className="border border-gray-400 px-1.5 py-1">
-                      {order.pickupDate || actualCheckoutDate || checkOutDate}
-                    </td>
-                    <td className="border border-gray-400 px-1.5 py-1">
-                      TRN-{idx + 1}
-                    </td>
-                    <td className="border border-gray-400 px-1.5 py-1">
-                      Transport: {order.vehicleType} ({order.pickupLocation} →{" "}
-                      {order.destination})
-                    </td>
-                    <td className="border border-gray-400 px-1.5 py-1 text-right">
-                      {formatMoney(order.fare)}
-                    </td>
-                    <td className="border border-gray-400 px-1.5 py-1 text-right">
-                      0.00
-                    </td>
-                    <td className="border border-gray-400 px-1.5 py-1 text-right">
-                      0.00
-                    </td>
-                    <td className="border border-gray-400 px-1.5 py-1 text-right">
-                      {formatMoney(order.fare)}
-                    </td>
-                  </tr>
-                );
-              })}
+              {/* Transport - SHOW ALL */}
+              {transportOrders.map((order, idx) => (
+                <tr key={`trn-${idx}`}>
+                  <td className="border border-gray-400 px-1.5 py-1">
+                    {order.pickupDate || actualCheckoutDate || checkOutDate}
+                  </td>
+                  <td className="border border-gray-400 px-1.5 py-1">
+                    TRN-{idx + 1}
+                  </td>
+                  <td className="border border-gray-400 px-1.5 py-1">
+                    Transport: {order.vehicleType} ({order.pickupLocation} →{" "}
+                    {order.destination})
+                  </td>
+                  <td className="border border-gray-400 px-1.5 py-1 text-right">
+                    {formatMoney(order.fare)}
+                  </td>
+                  <td className="border border-gray-400 px-1.5 py-1 text-right">
+                    0.00
+                  </td>
+                  <td className="border border-gray-400 px-1.5 py-1 text-right">
+                    0.00
+                  </td>
+                  <td className="border border-gray-400 px-1.5 py-1 text-right">
+                    {formatMoney(order.fare)}
+                  </td>
+                </tr>
+              ))}
 
               {/* Advance / Payment */}
               <tr>
@@ -439,7 +435,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
           charges.
         </p>
 
-        {/* PAID Stamp - ONLY when fully paid */}
+        {/* PAID Stamp - only when fully paid */}
         {final === 0 && (
           <div className="text-center my-3 paid-stamp">
             <span className="inline-block border-4 border-blue-600 text-blue-600 text-2xl font-bold px-6 py-0.5 -rotate-6 tracking-widest">
@@ -461,8 +457,8 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
         </div>
 
         <div className="text-center text-[10px] text-gray-500 mt-6 border-t border-gray-300 pt-2">
-          Generated on {new Date().toLocaleString()} | Page 1 of 1
-          {isHotelCopy && " | Hotel Copy"}
+          Generated on {new Date().toLocaleString()} | Designed & Developed by
+          SmithIT
         </div>
       </div>
     </div>

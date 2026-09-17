@@ -247,7 +247,7 @@ const MainCheckout = () => {
   if (isCheckedOut && checkoutData) {
     return (
       <div className="mx-auto p-4 sm:p-6 max-w-7xl">
-        {/* Header */}
+        {/* Header - hidden when printing */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
           <h1 className="text-xl font-bold text-rose-900">Checkout Invoices</h1>
 
@@ -267,23 +267,14 @@ const MainCheckout = () => {
           </div>
         </div>
 
-        {/* Guest Invoice */}
-        <div className="mb-12">
+        {/* ===== PRINTABLE AREA ===== */}
+        <div className="print-area">
           <CheckoutInvoice
             checkoutData={checkoutData}
             hotelInfo={hotelInfo}
             variant="guest"
           />
-        </div>
 
-        {/* Page break for printing */}
-        <div
-          className="hidden print:block"
-          style={{ pageBreakAfter: "always" }}
-        />
-
-        {/* Hotel Copy */}
-        <div>
           <CheckoutInvoice
             checkoutData={checkoutData}
             hotelInfo={hotelInfo}

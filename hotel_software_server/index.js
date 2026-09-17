@@ -20,7 +20,6 @@ initializeApp({
   credential: cert(serviceAccount),
 });
 
-// Get Auth instance (use this instead of admin.auth())
 const auth = getAuth();
 // ============================================
 
@@ -36,9 +35,8 @@ app.use(fileUpload());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // MongoDB Connection URI
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dmnxhxd.mongodb.net/?appName=Cluster0`;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vacfvah.mongodb.net/?appName=Cluster0`;
-// MongoDB Client
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -717,7 +715,6 @@ async function run() {
       res.send(result);
     });
 
-    // Get rooms by variantId
     app.get("/rooms/variant/:variantId", async (req, res) => {
       try {
         const { variantId } = req.params;
@@ -727,7 +724,7 @@ async function run() {
         }
 
         const result = await roomCollection
-          .find({ variantId: variantId }) // ← filter only by variantId
+          .find({ variantId: variantId })
           .toArray();
 
         res.send(result);
@@ -764,7 +761,7 @@ async function run() {
         const checkInDate = req.body.checkInDate;
         const checkOutDate = req.body.checkOutDate;
 
-        // ========== 1. Check existing Reservations ==========
+        // Check existing Reservations
         const reservationConflict = await reservationCollection.findOne({
           status: "Reserved",
           "room.roomNo": roomNumber,
@@ -778,7 +775,7 @@ async function run() {
           });
         }
 
-        // ========== 2. Check existing active Check-Ins ==========
+        // Check existing active Check-Ins
         const checkInConflict = await checkInCollection.findOne({
           roomNumber: roomNumber,
           status: { $ne: "Checked Out" },
@@ -792,7 +789,6 @@ async function run() {
           });
         }
 
-        // ========== No conflict → Proceed with check-in ==========
         const uploadDir = path.join(__dirname, "uploads", "check-in");
         if (!fs.existsSync(uploadDir)) {
           fs.mkdirSync(uploadDir, { recursive: true });
@@ -841,12 +837,12 @@ async function run() {
           laundryTotalAmount: 0,
           transportOrders: [],
           transportTotalAmount: 0,
+          roomChangeHistory: [],
           createdAt: new Date(),
         };
 
         const result = await checkInCollection.insertOne(checkInData);
 
-        // Update room status to Occupied
         await roomCollection.updateOne(
           { roomNo: roomNumber },
           { $set: { roomStatus: "Occupied" } },
@@ -973,13 +969,10 @@ async function run() {
 
     app.get("/banned-guests", async (req, res) => {
       const hotelEmail = req.query.hotelEmail;
-
       const query = {};
-
       if (hotelEmail) {
         query.hotelEmail = hotelEmail;
       }
-
       const result = await bannedGuestCollection.find(query).toArray();
       res.send(result);
     });
@@ -1004,9 +997,7 @@ async function run() {
 
     app.get("/food-menu", async (req, res) => {
       const { hotelEmail } = req.query;
-
       const result = await foodMenuCollection.find({ hotelEmail }).toArray();
-
       res.send(result);
     });
 
@@ -1045,22 +1036,17 @@ async function run() {
 
     app.get("/room-service", async (req, res) => {
       const { active, hotelEmail } = req.query;
-
       const filter = {};
-
       if (active) {
         filter.active_status = "active";
       }
-
       if (hotelEmail) {
         filter.hotelEmail = hotelEmail;
       }
-
       const result = await roomServiceCollection
         .find(filter)
         .sort({ createdAt: -1 })
         .toArray();
-
       res.send(result);
     });
 
@@ -1162,108 +1148,56 @@ async function run() {
         .find({ hotelEmail })
         .sort({ createdAt: -1 })
         .toArray();
-
       res.send(result);
     });
 
-    app.post("/restaurant-orders", async (req, res) => {
-      const orderData = req.body;
-      const result = await restaurantOrderCollection.insertOne(orderData);
+    app.post("/restaurant-order", async (req, res) => {
+      try {
+        const result = await restaurantOrderCollection.insertOne({
+          ...req.body,
+          createdAt: new Date(),
+        });
 
-      if (orderData.checkInInfo && orderData.checkInInfo._id) {
-        const checkInId = orderData.checkInInfo._id;
-        const foodItemsToPush = (orderData.foodItems || []).map((item) => ({
-          itemName: item.itemName,
-          quantity: Number(item.quantity) || 0,
-          unitPrice: Number(item.price) || 0,
-          totalPrice: (Number(item.quantity) || 0) * (Number(item.price) || 0),
-          paymentStatus: orderData.paymentStatus,
-          orderedAt: new Date(),
-        }));
+        if (req.body.paymentStatus === "Due" && req.body.checkinId) {
+          const restaurantOrder = {
+            orderId: result.insertedId,
+            foodItems: (req.body.foodItems || []).map((item) => ({
+              itemName: item.itemName || "",
+              quantity: Number(item.quantity) || 0,
+              price: Number(item.price) || 0,
+              totalPrice:
+                (Number(item.quantity) || 0) * (Number(item.price) || 0),
+              paymentStatus: "Due",
+            })),
+            totalAmount: Number(req.body.totalAmount) || 0,
+            orderDate: req.body.orderDate || "",
+            orderTime: req.body.orderTime || "",
+            paymentStatus: "Due",
+            orderedAt: new Date(),
+          };
 
-        await checkInCollection.updateOne(
-          { _id: new ObjectId(checkInId) },
-          {
-            $push: {
-              restaurantOrders: {
-                orderId: result.insertedId,
-                foodItems: foodItemsToPush,
-                totalAmount: Number(orderData.totalAmount) || 0,
-                orderedAt: new Date(),
-              },
+          await checkInCollection.updateOne(
+            { _id: new ObjectId(req.body.checkinId) },
+            {
+              $push: { restaurantOrders: restaurantOrder },
+              $inc: { restaurantTotalAmount: restaurantOrder.totalAmount },
             },
-            $inc: { restaurantTotalAmount: Number(orderData.totalAmount) || 0 },
-          },
-        );
-      }
+          );
+        }
 
-      res.send({
-        success: true,
-        message: "Restaurant order created successfully",
-        insertedId: result.insertedId,
-      });
+        res.status(201).send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Failed to create restaurant order" });
+      }
     });
 
-    app.get("/restaurant-orders", async (req, res) => {
+    app.get("/restaurant-order", async (req, res) => {
       const { hotelEmail } = req.query;
       const result = await restaurantOrderCollection
         .find({ hotelEmail })
+        .sort({ createdAt: -1 })
         .toArray();
-      res.send(result);
-    });
-
-    app.get("/restaurant-orders/:id", async (req, res) => {
-      const result = await restaurantOrderCollection.findOne({
-        _id: new ObjectId(req.params.id),
-      });
-      res.send(result);
-    });
-
-    app.patch("/restaurant-orders/:id", async (req, res) => {
-      const id = req.params.id;
-      const { foodItems, paymentStatus, totalAmount } = req.body;
-
-      const existingOrder = await restaurantOrderCollection.findOne({
-        _id: new ObjectId(id),
-      });
-      if (!existingOrder) {
-        return res.status(404).send({ message: "Order not found" });
-      }
-
-      const result = await restaurantOrderCollection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { foodItems, paymentStatus, totalAmount } },
-      );
-
-      if (existingOrder.checkInInfo && existingOrder.checkInInfo._id) {
-        const checkInId = existingOrder.checkInInfo._id;
-        const difference =
-          (Number(totalAmount) || 0) - (Number(existingOrder.totalAmount) || 0);
-
-        const updatedFoodItems = (foodItems || []).map((item) => ({
-          itemName: item.itemName,
-          quantity: Number(item.quantity) || 0,
-          unitPrice: Number(item.price) || 0,
-          totalPrice: (Number(item.quantity) || 0) * (Number(item.price) || 0),
-          orderedAt: new Date(),
-        }));
-
-        await checkInCollection.updateOne(
-          {
-            _id: new ObjectId(checkInId),
-            "restaurantOrders.orderId": new ObjectId(id),
-          },
-          {
-            $set: {
-              "restaurantOrders.$.foodItems": updatedFoodItems,
-              "restaurantOrders.$.totalAmount": Number(totalAmount) || 0,
-              "restaurantOrders.$.paymentStatus": paymentStatus,
-            },
-            $inc: { restaurantTotalAmount: difference },
-          },
-        );
-      }
-
       res.send(result);
     });
 
@@ -1271,63 +1205,11 @@ async function run() {
     // RESERVATIONS
     // =========================================================
     app.post("/reservations", async (req, res) => {
-      try {
-        const { arrivingDate, departureDate, room } = req.body;
-
-        if (!arrivingDate || !departureDate || !room?.roomNo) {
-          return res.status(400).send({
-            message: "arrivingDate, departureDate and room.roomNo are required",
-          });
-        }
-
-        const roomNo = String(room.roomNo);
-
-        // ========== 1. Check existing Reservations ==========
-        const reservationConflict = await reservationCollection.findOne({
-          status: "Reserved",
-          "room.roomNo": roomNo,
-          arrivingDate: { $lte: departureDate },
-          departureDate: { $gte: arrivingDate },
-        });
-
-        if (reservationConflict) {
-          return res.status(409).send({
-            message: `Room ${roomNo} is already reserved for the selected dates`,
-          });
-        }
-
-        // ========== 2. Check active Check-Ins ==========
-        const checkInConflict = await checkInCollection.findOne({
-          roomNumber: roomNo,
-          status: { $ne: "Checked Out" },
-          checkInDate: { $lte: departureDate },
-          checkOutDate: { $gte: arrivingDate },
-        });
-
-        if (checkInConflict) {
-          return res.status(409).send({
-            message: `Room ${roomNo} is already occupied for the selected dates`,
-          });
-        }
-
-        // ========== 3. Create Reservation ==========
-        const result = await reservationCollection.insertOne({
-          ...req.body,
-          status: "Reserved",
-          createdAt: new Date(),
-        });
-
-        // ========== 4. Update Room Status to "Reserved" ==========
-        await roomCollection.updateOne(
-          { roomNo: roomNo },
-          { $set: { roomStatus: "Reserved" } },
-        );
-
-        res.status(201).send(result);
-      } catch (error) {
-        console.error("Create reservation error:", error);
-        res.status(500).send({ message: "Failed to create reservation" });
-      }
+      const result = await reservationCollection.insertOne({
+        ...req.body,
+        createdAt: new Date(),
+      });
+      res.status(201).send(result);
     });
 
     app.get("/reservations", async (req, res) => {
@@ -1336,49 +1218,45 @@ async function run() {
         .find({ hotelEmail })
         .sort({ createdAt: -1 })
         .toArray();
+      res.send(result);
+    });
 
+    app.patch("/reservations/:id", async (req, res) => {
+      const { id } = req.params;
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ message: "Invalid reservation ID" });
+      }
+      const result = await reservationCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: req.body },
+      );
       res.send(result);
     });
 
     app.delete("/reservations/:id", async (req, res) => {
-      try {
-        const reservation = await reservationCollection.findOne({
-          _id: new ObjectId(req.params.id),
-        });
-
-        if (!reservation) {
-          return res.status(404).send({ message: "Reservation not found" });
-        }
-
-        const result = await reservationCollection.deleteOne({
-          _id: new ObjectId(req.params.id),
-        });
-
-        // Update room status after deleting reservation
-        if (reservation.room?.roomNo) {
-          await updateRoomStatus(reservation.room.roomNo);
-        }
-
-        res.send({
-          success: true,
-          message: "Reservation deleted successfully",
-          deletedCount: result.deletedCount,
-        });
-      } catch (error) {
-        console.error(error);
-        res.status(500).send({ message: "Failed to delete reservation" });
+      const { id } = req.params;
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ message: "Invalid reservation ID" });
       }
+      const result = await reservationCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
     });
 
     // =========================================================
     // SALARY & PAYROLL
     // =========================================================
     app.post("/salary-structures", async (req, res) => {
-      const result = await salaryStructureCollection.insertOne({
-        ...req.body,
-        createdAt: new Date(),
-      });
-      res.status(201).send(result);
+      try {
+        const result = await salaryStructureCollection.insertOne({
+          ...req.body,
+          createdAt: new Date(),
+        });
+        res.status(201).send(result);
+      } catch (error) {
+        res.status(500).send({ message: "Failed to create salary structure" });
+      }
     });
 
     app.get("/salary-structures", async (req, res) => {
@@ -1582,7 +1460,6 @@ async function run() {
       }
     });
 
-    // ====================== DELETE HOTEL (Firebase + MongoDB) ======================
     app.delete("/hotels/:id", async (req, res) => {
       try {
         const { id } = req.params;
@@ -1591,14 +1468,12 @@ async function run() {
           return res.status(400).send({ message: "Invalid hotel ID" });
         }
 
-        // 1. Find the hotel first
         const hotel = await hotelCollection.findOne({ _id: new ObjectId(id) });
 
         if (!hotel) {
           return res.status(404).send({ message: "Hotel not found" });
         }
 
-        // 2. Delete from Firebase Auth (using modular getAuth)
         try {
           const userRecord = await auth.getUserByEmail(hotel.email);
           await auth.deleteUser(userRecord.uid);
@@ -1610,7 +1485,6 @@ async function run() {
           );
         }
 
-        // 3. Delete from MongoDB
         const result = await hotelCollection.deleteOne({
           _id: new ObjectId(id),
         });
@@ -1626,7 +1500,6 @@ async function run() {
       }
     });
 
-    // Update hotel logo
     app.patch("/hotels/:id/logo", async (req, res) => {
       try {
         const { id } = req.params;
@@ -1876,7 +1749,7 @@ async function run() {
     });
 
     // =========================================================
-    // CHECKOUT
+    // CHECKOUT (Improved - Clean per-stay data)
     // =========================================================
     app.post("/check-out/:id", async (req, res) => {
       try {
@@ -1906,16 +1779,34 @@ async function run() {
           advancePayment,
           finalAmount,
           isRefund,
-          hotelEmail,
         } = req.body;
 
+        // Clean checkout document - only this stay's data
         const checkoutData = {
-          ...checkIn,
-          originalCheckInId: checkIn._id,
-          status: "Checked Out",
+          hotelEmail: checkIn.hotelEmail,
+          guestName: checkIn.guestName,
+          guestAddress: checkIn.guestAddress,
+          contactNumber: checkIn.contactNumber,
+          designation: checkIn.designation,
+          nidNumber: checkIn.nidNumber || "",
+          personImage: checkIn.personImage,
+          nidImage: checkIn.nidImage,
+
+          roomNumber: checkIn.roomNumber,
+          roomVariantId: checkIn.roomVariantId,
+          roomVariantName: checkIn.roomVariantName,
+          pricePerNight: checkIn.pricePerNight,
+          roomChangeHistory: checkIn.roomChangeHistory || [],
+
+          checkInDate: checkIn.checkInDate,
+          checkInTime: checkIn.checkInTime,
+          checkOutDate: checkIn.checkOutDate,
           actualCheckoutDate:
             actualCheckoutDate || new Date().toISOString().split("T")[0],
           actualNights: Number(actualNights) || checkIn.numberOfNights,
+          numberOfGuests: checkIn.numberOfGuests,
+          numberOfNights: checkIn.numberOfNights,
+
           actualRoomCharge: Number(actualRoomCharge) || checkIn.totalAmount,
           restaurantDue: Number(restaurantDue) || 0,
           laundryDue: Number(laundryDue) || 0,
@@ -1924,8 +1815,7 @@ async function run() {
           advancePayment: Number(advancePayment) || checkIn.advancePayment,
           finalAmount: Number(finalAmount) || 0,
           isRefund: Boolean(isRefund),
-          hotelEmail: checkIn.hotelEmail,
-          checkedOutAt: new Date(),
+
           restaurantOrders: (checkIn.restaurantOrders || []).map((order) => ({
             ...order,
             paymentStatus: "Paid",
@@ -1942,9 +1832,12 @@ async function run() {
             ...order,
             paymentStatus: "Paid",
           })),
-        };
 
-        delete checkoutData._id;
+          originalCheckInId: checkIn._id,
+          status: "Checked Out",
+          checkedOutAt: new Date(),
+          createdAt: checkIn.createdAt,
+        };
 
         const insertResult = await checkOutCollection.insertOne(checkoutData);
 
@@ -1988,7 +1881,7 @@ async function run() {
         // Delete the check-in record
         await checkInCollection.deleteOne({ _id: new ObjectId(id) });
 
-        // ========== SMART STATUS UPDATE (after checkout) ==========
+        // Update room status
         await updateRoomStatus(checkIn.roomNumber);
 
         res.send({
@@ -2005,18 +1898,6 @@ async function run() {
       }
     });
 
-    // app.get("/check-out", async (req, res) => {
-    //   try {
-    //     const result = await checkOutCollection
-    //       .find()
-    //       .sort({ checkedOutAt: -1 })
-    //       .toArray();
-    //     res.send(result);
-    //   } catch (error) {
-    //     res.status(500).send({ message: "Failed to get checkout list" });
-    //   }
-    // });
-
     app.get("/check-out", async (req, res) => {
       const hotelEmail = req.query.hotelEmail;
       const result = await checkOutCollection
@@ -2024,6 +1905,39 @@ async function run() {
         .sort({ checkedOutAt: -1 })
         .toArray();
       res.send(result);
+    });
+
+    // NEW: Get all checkouts of a specific guest
+    app.get("/check-out/guest", async (req, res) => {
+      try {
+        const { hotelEmail, contactNumber, nidNumber } = req.query;
+
+        if (!hotelEmail) {
+          return res.status(400).send({ message: "hotelEmail is required" });
+        }
+
+        const query = { hotelEmail };
+
+        if (nidNumber && nidNumber.trim() !== "") {
+          query.nidNumber = nidNumber;
+        } else if (contactNumber) {
+          query.contactNumber = contactNumber;
+        } else {
+          return res
+            .status(400)
+            .send({ message: "contactNumber or nidNumber is required" });
+        }
+
+        const result = await checkOutCollection
+          .find(query)
+          .sort({ checkedOutAt: -1 })
+          .toArray();
+
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Failed to get guest checkouts" });
+      }
     });
 
     app.get("/check-out/:id", async (req, res) => {
@@ -2056,7 +1970,7 @@ async function run() {
 
         const uniqueGuests = await checkOutCollection
           .aggregate([
-            { $match: { hotelEmail: hotelEmail } }, // ← filter by hotel
+            { $match: { hotelEmail: hotelEmail } },
             { $sort: { checkedOutAt: -1 } },
             {
               $group: {
@@ -2142,7 +2056,6 @@ async function run() {
     app.get("/users/:email/status", async (req, res) => {
       try {
         const email = req.params.email;
-        console.log("Looking for status of:", email); // debug
 
         const hotel = await hotelCollection.findOne(
           { email: email },
@@ -2150,11 +2063,9 @@ async function run() {
         );
 
         if (!hotel) {
-          console.log("Hotel not found for:", email);
           return res.status(404).send({ status: "Pending" });
         }
 
-        console.log("Found status:", hotel.status);
         res.send({ status: hotel.status });
       } catch (error) {
         console.error(error);
@@ -2169,18 +2080,15 @@ async function run() {
       try {
         roomNo = String(roomNo);
 
-        // First check current status of the room
         const room = await roomCollection.findOne({ roomNo });
         if (!room) return;
 
-        // Do not change Maintenance or In Progress rooms
         if (["Maintenance", "In Progress"].includes(room.roomStatus)) {
           return room.roomStatus;
         }
 
         const today = new Date().toISOString().split("T")[0];
 
-        // 1. Occupied
         const activeCheckIn = await checkInCollection.findOne({
           roomNumber: roomNo,
           status: { $ne: "Checked Out" },
@@ -2196,7 +2104,6 @@ async function run() {
           return "Occupied";
         }
 
-        // 2. Reserved
         const activeReservation = await reservationCollection.findOne({
           status: "Reserved",
           "room.roomNo": roomNo,
@@ -2212,7 +2119,6 @@ async function run() {
           return "Reserved";
         }
 
-        // 3. Available
         await roomCollection.updateOne(
           { roomNo },
           { $set: { roomStatus: "Available" } },
@@ -2223,7 +2129,6 @@ async function run() {
       }
     };
 
-    // Update ALL rooms at once
     const updateAllRoomStatuses = async () => {
       try {
         console.log("🔄 Updating all room statuses...");
@@ -2241,14 +2146,11 @@ async function run() {
       }
     };
 
-    // Run once when server starts
     updateAllRoomStatuses();
-
-    // Run every 24 hours
     setInterval(updateAllRoomStatuses, 24 * 60 * 60 * 1000);
 
     // =========================================================
-    // CHANGE ROOM (Room Transfer)
+    // CHANGE ROOM (Room Transfer) - Only one definition
     // =========================================================
     app.post("/change-room", async (req, res) => {
       try {
@@ -2262,7 +2164,6 @@ async function run() {
           remainingNights,
         } = req.body;
 
-        // ========== Validation ==========
         if (!checkInId || !newRoomNumber) {
           return res.status(400).send({
             message: "checkInId and newRoomNumber are required",
@@ -2273,7 +2174,6 @@ async function run() {
           return res.status(400).send({ message: "Invalid check-in ID" });
         }
 
-        // ========== 1. Get current check-in ==========
         const checkIn = await checkInCollection.findOne({
           _id: new ObjectId(checkInId),
         });
@@ -2295,7 +2195,6 @@ async function run() {
           });
         }
 
-        // ========== 2. Check if new room is available ==========
         const newRoom = await roomCollection.findOne({ roomNo: newRoomNo });
 
         if (!newRoom) {
@@ -2308,12 +2207,10 @@ async function run() {
           });
         }
 
-        // ========== 3. Calculate cost so far ==========
         const stayed = Number(daysStayed) || 0;
         const oldPrice = Number(checkIn.pricePerNight) || 0;
         const costSoFar = stayed * oldPrice;
 
-        // ========== 4. Prepare room change history ==========
         const roomChangeRecord = {
           fromRoom: oldRoomNumber,
           fromVariant: checkIn.roomVariantName || "",
@@ -2323,35 +2220,24 @@ async function run() {
           transferredAt: new Date(),
         };
 
-        // ========== 5. Update Check-In document ==========
         const updateData = {
-          // Keep previous room charges history
           roomChangeHistory: [
             ...(checkIn.roomChangeHistory || []),
             roomChangeRecord,
           ],
-
-          // Update to new room info
           roomNumber: newRoomNo,
           roomVariantId: newRoomVariantId || newRoom.variantId || newRoom._id,
           roomVariantName: newRoomVariantName || newRoom.variantName,
           pricePerNight: Number(newPricePerNight) || Number(newRoom.price) || 0,
-
-          // Adjust remaining nights (optional but recommended)
           numberOfNights:
             Number(remainingNights) >= 0
               ? Number(remainingNights)
               : checkIn.numberOfNights - stayed,
-
-          // Recalculate total amount for remaining stay
           totalAmount:
             (Number(newPricePerNight) || Number(newRoom.price) || 0) *
             (Number(remainingNights) >= 0
               ? Number(remainingNights)
               : Math.max(checkIn.numberOfNights - stayed, 0)),
-
-          // Keep due amount updated (old cost is already charged)
-          // You can decide how to handle dueAmount here
         };
 
         const result = await checkInCollection.updateOne(
@@ -2359,167 +2245,16 @@ async function run() {
           { $set: updateData },
         );
 
-        // ========== 6. Update Room Statuses ==========
-        // Old room → Available
         await roomCollection.updateOne(
           { roomNo: oldRoomNumber },
           { $set: { roomStatus: "Available" } },
         );
 
-        // New room → Occupied
         await roomCollection.updateOne(
           { roomNo: newRoomNo },
           { $set: { roomStatus: "Occupied" } },
         );
 
-        // Optional: run smart updater for safety
-        await updateRoomStatus(oldRoomNumber);
-        await updateRoomStatus(newRoomNo);
-
-        res.send({
-          success: true,
-          message: "Room transferred successfully",
-          costSoFar,
-          daysStayed: stayed,
-          oldRoom: oldRoomNumber,
-          newRoom: newRoomNo,
-          result,
-        });
-      } catch (error) {
-        console.error("Change room error:", error);
-        res.status(500).send({
-          message: "Failed to change room",
-          error: error.message,
-        });
-      }
-    });
-
-    // =========================================================
-    // CHANGE ROOM (Room Transfer)
-    // =========================================================
-    app.post("/change-room", async (req, res) => {
-      try {
-        const {
-          checkInId,
-          newRoomNumber,
-          newRoomVariantId,
-          newRoomVariantName,
-          newPricePerNight,
-          daysStayed,
-          remainingNights,
-        } = req.body;
-
-        // ========== Validation ==========
-        if (!checkInId || !newRoomNumber) {
-          return res.status(400).send({
-            message: "checkInId and newRoomNumber are required",
-          });
-        }
-
-        if (!ObjectId.isValid(checkInId)) {
-          return res.status(400).send({ message: "Invalid check-in ID" });
-        }
-
-        // ========== 1. Get current check-in ==========
-        const checkIn = await checkInCollection.findOne({
-          _id: new ObjectId(checkInId),
-        });
-
-        if (!checkIn) {
-          return res.status(404).send({ message: "Check-in record not found" });
-        }
-
-        if (checkIn.status === "Checked Out") {
-          return res.status(400).send({ message: "Guest already checked out" });
-        }
-
-        const oldRoomNumber = String(checkIn.roomNumber);
-        const newRoomNo = String(newRoomNumber);
-
-        if (oldRoomNumber === newRoomNo) {
-          return res.status(400).send({
-            message: "New room cannot be the same as current room",
-          });
-        }
-
-        // ========== 2. Check if new room is available ==========
-        const newRoom = await roomCollection.findOne({ roomNo: newRoomNo });
-
-        if (!newRoom) {
-          return res.status(404).send({ message: "New room not found" });
-        }
-
-        if (newRoom.roomStatus !== "Available") {
-          return res.status(409).send({
-            message: `Room ${newRoomNo} is not available (Status: ${newRoom.roomStatus})`,
-          });
-        }
-
-        // ========== 3. Calculate cost so far ==========
-        const stayed = Number(daysStayed) || 0;
-        const oldPrice = Number(checkIn.pricePerNight) || 0;
-        const costSoFar = stayed * oldPrice;
-
-        // ========== 4. Prepare room change history ==========
-        const roomChangeRecord = {
-          fromRoom: oldRoomNumber,
-          fromVariant: checkIn.roomVariantName || "",
-          fromPricePerNight: oldPrice,
-          daysStayed: stayed,
-          charge: costSoFar,
-          transferredAt: new Date(),
-        };
-
-        // ========== 5. Update Check-In document ==========
-        const updateData = {
-          // Keep previous room charges history
-          roomChangeHistory: [
-            ...(checkIn.roomChangeHistory || []),
-            roomChangeRecord,
-          ],
-
-          // Update to new room info
-          roomNumber: newRoomNo,
-          roomVariantId: newRoomVariantId || newRoom.variantId || newRoom._id,
-          roomVariantName: newRoomVariantName || newRoom.variantName,
-          pricePerNight: Number(newPricePerNight) || Number(newRoom.price) || 0,
-
-          // Adjust remaining nights (optional but recommended)
-          numberOfNights:
-            Number(remainingNights) >= 0
-              ? Number(remainingNights)
-              : checkIn.numberOfNights - stayed,
-
-          // Recalculate total amount for remaining stay
-          totalAmount:
-            (Number(newPricePerNight) || Number(newRoom.price) || 0) *
-            (Number(remainingNights) >= 0
-              ? Number(remainingNights)
-              : Math.max(checkIn.numberOfNights - stayed, 0)),
-
-          // Keep due amount updated (old cost is already charged)
-          // You can decide how to handle dueAmount here
-        };
-
-        const result = await checkInCollection.updateOne(
-          { _id: new ObjectId(checkInId) },
-          { $set: updateData },
-        );
-
-        // ========== 6. Update Room Statuses ==========
-        // Old room → Available
-        await roomCollection.updateOne(
-          { roomNo: oldRoomNumber },
-          { $set: { roomStatus: "Available" } },
-        );
-
-        // New room → Occupied
-        await roomCollection.updateOne(
-          { roomNo: newRoomNo },
-          { $set: { roomStatus: "Occupied" } },
-        );
-
-        // Optional: run smart updater for safety
         await updateRoomStatus(oldRoomNumber);
         await updateRoomStatus(newRoomNo);
 

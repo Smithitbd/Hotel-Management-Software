@@ -9,3 +9,72 @@ body {
   background: #fff;
   color: #000;
 }
+
+/* ===================== PRINT STYLES ===================== */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm 8mm;
+  }
+
+  /* Hide the entire app layout */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Only show the invoice */
+  .invoice-page,
+  .invoice-page * {
+    visibility: visible;
+  }
+
+  .invoice-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+
+  .invoice-page:last-child {
+    page-break-after: auto;
+  }
+
+  /* Hide buttons and anything with print:hidden */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Make the invoice itself clean */
+  .invoice-container {
+    border: 1px solid #999 !important;
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
+    box-shadow: none !important;
+  }
+
+  table {
+    font-size: 10px !important;
+  }
+
+  .signature-area {
+    margin-top: 28px !important;
+  }
+
+  .paid-stamp {
+    margin: 10px 0 !important;
+  }
+
+  /* Optional: hide browser headers/footers if possible */
+  header,
+  footer,
+  nav,
+  aside,
+  .sidebar,
+  .navbar,
+  .topbar {
+    display: none !important;
+  }
+}
