@@ -7,10 +7,16 @@ import { Link } from "react-router";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
 import { IoCaretBackOutline } from "react-icons/io5";
+import useAuth from "../../../../../hooks/useAuth";
 
 const FoodMenu = () => {
   const axiosInstance = useAxios();
   const queryClient = useQueryClient();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -24,7 +30,11 @@ const FoodMenu = () => {
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["food-menu"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/food-menu");
+      const res = await axiosInstance.get("/food-menu", {
+        params: {
+          hotelEmail: user.email,
+        },
+      });
       return res.data;
     },
   });
@@ -34,6 +44,7 @@ const FoodMenu = () => {
       itemName: data.itemName,
       itemDescription: data.itemDescription || "",
       price: Number(data.price),
+      hotelEmail: user.email,
     };
 
     if (data.editId) {

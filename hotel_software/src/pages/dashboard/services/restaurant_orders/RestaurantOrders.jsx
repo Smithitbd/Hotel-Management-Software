@@ -8,10 +8,15 @@ import { IoFastFoodSharp } from "react-icons/io5";
 import { Link, useNavigate } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
+import useAuth from "../../../../hooks/useAuth";
 
 const RestaurantOrders = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     register,
@@ -32,7 +37,12 @@ const RestaurantOrders = () => {
   const { data: checkIns = [], isLoading } = useQuery({
     queryKey: ["check-ins"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/check-in");
+      const res = await axiosInstance.get("/check-in", {
+        params: {
+          hotelEmail: user.email,
+        },
+      });
+
       return res.data;
     },
   });
@@ -41,7 +51,11 @@ const RestaurantOrders = () => {
   const { data: menuItems = [] } = useQuery({
     queryKey: ["food-menu"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/food-menu");
+      const res = await axiosInstance.get("/food-menu", {
+        params: {
+          hotelEmail: user.email,
+        },
+      });
       return res.data;
     },
   });
@@ -97,6 +111,7 @@ const RestaurantOrders = () => {
       foodItems,
       totalAmount,
       checkInInfo: selectedCheckIn || null,
+      hotelEmail: user.email,
     };
 
     const res = await axiosInstance.post("/restaurant-orders", orderData);

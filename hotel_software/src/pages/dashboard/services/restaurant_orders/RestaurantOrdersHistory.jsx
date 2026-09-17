@@ -4,9 +4,15 @@ import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { FaFileInvoiceDollar } from "react-icons/fa";
+import useAuth from "../../../../hooks/useAuth";
 
 const RestaurantOrdersHistory = () => {
   const axiosInstance = useAxios();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   const {
     data: restaurantOrders = [],
@@ -15,7 +21,11 @@ const RestaurantOrdersHistory = () => {
   } = useQuery({
     queryKey: ["restaurant-orders-history"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/restaurant-orders");
+      const res = await axiosInstance.get("/restaurant-orders", {
+        params: {
+          hotelEmail: user.email,
+        },
+      });
       return res.data;
     },
   });

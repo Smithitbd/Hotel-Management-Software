@@ -994,7 +994,10 @@ async function run() {
     });
 
     app.get("/food-menu", async (req, res) => {
-      const result = await foodMenuCollection.find().toArray();
+      const { hotelEmail } = req.query;
+
+      const result = await foodMenuCollection.find({ hotelEmail }).toArray();
+
       res.send(result);
     });
 
@@ -1190,9 +1193,9 @@ async function run() {
     });
 
     app.get("/restaurant-orders", async (req, res) => {
+      const { hotelEmail } = req.query;
       const result = await restaurantOrderCollection
-        .find()
-        .sort({ createdAt: -1 })
+        .find({ hotelEmail })
         .toArray();
       res.send(result);
     });
