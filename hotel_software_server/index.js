@@ -84,149 +84,146 @@ async function run() {
     // DASHBOARD STATS
     // =========================================================
     app.get("/dashboard/stats", async (req, res) => {
-      try {
-        const currentGuests = await checkInCollection.countDocuments({
-          status: { $ne: "Checked Out" },
-        });
+      const hotelEmail = req.query.hotelEmail;
 
-        const currentEmployees = await employeeCollection.countDocuments({
-          EmploymentStatus: { $in: ["Active", "On Leave"] },
-        });
+      const currentGuests = await checkInCollection.countDocuments({
+        hotelEmail,
+        status: { $ne: "Checked Out" },
+      });
 
-        const totalAvailableRooms = await roomCollection.countDocuments({
-          roomStatus: "Available",
-        });
-        const totalOccupiedRooms = await roomCollection.countDocuments({
-          roomStatus: "Occupied",
-        });
+      const currentEmployees = await employeeCollection.countDocuments({
+        hotelEmail,
+        EmploymentStatus: { $in: ["Active", "On Leave"] },
+      });
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(
-          now.getFullYear(),
-          now.getMonth() + 1,
-          0,
-          23,
-          59,
-          59,
-        );
+      const totalAvailableRooms = await roomCollection.countDocuments({
+        hotelEmail,
+        roomStatus: "Available",
+      });
 
-        const thisMonthCheckouts = await checkOutCollection
-          .find({
-            checkedOutAt: {
-              $gte: startOfMonth,
-              $lte: endOfMonth,
-            },
-          })
-          .toArray();
+      const totalOccupiedRooms = await roomCollection.countDocuments({
+        hotelEmail,
+        roomStatus: "Occupied",
+      });
 
-        const currentMonthEarning = thisMonthCheckouts.reduce((sum, item) => {
-          return sum + (Number(item.totalCharges) || 0);
-        }, 0);
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+      );
 
-        res.send({
-          currentGuests,
-          currentEmployees,
-          totalAvailableRooms,
-          totalOccupiedRooms,
-          currentMonthEarning,
-        });
-      } catch (error) {
-        console.error("Dashboard stats error:", error);
-        res.status(500).send({ message: "Failed to get dashboard stats" });
-      }
+      const thisMonthCheckouts = await checkOutCollection
+        .find({
+          hotelEmail,
+          checkedOutAt: {
+            $gte: startOfMonth,
+            $lte: endOfMonth,
+          },
+        })
+        .toArray();
+
+      const currentMonthEarning = thisMonthCheckouts.reduce((sum, item) => {
+        return sum + (Number(item.totalCharges) || 0);
+      }, 0);
+
+      res.send({
+        currentGuests,
+        currentEmployees,
+        totalAvailableRooms,
+        totalOccupiedRooms,
+        currentMonthEarning,
+      });
     });
 
     // =========================================================
     // CUSTOMERS PER MONTH
     // =========================================================
     app.get("/dashboard/customers-per-month", async (req, res) => {
-      try {
-        const checkouts = await checkOutCollection.find().toArray();
-        const monthlyCount = {};
+      const hotelEmail = req.query.hotelEmail;
 
-        checkouts.forEach((item) => {
-          const date = new Date(item.checkedOutAt || item.createdAt);
-          const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-          monthlyCount[key] = (monthlyCount[key] || 0) + 1;
-        });
+      const checkouts = await checkOutCollection.find({ hotelEmail }).toArray();
 
-        const sortedKeys = Object.keys(monthlyCount).sort();
+      const monthlyCount = {};
 
-        const categories = sortedKeys.map((key) => {
-          const [year, month] = key.split("-");
-          const monthNames = [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ];
-          return `${monthNames[parseInt(month) - 1]} ${year}`;
-        });
+      checkouts.forEach((item) => {
+        const date = new Date(item.checkedOutAt || item.createdAt);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+        monthlyCount[key] = (monthlyCount[key] || 0) + 1;
+      });
 
-        const seriesData = sortedKeys.map((key) => monthlyCount[key]);
+      const sortedKeys = Object.keys(monthlyCount).sort();
 
-        res.send({
-          categories,
-          series: [{ name: "Customers", data: seriesData }],
-        });
-      } catch (error) {
-        console.error("Customers per month error:", error);
-        res.status(500).send({ message: "Failed to get customers data" });
-      }
+      const categories = sortedKeys.map((key) => {
+        const [year, month] = key.split("-");
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        return `${monthNames[parseInt(month) - 1]} ${year}`;
+      });
+
+      const seriesData = sortedKeys.map((key) => monthlyCount[key]);
+
+      res.send({
+        categories,
+        series: [{ name: "Customers", data: seriesData }],
+      });
     });
 
     // =========================================================
     // REVENUE BY SERVICE
     // =========================================================
     app.get("/dashboard/revenue-by-service", async (req, res) => {
-      try {
-        const checkouts = await checkOutCollection.find().toArray();
+      const hotelEmail = req.query.hotelEmail;
 
-        let restaurantRevenue = 0;
-        let laundryRevenue = 0;
-        let transportRevenue = 0;
-        let roomRevenue = 0;
+      const checkouts = await checkOutCollection.find({ hotelEmail }).toArray();
 
-        checkouts.forEach((item) => {
-          roomRevenue += Number(item.actualRoomCharge || item.totalAmount || 0);
+      let restaurantRevenue = 0;
+      let laundryRevenue = 0;
+      let transportRevenue = 0;
+      let roomRevenue = 0;
 
-          (item.restaurantOrders || []).forEach((order) => {
-            restaurantRevenue += Number(order.totalAmount || 0);
-          });
+      checkouts.forEach((item) => {
+        roomRevenue += Number(item.actualRoomCharge || item.totalAmount || 0);
 
-          (item.laundryOrders || []).forEach((order) => {
-            laundryRevenue += Number(order.totalCost || 0);
-          });
-
-          (item.transportOrders || []).forEach((order) => {
-            transportRevenue += Number(order.fare || 0);
-          });
+        (item.restaurantOrders || []).forEach((order) => {
+          restaurantRevenue += Number(order.totalAmount || 0);
         });
 
-        res.send({
-          labels: ["Room", "Restaurant", "Laundry", "Transport"],
-          series: [
-            roomRevenue,
-            restaurantRevenue,
-            laundryRevenue,
-            transportRevenue,
-          ],
+        (item.laundryOrders || []).forEach((order) => {
+          laundryRevenue += Number(order.totalCost || 0);
         });
-      } catch (error) {
-        console.error("Revenue by service error:", error);
-        res.status(500).send({ message: "Failed to get revenue data" });
-      }
+
+        (item.transportOrders || []).forEach((order) => {
+          transportRevenue += Number(order.fare || 0);
+        });
+      });
+
+      res.send({
+        labels: ["Room", "Restaurant", "Laundry", "Transport"],
+        series: [
+          roomRevenue,
+          restaurantRevenue,
+          laundryRevenue,
+          transportRevenue,
+        ],
+      });
     });
-
     // =========================================================
     // EMPLOYEES
     // =========================================================
@@ -370,70 +367,70 @@ async function run() {
     });
 
     app.get("/rooms/available", async (req, res) => {
-      try {
-        const { arriving, departure } = req.query;
-        if (!arriving || !departure) {
-          return res.status(400).send({ message: "Dates required" });
-        }
+      const { arriving, departure, hotelEmail } = req.query;
 
-        const checkIns = await checkInCollection
-          .find({
-            checkInDate: { $lt: departure },
-            checkOutDate: { $gt: arriving },
-          })
-          .toArray();
-
-        const reservations = await reservationCollection
-          .find({
-            arrivingDate: { $lt: departure },
-            departureDate: { $gt: arriving },
-            status: "Reserved",
-          })
-          .toArray();
-
-        const blocked = [
-          ...new Set([
-            ...checkIns.map((c) => String(c.roomNumber)),
-            ...reservations.map((r) => String(r.room?.roomNo || r.roomNo)),
-          ]),
-        ];
-
-        const rooms = await roomCollection
-          .find({
-            roomNo: { $nin: blocked },
-            roomStatus: { $ne: "Maintenance" },
-          })
-          .toArray();
-
-        const grouped = {};
-        rooms.forEach((room) => {
-          const name = room.variantName || "Other";
-          if (!grouped[name]) {
-            grouped[name] = {
-              variantName: room.variantName,
-              baseRoomType: room.baseRoomType,
-              price: room.price,
-              maxOccupancy: room.maxOccupancy,
-              bedType: room.bedType,
-              amenities: room.amenities,
-              description: room.description,
-              image: room.image,
-              rooms: [],
-            };
-          }
-          grouped[name].rooms.push(room);
-        });
-
-        res.send({
-          arriving,
-          departure,
-          totalAvailable: rooms.length,
-          variants: Object.values(grouped),
-        });
-      } catch (error) {
-        console.error("Available rooms error:", error);
-        res.status(500).send({ message: "Failed to get available rooms" });
+      if (!arriving || !departure) {
+        return res.status(400).send({ message: "Dates required" });
       }
+
+      // Correct overlap logic
+      const checkIns = await checkInCollection
+        .find({
+          hotelEmail,
+          checkInDate: { $lte: departure },
+          checkOutDate: { $gt: arriving },
+        })
+        .toArray();
+
+      const reservations = await reservationCollection
+        .find({
+          hotelEmail,
+          arrivingDate: { $lte: departure },
+          departureDate: { $gt: arriving },
+          status: "Reserved",
+        })
+        .toArray();
+
+      const blocked = [
+        ...new Set([
+          ...checkIns.map((c) => String(c.roomNumber)),
+          ...reservations.map((r) => String(r.room?.roomNo || r.roomNo)),
+        ]),
+      ];
+
+      const rooms = await roomCollection
+        .find({
+          hotelEmail,
+          roomNo: { $nin: blocked },
+          roomStatus: { $ne: "Maintenance" },
+        })
+        .toArray();
+
+      const grouped = {};
+      rooms.forEach((room) => {
+        const name = room.variantName || "Other";
+        if (!grouped[name]) {
+          grouped[name] = {
+            variantName: room.variantName,
+            baseRoomType: room.baseRoomType,
+            price: room.price,
+            maxOccupancy: room.maxOccupancy,
+            bedType: room.bedType,
+            amenities: room.amenities,
+            description: room.description,
+            image: room.image,
+            rooms: [],
+          };
+        }
+        grouped[name].rooms.push(room);
+      });
+
+      res.send({
+        arriving,
+        departure,
+        totalAvailable: rooms.length,
+        variants: Object.values(grouped),
+      });
     });
 
     app.get("/rooms/:id", async (req, res) => {
@@ -1205,10 +1202,34 @@ async function run() {
     // RESERVATIONS
     // =========================================================
     app.post("/reservations", async (req, res) => {
-      const result = await reservationCollection.insertOne({
+      const reservationData = {
         ...req.body,
         createdAt: new Date(),
-      });
+      };
+
+      // 1. Insert reservation
+      const result = await reservationCollection.insertOne(reservationData);
+
+      // 2. Only mark room as "Reserved" if the reservation covers TODAY
+      const today = new Date().toISOString().split("T")[0];
+      const coversToday =
+        req.body.arrivingDate <= today && req.body.departureDate >= today;
+
+      if (coversToday && req.body.room?.roomNo) {
+        await roomCollection.updateOne(
+          {
+            roomNo: String(req.body.room.roomNo),
+            hotelEmail: req.body.hotelEmail,
+          },
+          { $set: { roomStatus: "Reserved" } },
+        );
+      }
+
+      // 3. Always recalculate the room status
+      if (req.body.room?.roomNo) {
+        await updateRoomStatus(req.body.room.roomNo);
+      }
+
       res.status(201).send(result);
     });
 
@@ -1238,9 +1259,24 @@ async function run() {
       if (!ObjectId.isValid(id)) {
         return res.status(400).send({ message: "Invalid reservation ID" });
       }
+
+      const reservation = await reservationCollection.findOne({
+        _id: new ObjectId(id),
+      });
+
+      if (!reservation) {
+        return res.status(404).send({ message: "Reservation not found" });
+      }
+
       const result = await reservationCollection.deleteOne({
         _id: new ObjectId(id),
       });
+
+      // Recalculate room status after deletion
+      if (reservation.room?.roomNo) {
+        await updateRoomStatus(reservation.room.roomNo);
+      }
+
       res.send(result);
     });
 

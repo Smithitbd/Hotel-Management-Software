@@ -12,7 +12,6 @@ const AllRooms = () => {
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
 
-  // Detect if coming from reservation calendar
   const mode = searchParams.get("mode"); // "reserve" or null
   const selectedDate = searchParams.get("date");
 
@@ -20,21 +19,43 @@ const AllRooms = () => {
     return <span className="loading loading-spinner text-error"></span>;
   }
 
+  // 1. Always fetch all rooms
   const {
     data: rooms = [],
-    isLoading,
+    isLoading: roomsLoading,
     isError,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["all-rooms"],
+    queryKey: ["all-rooms", user?.email],
     queryFn: async () => {
       const res = await axiosInstance.get("/rooms", {
         params: { hotelEmail: user.email },
       });
       return res.data;
     },
+    enabled: !!user?.email,
   });
+
+  // 2. When in reserve mode → check real availability for the selected date
+  const { data: availability, isLoading: availabilityLoading } = useQuery({
+    queryKey: ["room-availability", selectedDate, user?.email],
+    queryFn: async () => {
+      // We use the same date as both arriving & departure
+      // (because we only care about that single day)
+      const res = await axiosInstance.get("/rooms/available", {
+        params: {
+          arriving: selectedDate,
+          departure: selectedDate,
+          hotelEmail: user.email,
+        },
+      });
+      return res.data;
+    },
+    enabled: mode === "reserve" && !!selectedDate && !!user?.email,
+  });
+
+  const isLoading = roomsLoading || (mode === "reserve" && availabilityLoading);
 
   if (isLoading) {
     return (
@@ -61,6 +82,24 @@ const AllRooms = () => {
       </div>
     );
   }
+
+  // Helper: check if a room is available on the selected date
+  const isRoomAvailableOnDate = (room) => {
+    if (mode !== "reserve" || !selectedDate) {
+      // Normal mode → use static status
+      return room.roomStatus?.toLowerCase() === "available";
+    }
+
+    // Reserve mode → check against the availability API
+    if (!availability) return false;
+
+    const allAvailableRooms =
+      availability.variants?.flatMap((v) => v.rooms) || [];
+
+    return allAvailableRooms.some(
+      (r) => r._id === room._id || r.roomNo === room.roomNo,
+    );
+  };
 
   return (
     <div className="p-6">
@@ -129,7 +168,7 @@ const AllRooms = () => {
                 : `${imageBaseURL}${room.image}`
               : "https://images.unsplash.com/photo-1566665797739-1674de7a421a";
 
-            const isAvailable = room.roomStatus?.toLowerCase() === "available";
+            const isAvailable = isRoomAvailableOnDate(room);
 
             return (
               <div
@@ -168,7 +207,7 @@ const AllRooms = () => {
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {room.roomStatus || "Unknown"}
+                      {isAvailable ? "Available" : "Reserved"}
                     </span>
                   </div>
 
@@ -184,13 +223,12 @@ const AllRooms = () => {
                     </div>
                   </div>
 
-                  {/* Button Logic */}
+                  {/* Button */}
                   {isAvailable ? (
                     <button
                       className="w-full rounded-lg bg-[#BF1E2E] py-2 text-sm font-medium text-white transition hover:bg-rose-900"
                       onClick={() => {
                         if (mode === "reserve") {
-                          // Go to MainReserve page
                           navigate(`/dashboard/reservations/main-reserve`, {
                             state: {
                               room: room,
@@ -198,7 +236,6 @@ const AllRooms = () => {
                             },
                           });
                         } else {
-                          // Normal Check-in flow
                           navigate("/dashboard/check_in_out/check_in", {
                             state: { room },
                           });

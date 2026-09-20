@@ -48,7 +48,11 @@ const MainReserve = () => {
     queryFn: async () => {
       if (!arrivingDate || !departureDate || !room) return null;
       const res = await axiosInstance.get("/rooms/available", {
-        params: { arriving: arrivingDate, departure: departureDate },
+        params: {
+          arriving: arrivingDate,
+          departure: departureDate,
+          hotelEmail: user.email,
+        },
       });
       return res.data;
     },
@@ -70,7 +74,7 @@ const MainReserve = () => {
       return;
     }
 
-    if (data.departureDate < data.arrivingDate) {
+    if (data.departureDate <= data.arrivingDate) {
       Swal.fire({
         title: "Invalid Dates",
         text: "Departure date must be after arriving date",

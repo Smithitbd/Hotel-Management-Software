@@ -13,10 +13,15 @@ import useAxios from "../../../hooks/useAxios";
 import useUserStatus from "../../../hooks/useUserStatus";
 import { Navigate } from "react-router";
 import PageHeader from "../../../components/PageHeader"; // adjust path if needed
+import useAuth from "../../../hooks/useAuth";
 
 const Root = () => {
   const axiosInstance = useAxios();
   const { status, statusLoading } = useUserStatus();
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
 
   if (statusLoading) {
     return (
@@ -35,7 +40,9 @@ const Root = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/dashboard/stats");
+      const res = await axiosInstance.get("/dashboard/stats", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });
@@ -44,7 +51,9 @@ const Root = () => {
   const { data: customersData, isLoading: customersLoading } = useQuery({
     queryKey: ["customers-per-month"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/dashboard/customers-per-month");
+      const res = await axiosInstance.get("/dashboard/customers-per-month", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });
@@ -53,7 +62,9 @@ const Root = () => {
   const { data: revenueData, isLoading: revenueLoading } = useQuery({
     queryKey: ["revenue-by-service"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/dashboard/revenue-by-service");
+      const res = await axiosInstance.get("/dashboard/revenue-by-service", {
+        params: { hotelEmail: user.email },
+      });
       return res.data;
     },
   });

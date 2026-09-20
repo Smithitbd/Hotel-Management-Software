@@ -62,7 +62,7 @@ const DashboardLayout = () => {
                 </p>
               </div>
 
-              <div className="text-sm font-bold">
+              <div className="text-sm font-bold text-green-700">
                 Made in <span className="text-red-500">Bangladesh</span>
               </div>
             </div>
