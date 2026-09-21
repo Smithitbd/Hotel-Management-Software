@@ -1148,7 +1148,7 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/restaurant-order", async (req, res) => {
+    app.post("/restaurant-orders", async (req, res) => {
       try {
         const result = await restaurantOrderCollection.insertOne({
           ...req.body,
@@ -1189,7 +1189,7 @@ async function run() {
       }
     });
 
-    app.get("/restaurant-order", async (req, res) => {
+    app.get("/restaurant-orders", async (req, res) => {
       const { hotelEmail } = req.query;
       const result = await restaurantOrderCollection
         .find({ hotelEmail })
