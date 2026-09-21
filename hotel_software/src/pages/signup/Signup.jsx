@@ -1,321 +1,294 @@
-import { useState } from "react";
-import { Link } from "react-router";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router";
 import Swal from "sweetalert2";
-import useAxios from "../../hooks/useAxios";
+import { FaArrowLeft, FaUserPlus } from "react-icons/fa";
+import { MdHotel } from "react-icons/md";
 import useAuth from "../../hooks/useAuth";
+import useAxios from "../../hooks/useAxios";
 
-const Signup = () => {
+const SubUser = () => {
+  const { user, createUser } = useAuth();
   const axiosInstance = useAxios();
-  const [logoPreview, setLogoPreview] = useState(null);
-  const { createUser, updateUserProfile } = useAuth();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm();
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoPreview(URL.createObjectURL(file));
-    } else {
-      setLogoPreview(null);
-    }
-  };
-
-  const onSubmit = async (data) => {
-    createUser(data.email, data.password).then(async (result) => {
-      console.log(result.user);
-
-      // const update user info
-      const userProfile = {
-        displayName: data.ownerName,
-        photoURL: data.logo[0],
-      };
-    });
-
-    const formData = new FormData();
-    formData.append("hotelName", data.hotelName);
-    formData.append("propertyType", data.propertyType);
-    formData.append("address", data.address);
-    formData.append("ownerName", data.ownerName);
-    formData.append("email", data.email);
-    formData.append("phone", data.phone);
-    formData.append("password", data.password);
-
-    if (data.logo?.[0]) {
-      formData.append("logo", data.logo[0]);
-    }
-
-    const res = await axiosInstance.post("/hotels", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    if (res.data.insertedId || res.status === 201 || res.status === 200) {
-      Swal.fire({
-        title: "Account Created!",
-        text: "Your hotel account has been successfully created.",
-        icon: "success",
-        confirmButtonColor: "#92400e",
+  // Get hotel info
+  const { data: hotel, isLoading: hotelLoading } = useQuery({
+    queryKey: ["hotel-by-email", user?.email],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/hotels/by-email", {
+        params: { email: user.email },
       });
-      reset();
-      setLogoPreview(null);
+      return res.data;
+    },
+    enabled: !!user?.email,
+  });
+
+  // Get existing sub users
+  const {
+    data: subUsers,
+    isLoading: subUsersLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["sub-users", user?.email],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/users", {
+        params: { hotelEmail: user.email },
+      });
+      return res.data;
+    },
+    enabled: !!user?.email,
+  });
+
+  // Form for Email 1
+  const {
+    register: register1,
+    handleSubmit: handleSubmit1,
+    reset: reset1,
+    formState: { isSubmitting: isSubmitting1 },
+  } = useForm({
+    values: subUsers
+      ? {
+          email1: subUsers.email1 || "",
+          password1: "",
+        }
+      : undefined,
+  });
+
+  // Form for Email 2
+  const {
+    register: register2,
+    handleSubmit: handleSubmit2,
+    reset: reset2,
+    formState: { isSubmitting: isSubmitting2 },
+  } = useForm({
+    values: subUsers
+      ? {
+          email2: subUsers.email2 || "",
+          password2: "",
+        }
+      : undefined,
+  });
+
+  // ========== Submit Email 1 ==========
+  const onSubmitEmail1 = async (data) => {
+    try {
+      // 1. Create Firebase user (if password is provided)
+      if (data.password1) {
+        await createUser(data.email1, data.password1);
+      }
+
+      // 2. Update in database
+      await axiosInstance.patch(`/users/${subUsers._id}`, {
+        email1: data.email1,
+        password1: data.password1 || undefined,
+      });
+
+      await refetch();
+      reset1({ email1: data.email1, password1: "" });
+
+      Swal.fire({
+        icon: "success",
+        title: "Updated",
+        text: "Sub User 1 created/updated successfully",
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error(error);
+
+      let message = "Something went wrong";
+      if (error.code === "auth/email-already-in-use") {
+        message = "This email is already registered in Firebase";
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: message,
+      });
     }
   };
+
+  // ========== Submit Email 2 ==========
+  const onSubmitEmail2 = async (data) => {
+    try {
+      // 1. Create Firebase user (if password is provided)
+      if (data.password2) {
+        await createUser(data.email2, data.password2);
+      }
+
+      // 2. Update in database
+      await axiosInstance.patch(`/users/${subUsers._id}`, {
+        email2: data.email2,
+        password2: data.password2 || undefined,
+      });
+
+      await refetch();
+      reset2({ email2: data.email2, password2: "" });
+
+      Swal.fire({
+        icon: "success",
+        title: "Updated",
+        text: "Sub User 2 created/updated successfully",
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error(error);
+
+      let message = "Something went wrong";
+      if (error.code === "auth/email-already-in-use") {
+        message = "This email is already registered in Firebase";
+      } else if (error.response?.data?.message) {
+        message = error.response.data.message;
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: message,
+      });
+    }
+  };
+
+  if (hotelLoading || subUsersLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
 
   return (
-    <div className="card w-full shadow-xl bg-white">
-      <h1 className="text-3xl font-bold text-amber-800 text-center pt-1">
-        Create an Account
-      </h1>
-      <p className="text-center text-gray-500 mt-1 mb-2">
-        Register your hotel / property
-      </p>
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
+            <FaUserPlus className="text-xl text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-rose-900">Sub Users</h1>
+            <p className="text-sm text-gray-500">
+              Manage additional login emails for {hotel?.hotelName}
+            </p>
+          </div>
+        </div>
 
-      <div className="card-body">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {/* ====================== Hotel / Property Details ====================== */}
-          <div className="mb-3">
-            <h2 className="text-lg font-semibold text-amber-800 mb-3 border-b border-amber-200 pb-1">
-              Hotel / Property Details
-            </h2>
+        <Link
+          to="/dashboard/settings"
+          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
+        >
+          <FaArrowLeft />
+        </Link>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Hotel / Property Name */}
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">
-                    Hotel / Property Name
-                  </span>
-                </label>
-                <input
-                  {...register("hotelName", {
-                    required: "Hotel / Property name is required",
-                  })}
-                  type="text"
-                  className="input input-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  placeholder="e.g. Grand Palace Hotel"
-                />
-                {errors.hotelName && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.hotelName.message}
-                  </p>
-                )}
-              </div>
+      {/* Hotel Summary */}
+      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5 mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center">
+            <MdHotel className="text-2xl text-rose-900" />
+          </div>
+          <div>
+            <h2 className="font-bold text-gray-800">{hotel?.hotelName}</h2>
+            <p className="text-sm text-gray-500">{hotel?.email}</p>
+          </div>
+        </div>
+      </div>
 
-              {/* Property Type */}
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Property Type</span>
-                </label>
-                <select
-                  {...register("propertyType", {
-                    required: "Property type is required",
-                  })}
-                  className="select select-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    Select property type
-                  </option>
-                  <option value="Hotel">Hotel</option>
-                  <option value="Motel">Motel</option>
-                  <option value="Resort">Resort</option>
-                  <option value="Guest House">Guest House</option>
-                  <option value="Boutique Hotel">Boutique Hotel</option>
-                  <option value="Apartment Hotel">Apartment Hotel</option>
-                  <option value="Hostel">Hostel</option>
-                  <option value="Villa">Villa</option>
-                  <option value="Homestay">Homestay</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.propertyType && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.propertyType.message}
-                  </p>
-                )}
-              </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* ========== Sub User 1 ========== */}
+        <form
+          onSubmit={handleSubmit1(onSubmitEmail1)}
+          className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
+        >
+          <h3 className="text-lg font-bold text-rose-900 mb-6">Sub User 1</h3>
 
-              {/* Address */}
-              <div className="md:col-span-2">
-                <label className="label">
-                  <span className="label-text font-medium">Address</span>
-                </label>
-                <textarea
-                  {...register("address", {
-                    required: "Address is required",
-                  })}
-                  className="textarea textarea-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  placeholder="Full address of the property"
-                  rows={3}
-                ></textarea>
-                {errors.address && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.address.message}
-                  </p>
-                )}
-              </div>
+          <div className="space-y-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Email 1</span>
+              </label>
+              <input
+                type="email"
+                placeholder="user1@example.com"
+                className="input input-bordered w-full bg-white"
+                {...register1("email1", { required: true })}
+              />
+            </div>
 
-              {/* Hotel Logo */}
-              <div className="md:col-span-2">
-                <label className="label">
-                  <span className="label-text font-medium">Hotel Logo</span>
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  {...register("logo", {
-                    required: "Hotel logo is required",
-                  })}
-                  onChange={handleLogoChange}
-                  className="file-input file-input-bordered w-full bg-white focus:outline-none focus:ring-0"
-                />
-                {errors.logo && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.logo.message}
-                  </p>
-                )}
-
-                {logoPreview && (
-                  <div className="mt-3">
-                    <img
-                      src={logoPreview}
-                      alt="Logo Preview"
-                      className="w-24 h-24 object-contain rounded-lg border"
-                    />
-                  </div>
-                )}
-              </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Password 1</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Enter password"
+                className="input input-bordered w-full bg-white"
+                {...register1("password1", { required: true })}
+              />
             </div>
           </div>
 
-          {/* ====================== Contact Information ====================== */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-amber-800 mb-3 border-b border-amber-200 pb-1">
-              Contact Information
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Owner/Manager Name */}
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">
-                    Owner / Manager Name
-                  </span>
-                </label>
-                <input
-                  {...register("ownerName", {
-                    required: "Owner / Manager name is required",
-                  })}
-                  type="text"
-                  className="input input-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  placeholder="Full name"
-                />
-                {errors.ownerName && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.ownerName.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Business Email */}
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Business Email</span>
-                </label>
-                <input
-                  {...register("email", {
-                    required: "Business email is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Please enter a valid email",
-                    },
-                  })}
-                  type="email"
-                  className="input input-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  placeholder="email@example.com"
-                />
-                {errors.email && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Phone Number */}
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Phone Number</span>
-                </label>
-                <input
-                  {...register("phone", {
-                    required: "Phone number is required",
-                  })}
-                  type="tel"
-                  className="input input-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  placeholder="+8801XXXXXXXXX"
-                />
-                {errors.phone && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.phone.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="label">
-                  <span className="label-text font-medium">Password</span>
-                </label>
-                <input
-                  {...register("password", {
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
-                    },
-                  })}
-                  type="password"
-                  className="input input-bordered w-full bg-white focus:outline-none focus:ring-0 focus:border-gray-300"
-                  placeholder="Enter password"
-                />
-                {errors.password && (
-                  <p className="text-error text-sm mt-1">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="flex justify-end mt-8">
+            <button
+              type="submit"
+              disabled={isSubmitting1}
+              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
+            >
+              {isSubmitting1 ? "Saving..." : "Save User 1"}
+            </button>
           </div>
-
-          {/* Signup Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn bg-amber-800 text-white border-none w-full mt-2 hover:bg-amber-900"
-          >
-            {isSubmitting ? (
-              <span className="loading loading-spinner loading-sm"></span>
-            ) : (
-              "SEND SIGN UP REQUEST"
-            )}
-          </button>
         </form>
 
-        <p className="text-center mt-5">
-          Already have an account?{" "}
-          <Link to="/" className="text-amber-800 font-semibold hover:underline">
-            Login
-          </Link>
-        </p>
+        {/* ========== Sub User 2 ========== */}
+        <form
+          onSubmit={handleSubmit2(onSubmitEmail2)}
+          className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
+        >
+          <h3 className="text-lg font-bold text-rose-900 mb-6">Sub User 2</h3>
+
+          <div className="space-y-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Email 2</span>
+              </label>
+              <input
+                type="email"
+                placeholder="user2@example.com"
+                className="input input-bordered w-full bg-white"
+                {...register2("email2", { required: true })}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Password 2</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Enter password"
+                className="input input-bordered w-full bg-white"
+                {...register2("password2", { required: true })}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-8">
+            <button
+              type="submit"
+              disabled={isSubmitting2}
+              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
+            >
+              {isSubmitting2 ? "Saving..." : "Save User 2"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-export default Signup;
+export default SubUser;

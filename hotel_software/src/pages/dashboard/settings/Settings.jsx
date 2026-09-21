@@ -14,7 +14,7 @@ import useUserStatus from "../../../hooks/useUserStatus";
 const Settings = () => {
   const { logOut } = useAuth();
   const navigate = useNavigate();
-  const { status } = useUserStatus();
+  const { status, type } = useUserStatus();
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -75,7 +75,7 @@ const Settings = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {/* Hotel Information → Hidden for Admin */}
-        {status !== "Admin" && (
+        {status !== "Admin" && type !== "sub-user" && (
           <Link
             to="/dashboard/settings/hotel_information"
             className="group bg-white rounded-2xl shadow-md border border-rose-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-rose-300"
@@ -123,22 +123,24 @@ const Settings = () => {
           </p>
         </Link>
 
-        {/* Add Sub User */}
-        <Link
-          to="/dashboard/settings/sub-user"
-          className="group bg-white rounded-2xl shadow-md border border-emerald-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-emerald-300"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mb-6 shadow-md shadow-emerald-200 group-hover:scale-110 transition-transform">
-            <FaUserPlus className="text-2xl text-white" />
-          </div>
-          <h2 className="text-lg font-bold text-emerald-800 mb-2">
-            Add Sub User
-          </h2>
-          <p className="text-gray-600 text-sm">
-            The sub-user usually has restricted permissions (view-only, specific
-            modules, no billing access, etc.).
-          </p>
-        </Link>
+        {/* Add Sub User → Only for Hotel Owner (main email) */}
+        {type === "owner" && (
+          <Link
+            to="/dashboard/settings/sub-user"
+            className="group bg-white rounded-2xl shadow-md border border-emerald-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-emerald-300"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mb-6 shadow-md shadow-emerald-200 group-hover:scale-110 transition-transform">
+              <FaUserPlus className="text-2xl text-white" />
+            </div>
+            <h2 className="text-lg font-bold text-emerald-800 mb-2">
+              Add Sub User
+            </h2>
+            <p className="text-gray-600 text-sm">
+              The sub-user usually has restricted permissions (view-only,
+              specific modules, no billing access, etc.).
+            </p>
+          </Link>
+        )}
       </div>
     </div>
   );

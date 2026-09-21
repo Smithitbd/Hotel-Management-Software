@@ -14,9 +14,11 @@ import {
 import { MdSecurity } from "react-icons/md";
 import useAuth from "../../../../hooks/useAuth";
 import useAxios from "../../../../hooks/useAxios";
+import useUserStatus from "../../../../hooks/useUserStatus"; // make sure this hook exists
 
 const Security = () => {
   const { user, updateUserPassword, updateUserEmail } = useAuth();
+  const { type, hotelEmail } = useUserStatus(); // "owner" | "admin" | "sub-user"
   const axiosInstance = useAxios();
   const queryClient = useQueryClient();
 
@@ -24,16 +26,28 @@ const Security = () => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [selectedLogo, setSelectedLogo] = useState(null);
 
-  // Get current hotel data
-  const { data: hotel, isLoading } = useQuery({
-    queryKey: ["hotel-by-email", user?.email],
+  // Get hotel data (only needed for owner/admin)
+  const { data: hotel, isLoading: hotelLoading } = useQuery({
+    queryKey: ["hotel-by-email", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/hotels/by-email", {
-        params: { email: user.email },
+        params: { email: hotelEmail },
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail && (type === "owner" || type === "admin"),
+  });
+
+  // Get sub-user data (only needed for sub-user)
+  const { data: subUser, isLoading: subUserLoading } = useQuery({
+    queryKey: ["sub-user", user?.email],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/users", {
+        params: { hotelEmail },
+      });
+      return res.data;
+    },
+    enabled: !!hotelEmail && type === "sub-user",
   });
 
   // Password Form
@@ -50,11 +64,9 @@ const Security = () => {
     handleSubmit: handleEmailSubmit,
     formState: { isSubmitting: isEmailSubmitting },
   } = useForm({
-    values: hotel
-      ? {
-          email: hotel.email || "",
-        }
-      : undefined,
+    values: {
+      email: user?.email || "",
+    },
   });
 
   // ====================== UPDATE PASSWORD ======================
@@ -76,11 +88,23 @@ const Security = () => {
     }
 
     try {
+      // Update Firebase password
       await updateUserPassword(data.newPassword);
 
-      await axiosInstance.patch(`/hotels/${hotel._id}`, {
-        passwordUpdatedAt: new Date(),
-      });
+      // Also update in database if needed
+      if (type === "owner" || type === "admin") {
+        await axiosInstance.patch(`/hotels/${hotel._id}`, {
+          passwordUpdatedAt: new Date(),
+        });
+      } else if (type === "sub-user") {
+        // Update password1 or password2
+        const updateField =
+          subUser.email1 === user.email
+            ? { password1: data.newPassword }
+            : { password2: data.newPassword };
+
+        await axiosInstance.patch(`/users/${subUser._id}`, updateField);
+      }
 
       resetPassword();
 
@@ -110,7 +134,7 @@ const Security = () => {
 
   // ====================== UPDATE EMAIL ======================
   const onEmailSubmit = async (data) => {
-    if (data.email === hotel.email) {
+    if (data.email === user.email) {
       return Swal.fire({
         icon: "info",
         title: "No Change",
@@ -122,19 +146,33 @@ const Security = () => {
       // 1. Update email in Firebase
       await updateUserEmail(data.email);
 
-      // 2. Update email in MongoDB
-      await axiosInstance.patch(`/hotels/${hotel._id}`, {
-        email: data.email,
-      });
+      // 2. Update in MongoDB
+      if (type === "owner" || type === "admin") {
+        // Owner → update hotel email
+        await axiosInstance.patch(`/hotels/${hotel._id}`, {
+          email: data.email,
+        });
+      } else if (type === "sub-user") {
+        // Sub-user → update email1 or email2 only
+        const updateField =
+          subUser.email1 === user.email
+            ? { email1: data.email }
+            : { email2: data.email };
 
-      await queryClient.invalidateQueries({ queryKey: ["hotel-by-email"] });
+        await axiosInstance.patch(`/users/${subUser._id}`, updateField);
+      }
+
+      await queryClient.invalidateQueries();
 
       Swal.fire({
         icon: "success",
         title: "Email Updated",
-        text: "Your email has been updated successfully in both Firebase and Database",
+        text: "Your email has been updated successfully",
         timer: 2000,
         showConfirmButton: false,
+      }).then(() => {
+        // Force logout after email change is safer
+        window.location.href = "/";
       });
     } catch (error) {
       console.error(error);
@@ -158,7 +196,7 @@ const Security = () => {
     }
   };
 
-  // ====================== UPDATE LOGO ======================
+  // ====================== UPDATE LOGO (Owner only) ======================
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -188,11 +226,7 @@ const Security = () => {
       const formData = new FormData();
       formData.append("logo", selectedLogo);
 
-      await axiosInstance.patch(`/hotels/${hotel._id}/logo`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axiosInstance.patch(`/hotels/${hotel._id}/logo`, formData);
 
       await queryClient.invalidateQueries({ queryKey: ["hotel-by-email"] });
       setSelectedLogo(null);
@@ -210,14 +244,12 @@ const Security = () => {
       Swal.fire({
         icon: "error",
         title: "Upload Failed",
-        text:
-          error.response?.data?.message ||
-          "Failed to update logo. Make sure the backend endpoint exists.",
+        text: error.response?.data?.message || "Failed to update logo",
       });
     }
   };
 
-  if (isLoading) {
+  if (hotelLoading || subUserLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
@@ -240,13 +272,14 @@ const Security = () => {
           <div>
             <h1 className="text-lg font-bold text-rose-900">Security</h1>
             <p className="text-sm text-gray-500">
-              Update password, email & logo
+              Update password, email{" "}
+              {type === "owner" || type === "admin" ? "& logo" : ""}
             </p>
           </div>
         </div>
 
         <Link
-          to="/dashboard"
+          to="/dashboard/settings"
           className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
         >
           <FaArrowLeft />
@@ -264,6 +297,7 @@ const Security = () => {
           <form
             onSubmit={handlePasswordSubmit(onPasswordSubmit)}
             className="space-y-4"
+            autoComplete="off"
           >
             <div className="form-control">
               <label className="label">
@@ -274,6 +308,7 @@ const Security = () => {
                   type={showNewPassword ? "text" : "password"}
                   className="input input-bordered w-full bg-white pr-10"
                   placeholder="Enter new password"
+                  autoComplete="new-password"
                   {...registerPassword("newPassword", {
                     required: "Password is required",
                     minLength: {
@@ -305,6 +340,7 @@ const Security = () => {
                 type="password"
                 className="input input-bordered w-full bg-white"
                 placeholder="Confirm new password"
+                autoComplete="new-password"
                 {...registerPassword("confirmPassword", {
                   required: "Please confirm password",
                 })}
@@ -331,6 +367,7 @@ const Security = () => {
           <form
             onSubmit={handleEmailSubmit(onEmailSubmit)}
             className="space-y-4"
+            autoComplete="off"
           >
             <div className="form-control">
               <label className="label">
@@ -339,7 +376,7 @@ const Security = () => {
               <input
                 type="email"
                 className="input input-bordered w-full bg-gray-100"
-                value={hotel?.email || ""}
+                value={user?.email || ""}
                 readOnly
               />
             </div>
@@ -352,6 +389,7 @@ const Security = () => {
                 type="email"
                 className="input input-bordered w-full bg-white"
                 placeholder="Enter new email"
+                autoComplete="off"
                 {...registerEmail("email", { required: true })}
               />
             </div>
@@ -366,57 +404,59 @@ const Security = () => {
           </form>
         </div>
 
-        {/* ====================== CHANGE LOGO ====================== */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 lg:col-span-2">
-          <div className="flex items-center gap-2 mb-5">
-            <FaImage className="text-rose-900" />
-            <h2 className="text-lg font-bold text-rose-900">Update Logo</h2>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="w-32 h-32 rounded-2xl overflow-hidden bg-rose-50 border flex items-center justify-center shrink-0">
-              {logoPreview ? (
-                <img
-                  src={logoPreview}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
-              ) : currentLogoUrl ? (
-                <img
-                  src={currentLogoUrl}
-                  alt="Current Logo"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-rose-900 font-bold text-3xl">
-                  {hotel?.hotelName?.charAt(0) || "H"}
-                </span>
-              )}
+        {/* ====================== CHANGE LOGO (Only Owner/Admin) ====================== */}
+        {(type === "owner" || type === "admin") && (
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 lg:col-span-2">
+            <div className="flex items-center gap-2 mb-5">
+              <FaImage className="text-rose-900" />
+              <h2 className="text-lg font-bold text-rose-900">Update Logo</h2>
             </div>
 
-            <div className="flex-1 space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoChange}
-                className="file-input file-input-bordered w-full max-w-md bg-white"
-              />
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="w-32 h-32 rounded-2xl overflow-hidden bg-rose-50 border flex items-center justify-center shrink-0">
+                {logoPreview ? (
+                  <img
+                    src={logoPreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : currentLogoUrl ? (
+                  <img
+                    src={currentLogoUrl}
+                    alt="Current Logo"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-rose-900 font-bold text-3xl">
+                    {hotel?.hotelName?.charAt(0) || "H"}
+                  </span>
+                )}
+              </div>
 
-              <button
-                type="button"
-                onClick={handleLogoUpload}
-                disabled={!selectedLogo}
-                className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
-              >
-                Upload New Logo
-              </button>
+              <div className="flex-1 space-y-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                  className="file-input file-input-bordered w-full max-w-md bg-white"
+                />
 
-              <p className="text-xs text-gray-500">
-                Recommended: Square image (at least 200×200 px)
-              </p>
+                <button
+                  type="button"
+                  onClick={handleLogoUpload}
+                  disabled={!selectedLogo}
+                  className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
+                >
+                  Upload New Logo
+                </button>
+
+                <p className="text-xs text-gray-500">
+                  Recommended: Square image (at least 200×200 px)
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

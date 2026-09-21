@@ -72,6 +72,7 @@ async function run() {
     const hotelCollection = db.collection("Hotels");
     const expenseCategoryCollection = db.collection("Expense Categories");
     const expenseEntryCollection = db.collection("Expense Entries");
+    const usersCollection = db.collection("Users");
 
     // =========================================================
     // ROOT
@@ -1146,6 +1147,106 @@ async function run() {
         .sort({ createdAt: -1 })
         .toArray();
       res.send(result);
+    });
+
+    // users starts from here
+
+    app.post("/users", async (req, res) => {
+      const { hotelName, hotelEmail, email1, email2, status } = req.body;
+
+      const userData = {
+        hotelName: hotelName || "",
+        hotelEmail,
+        email1: email1 || "",
+        email2: email2 || "",
+        status: status || "Pending",
+        createdAt: new Date(),
+      };
+
+      const result = await usersCollection.insertOne(userData);
+
+      res.status(201).send(result);
+    });
+
+    // GET sub users by hotelEmail
+    app.get("/users", async (req, res) => {
+      const { hotelEmail } = req.query;
+      if (!hotelEmail) {
+        return res.status(400).send({ message: "hotelEmail is required" });
+      }
+
+      const result = await usersCollection.findOne({ hotelEmail });
+      res.send(result || {});
+    });
+
+    // UPDATE sub users
+    app.patch("/users/:id", async (req, res) => {
+      const { id } = req.params;
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ message: "Invalid ID" });
+      }
+
+      const updateData = { ...req.body };
+
+      // Hash password if provided
+      if (updateData.password1) {
+        updateData.password1 = await bcrypt.hash(updateData.password1, 10);
+      }
+      if (updateData.password2) {
+        updateData.password2 = await bcrypt.hash(updateData.password2, 10);
+      }
+
+      // Remove undefined fields
+      Object.keys(updateData).forEach(
+        (key) => updateData[key] === undefined && delete updateData[key],
+      );
+
+      const result = await usersCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData },
+      );
+
+      res.send(result);
+    });
+
+    app.get("/users/:email/status", async (req, res) => {
+      try {
+        const email = req.params.email;
+
+        // 1. First check if this is a Hotel Owner
+        const hotel = await hotelCollection.findOne(
+          { email },
+          { projection: { status: 1, email: 1 } },
+        );
+
+        if (hotel) {
+          return res.send({
+            status: hotel.status,
+            type: hotel.status === "Admin" ? "admin" : "owner",
+            hotelEmail: hotel.email,
+          });
+        }
+
+        // 2. Check if this email is a Sub User (email1 or email2)
+        const subUser = await usersCollection.findOne({
+          $or: [{ email1: email }, { email2: email }],
+        });
+
+        if (subUser) {
+          return res.send({
+            status: subUser.status,
+            type: "sub-user",
+            hotelEmail: subUser.hotelEmail,
+            hotelName: subUser.hotelName,
+          });
+        }
+
+        // 3. Not found
+        return res.status(404).send({ status: "Pending" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Failed to get status" });
+      }
     });
 
     app.post("/restaurant-orders", async (req, res) => {

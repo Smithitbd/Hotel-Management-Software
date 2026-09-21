@@ -10,7 +10,7 @@ import useUserStatus from "../hooks/useUserStatus";
 import { SiNicehash } from "react-icons/si";
 
 const DashboardLayout = () => {
-  const { status, statusLoading } = useUserStatus();
+  const { status, statusLoading, type } = useUserStatus();
 
   if (statusLoading) {
     return (
@@ -111,11 +111,20 @@ const DashboardLayout = () => {
                     <FaBuildingCircleCheck /> Check In & Out
                   </NavLink>
                 </li>
-                <li>
-                  <NavLink className="text-lg" to="/dashboard/employees">
-                    <BsPersonWorkspace /> Employees
-                  </NavLink>
-                </li>
+                {type !== "sub-user" && (
+                  <>
+                    <li>
+                      <NavLink className="text-lg" to="/dashboard/employees">
+                        <BsPersonWorkspace /> Employees
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink className="text-lg" to="/dashboard/reports">
+                        <TbReport /> Reports
+                      </NavLink>
+                    </li>
+                  </>
+                )}
                 <li>
                   <NavLink className="text-lg" to="/dashboard/guests">
                     <FaPersonCircleCheck /> Guests
@@ -126,11 +135,7 @@ const DashboardLayout = () => {
                     <TbReservedLine /> Reservations
                   </NavLink>
                 </li>
-                <li>
-                  <NavLink className="text-lg" to="/dashboard/reports">
-                    <TbReport /> Reports
-                  </NavLink>
-                </li>
+
                 <li>
                   <NavLink className="text-lg" to="/dashboard/settings">
                     <IoSettingsSharp /> Settings

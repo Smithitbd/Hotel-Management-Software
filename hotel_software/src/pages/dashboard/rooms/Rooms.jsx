@@ -4,8 +4,10 @@ import { MdMeetingRoom } from "react-icons/md";
 import { SiHomeassistant } from "react-icons/si";
 import { MdChangeCircle } from "react-icons/md";
 import PageHeader from "../../../components/PageHeader";
+import useUserStatus from "../../../hooks/useUserStatus";
 
 const Rooms = () => {
+  const { status, type } = useUserStatus();
   return (
     <div className="p-6">
       {/* ===== Page Header ===== */}
@@ -17,36 +19,55 @@ const Rooms = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
         {/* Room Overview - Rose */}
-        <Link
-          to="/dashboard/rooms/room_overview"
-          className="group bg-white rounded-2xl shadow-md border border-rose-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-rose-300"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center mb-6 shadow-md shadow-rose-200 group-hover:scale-110 transition-transform">
-            <FaBed className="text-2xl text-white" />
-          </div>
-          <h2 className="text-lg font-bold text-rose-800 mb-2">
-            Room Overview
-          </h2>
-          <p className="text-gray-600 text-sm">
-            View and manage all hotel rooms and their details.
-          </p>
-        </Link>
+        {type !== "sub-user" && (
+          <>
+            <Link
+              to="/dashboard/rooms/room_overview"
+              className="group bg-white rounded-2xl shadow-md border border-rose-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-rose-300"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 flex items-center justify-center mb-6 shadow-md shadow-rose-200 group-hover:scale-110 transition-transform">
+                <FaBed className="text-2xl text-white" />
+              </div>
+              <h2 className="text-lg font-bold text-rose-800 mb-2">
+                Room Overview
+              </h2>
+              <p className="text-gray-600 text-sm">
+                View and manage all hotel rooms and their details.
+              </p>
+            </Link>
 
-        {/* Add Room Variant - Violet */}
-        <Link
-          to="/dashboard/rooms/add_room_variant"
-          className="group bg-white rounded-2xl shadow-md border border-violet-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-violet-300"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center mb-6 shadow-md shadow-violet-200 group-hover:scale-110 transition-transform">
-            <FaLayerGroup className="text-2xl text-white" />
-          </div>
-          <h2 className="text-lg font-bold text-violet-800 mb-2">
-            Add Room Variant
-          </h2>
-          <p className="text-gray-600 text-sm">
-            Create room variants with different configurations and pricing.
-          </p>
-        </Link>
+            {/* Add Room Variant - Violet */}
+            <Link
+              to="/dashboard/rooms/add_room_variant"
+              className="group bg-white rounded-2xl shadow-md border border-violet-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-violet-300"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center mb-6 shadow-md shadow-violet-200 group-hover:scale-110 transition-transform">
+                <FaLayerGroup className="text-2xl text-white" />
+              </div>
+              <h2 className="text-lg font-bold text-violet-800 mb-2">
+                Add Room Variant
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Create room variants with different configurations and pricing.
+              </p>
+            </Link>
+            {/* Maintenance - Amber */}
+            <Link
+              to="/dashboard/rooms/maintenance"
+              className="group bg-white rounded-2xl shadow-md border border-amber-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-amber-300"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center mb-6 shadow-md shadow-amber-200 group-hover:scale-110 transition-transform">
+                <FaTools className="text-2xl text-white" />
+              </div>
+              <h2 className="text-lg font-bold text-amber-800 mb-2">
+                Maintenance
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Track rooms under maintenance and schedule repairs.
+              </p>
+            </Link>
+          </>
+        )}
 
         {/* Room Status - Emerald */}
         <Link
@@ -61,20 +82,6 @@ const Rooms = () => {
           </h2>
           <p className="text-gray-600 text-sm">
             Monitor available, occupied, reserved, and vacant rooms.
-          </p>
-        </Link>
-
-        {/* Maintenance - Amber */}
-        <Link
-          to="/dashboard/rooms/maintenance"
-          className="group bg-white rounded-2xl shadow-md border border-amber-100 p-8 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-amber-300"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center mb-6 shadow-md shadow-amber-200 group-hover:scale-110 transition-transform">
-            <FaTools className="text-2xl text-white" />
-          </div>
-          <h2 className="text-lg font-bold text-amber-800 mb-2">Maintenance</h2>
-          <p className="text-gray-600 text-sm">
-            Track rooms under maintenance and schedule repairs.
           </p>
         </Link>
 

@@ -8,7 +8,7 @@ const StatusProvider = ({ children }) => {
   const axiosInstance = useAxios();
 
   const {
-    data: status = "Pending",
+    data,
     isLoading: statusLoading,
     isError,
     error,
@@ -17,33 +17,28 @@ const StatusProvider = ({ children }) => {
     queryKey: ["userStatus", user?.email],
     enabled: !authLoading && !!user?.email,
     queryFn: async () => {
-      console.log("Fetching status for:", user.email);
-
       try {
         const res = await axiosInstance.get(`/users/${user.email}/status`);
-        console.log("Status response:", res.data);
-        return res.data.status; // "Pending" | "Approved" | "Admin" | "Due"
+        return res.data; // { status, type, hotelEmail, hotelName }
       } catch (err) {
         if (err.response?.status === 404) {
-          console.log("Hotel not found → treating as Pending");
-          return "Pending";
+          return { status: "Pending", type: null, hotelEmail: null };
         }
-        console.error("Status fetch error:", err);
         throw err;
       }
     },
-    // retry: 1,
-    // staleTime: 1000 * 60 * 2,
   });
 
   const statusInfo = {
-    status,
+    status: data?.status || "Pending",
+    type: data?.type || null,
+    hotelEmail: data?.hotelEmail || null,
+    hotelName: data?.hotelName || null,
     statusLoading: authLoading || statusLoading,
     isError,
     error,
     refetch,
   };
-
   return <StatusContext value={statusInfo}>{children}</StatusContext>;
 };
 
