@@ -1,6 +1,6 @@
 import { FaPrint } from "react-icons/fa";
 
-const RestaurantInvoice = ({ orderData, hotelInfo }) => {
+const RestaurantInvoicePrint = ({ orderData, hotelInfo }) => {
   if (!orderData) return null;
 
   const {
@@ -269,16 +269,6 @@ const RestaurantInvoice = ({ orderData, hotelInfo }) => {
         >
           <p>Thank You!</p>
           <p style={{ marginTop: "2px" }}>{new Date().toLocaleString()}</p>
-          <p
-            style={{
-              marginTop: "6px",
-              fontSize: "8px",
-              fontWeight: "bold",
-              letterSpacing: "0.3px",
-            }}
-          >
-            Created & Developed by Smith IT
-          </p>
         </div>
       </div>
 
@@ -313,4 +303,4 @@ const RestaurantInvoice = ({ orderData, hotelInfo }) => {
   );
 };
 
-export default RestaurantInvoice;
+export default RestaurantInvoicePrint;

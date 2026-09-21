@@ -1299,6 +1299,24 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/restaurant-orders/:id", async (req, res) => {
+      const { id } = req.params;
+
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ message: "Invalid order ID" });
+      }
+
+      const result = await restaurantOrderCollection.findOne({
+        _id: new ObjectId(id),
+      });
+
+      if (!result) {
+        return res.status(404).send({ message: "Order not found" });
+      }
+
+      res.send(result);
+    });
+
     // =========================================================
     // RESERVATIONS
     // =========================================================
