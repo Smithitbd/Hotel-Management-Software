@@ -1,7 +1,51 @@
+import { useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { FaPrint } from "react-icons/fa";
+import useAxios from "../../../../../hooks/useAxios";
+import useAuth from "../../../../../hooks/useAuth";
 
-const RestaurantInvoice = ({ orderData, hotelInfo }) => {
-  if (!orderData) return null;
+const RestaurantInvoice = () => {
+  const { id } = useParams();
+  const axiosInstance = useAxios();
+  const { user } = useAuth();
+
+  // Fetch order
+  const { data: orderData, isLoading: orderLoading } = useQuery({
+    queryKey: ["restaurant-order", id],
+    queryFn: async () => {
+      const res = await axiosInstance.get(`/restaurant-orders/${id}`);
+      return res.data;
+    },
+    enabled: !!id,
+  });
+
+  // Fetch hotel info
+  const { data: hotelInfo, isLoading: hotelLoading } = useQuery({
+    queryKey: ["hotel-info", orderData?.hotelEmail || user?.email],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/hotels/by-email", {
+        params: { email: orderData?.hotelEmail || user?.email },
+      });
+      return res.data;
+    },
+    enabled: !!(orderData?.hotelEmail || user?.email),
+  });
+
+  if (orderLoading || hotelLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!orderData) {
+    return (
+      <div className="text-center py-20 text-red-500 font-medium">
+        Order not found
+      </div>
+    );
+  }
 
   const {
     _id,
@@ -88,7 +132,7 @@ const RestaurantInvoice = ({ orderData, hotelInfo }) => {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-white p-6">
       {/* Print Button */}
       <div className="flex justify-end mb-3 print:hidden">
         <button
@@ -180,7 +224,6 @@ const RestaurantInvoice = ({ orderData, hotelInfo }) => {
           </div>
         </div>
 
-        {/* Divider */}
         <div style={{ borderTop: "1px dashed #000", margin: "4px 0" }} />
 
         {/* Items Header */}
@@ -216,7 +259,6 @@ const RestaurantInvoice = ({ orderData, hotelInfo }) => {
           </div>
         ))}
 
-        {/* Divider */}
         <div style={{ borderTop: "1px dashed #000", margin: "6px 0" }} />
 
         {/* Total */}
