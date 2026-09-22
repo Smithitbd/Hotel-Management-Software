@@ -1,38 +1,35 @@
-import React from "react";
 import { Outlet, Link } from "react-router";
-import authImg from "/authImage.png";
+import authImg from "/authImg.jpeg";
 import logo from "/logo.png";
 
 const AuthLayout = () => {
   return (
-    <div className="min-h-screen bg-[#fdf8f3] flex items-center justify-center p-2 md:p-3">
-      <div className="w-full max-w-6xl">
-        {/* Main Card */}
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col lg:flex-row">
-          {/* Left Side */}
-          <div className="lg:w-1/2 bg-gradient-to-br from-amber-50 to-orange-50 flex flex-col items-center justify-center p-6 lg:p-10">
-            {/* Larger Logo */}
-            <Link to="/" className="mb-6">
-              <img
-                src={logo}
-                alt="Logo"
-                className="h-24 md:h-28 lg:h-32 object-contain"
-              />
-            </Link>
+    <div className="min-h-screen bg-[#fdf8f3] flex">
+      {/* Main Card - Full size */}
+      <div className="w-full min-h-screen bg-white shadow-xl overflow-hidden flex flex-col lg:flex-row">
+        {/* Left Side - Full Image */}
+        <div className="lg:w-2/3   relative min-h-[40vh] lg:min-h-screen">
+          <img
+            src={authImg}
+            alt="Hotel"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
 
-            {/* Image */}
+        {/* Right Side - Logo + Form (tight spacing) */}
+        <div className="lg:w-1/2 min-h-[60vh] lg:min-h-screen p-6 md:p-8 lg:p-10 flex flex-col items-center justify-start pt-10 lg:pt-16">
+          {/* Logo */}
+          <Link to="/" className="mb-6">
             <img
-              src={authImg}
-              alt="Hotel"
-              className="w-full max-w-md lg:max-w-lg rounded-2xl shadow-lg"
+              src={logo}
+              alt="Logo"
+              className="h-16 md:h-20 lg:h-24 object-contain"
             />
-          </div>
+          </Link>
 
-          {/* Right Side - Form */}
-          <div className="lg:w-1/2 p-2 md:p-5 lg:p-5 flex items-center">
-            <div className="w-full max-w-md mx-auto">
-              <Outlet />
-            </div>
+          {/* Form */}
+          <div className="w-full max-w-lg">
+            <Outlet />
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
-import useAuth from "../../hooks/useAuth"; // adjust path if needed
+import useAuth from "../../hooks/useAuth";
 import Swal from "sweetalert2";
 
 const Login = () => {
@@ -59,49 +59,63 @@ const Login = () => {
 
       <div className="card-body">
         <form onSubmit={handleSubmit(onSubmit)}>
-          <fieldset className="fieldset">
+          <fieldset className="fieldset flex flex-col items-center mx-auto w-full">
             {/* Email */}
-            <label className="label">Email</label>
-            <input
-              type="email"
-              className="input input-bordered w-full bg-white"
-              placeholder="Email"
-              {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^\S+@\S+$/i,
-                  message: "Invalid email address",
-                },
-              })}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
+            <div className="w-full max-w-md">
+              <div className="flex flex-row gap-4">
+                <label className="label">
+                  <span className="label-text font-medium text-lg">Email</span>
+                </label>
+                <input
+                  type="email"
+                  className="input input-bordered w-4/6  bg-white"
+                  placeholder="Email"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^\S+@\S+$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+            </div>
 
+            <div className="w-full max-w-md mt-3">
+              <div className="flex flex-row gap-4">
+                <label className="label">
+                  <span className="label-text font-medium text-lg">
+                    Password
+                  </span>
+                </label>
+                <input
+                  type="password"
+                  className="input input-bordered w-4/6 bg-white"
+                  placeholder="Password"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 6,
+                      message: "Password must be at least 6 characters",
+                    },
+                  })}
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+            </div>
             {/* Password */}
-            <label className="label">Password</label>
-            <input
-              type="password"
-              className="input input-bordered w-full bg-white"
-              placeholder="Password"
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
-              })}
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
 
             {/* Forgot Password */}
-            <div className="text-right">
+            <div className="w-full max-w-md text-right mt-1">
               <a className="link link-hover text-sm text-gray-500">
                 Forgot password?
               </a>
@@ -111,7 +125,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn bg-amber-800 text-white border-none mt-5 hover:bg-amber-900"
+              className="btn w-full max-w-md bg-amber-800 text-white border-none mt-5 hover:bg-amber-900"
             >
               {isSubmitting ? (
                 <span className="loading loading-spinner loading-sm"></span>
