@@ -7,7 +7,6 @@ import { BsPersonWorkspace } from "react-icons/bs";
 import { TbReport, TbReservedLine } from "react-icons/tb";
 import { IoSettingsSharp } from "react-icons/io5";
 import useUserStatus from "../hooks/useUserStatus";
-import { SiNicehash } from "react-icons/si";
 
 const DashboardLayout = () => {
   const { status, statusLoading, type } = useUserStatus();
@@ -30,11 +29,11 @@ const DashboardLayout = () => {
         <div className="navbar bg-white shadow-md lg:hidden">
           <div className="flex-none">
             <label htmlFor="dashboard-drawer" className="btn btn-square">
-              <FaBars size={10} />
+              <FaBars size={20} />
             </label>
           </div>
           <div className="flex-1 justify-center">
-            <h2 className="text-sm font-bold text-amber-800 ml-9">Dashboard</h2>
+            <h2 className="text-sm font-bold text-amber-800">Dashboard</h2>
           </div>
         </div>
 
@@ -45,28 +44,40 @@ const DashboardLayout = () => {
             <Outlet />
           </div>
 
-          {/* ===== FOOTER (always at bottom) ===== */}
-          <div className=" px-6 py-4 mt-auto m-6  ">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
-              <div className="flex items-center gap-2 text-sm text-gray-700">
-                <SiNicehash className="text-base text-black" />
-                <p>
-                  Copyright © {new Date().getFullYear()} - All right reserved to{" "}
-                  <Link
-                    to="https://smithitbd.com/"
-                    target="_blank"
-                    className="text-rose-900 font-bold underline"
-                  >
-                    Smith IT
-                  </Link>
-                </p>
+          {/* ===== FOOTER (Smith IT style) ===== */}
+          <footer className="px-6 py-5 mt-auto border-t border-gray-200 bg-white">
+            <div className="flex flex-col items-center gap-3">
+              {/* Smith IT Logo */}
+              <div className="flex items-center gap-1.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-6 h-6 text-red-600"
+                >
+                  <path d="M3 12c0-1.5 1.2-3 3-3.5 1.5-.4 3 .2 4 1.5 1-1.3 2.5-1.9 4-1.5 1.8.5 3 2 3 3.5s-1.2 3-3 3.5c-1.5.4-3-.2-4-1.5-1 1.3-2.5 1.9-4 1.5-1.8-.5-3-2-3-3.5z" />
+                </svg>
+                <span className="text-xl font-bold tracking-tight">
+                  <span className="text-red-600">SMITH</span>
+                  <span className="text-gray-800"> IT</span>
+                  <sup className="text-xs text-red-600">™</sup>
+                </span>
               </div>
 
-              <div className="text-sm font-bold text-green-700">
-                Made in <span className="text-red-500">Bangladesh</span>
-              </div>
+              {/* Copyright text */}
+              <p className="text-xs text-gray-500 text-center">
+                © All Rights Reserved. Biddaloy is a product of{" "}
+                <Link
+                  to="https://smithitbd.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-600 font-semibold hover:underline"
+                >
+                  Smith IT
+                </Link>
+              </p>
             </div>
-          </div>
+          </footer>
         </div>
       </div>
 
@@ -84,7 +95,7 @@ const DashboardLayout = () => {
             {status === "Approved" && (
               <>
                 <li>
-                  <NavLink className="text-lg -mt-10" to="/dashboard">
+                  <NavLink className="text-lg" to="/dashboard">
                     <MdDashboard /> Dashboard
                   </NavLink>
                 </li>
@@ -135,7 +146,6 @@ const DashboardLayout = () => {
                     <TbReservedLine /> Reservations
                   </NavLink>
                 </li>
-
                 <li>
                   <NavLink className="text-lg" to="/dashboard/settings">
                     <IoSettingsSharp /> Settings
