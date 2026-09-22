@@ -37,7 +37,14 @@ const Hotels = () => {
     try {
       setLoadingId(hotel._id);
 
+      // 1. Update Hotels collection
       await axiosInstance.patch(`/hotels/${hotel._id}`, {
+        status: "Approved",
+      });
+
+      // 2. Update Users collection
+      await axiosInstance.patch(`/users-status-change`, {
+        email: hotel.email,
         status: "Approved",
       });
 
@@ -63,7 +70,7 @@ const Hotels = () => {
   };
 
   // ====================== CHANGE STATUS ======================
-  const handleStatusChange = async (id, newStatus, hotelName) => {
+  const handleStatusChange = async (id, newStatus, hotelName, hotelEmail) => {
     const result = await Swal.fire({
       title: "Change Status?",
       text: `Do you want to change the status of "${hotelName}" to "${newStatus}"?`,
@@ -79,7 +86,15 @@ const Hotels = () => {
     try {
       setLoadingId(id);
 
+      // 1. Update Hotels collection
       await axiosInstance.patch(`/hotels/${id}`, { status: newStatus });
+
+      // 2. Update Users collection
+      await axiosInstance.patch(`/users-status-change`, {
+        email: hotelEmail,
+        status: newStatus,
+      });
+
       await queryClient.invalidateQueries({ queryKey: ["hotels"] });
 
       Swal.fire({
@@ -158,7 +173,6 @@ const Hotels = () => {
           </div>
         </div>
 
-        {/* Back Button */}
         <Link
           to="/dashboard/settings"
           className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
@@ -250,6 +264,7 @@ const Hotels = () => {
                                 hotel._id,
                                 e.target.value,
                                 hotel.hotelName,
+                                hotel.email,
                               );
                             }
                           }}

@@ -1179,6 +1179,23 @@ async function run() {
       res.send(result || {});
     });
 
+    app.patch("/users-status-change", async (req, res) => {
+      const { email, status } = req.body;
+
+      if (!email || !status) {
+        return res
+          .status(400)
+          .send({ message: "Email and status are required" });
+      }
+
+      const result = await usersCollection.updateOne(
+        { hotelEmail: email },
+        { $set: { status } },
+      );
+
+      res.send(result);
+    });
+
     // UPDATE sub users
     app.patch("/users/:id", async (req, res) => {
       const { id } = req.params;
