@@ -4,6 +4,7 @@ import { RiHome3Line } from "react-icons/ri";
 import { FaHistory } from "react-icons/fa";
 import useAxios from "../../../../../hooks/useAxios";
 import useAuth from "../../../../../hooks/useAuth";
+import { IoArrowBackCircleSharp } from "react-icons/io5";
 
 const PayrollHistory = () => {
   const axiosInstance = useAxios();
@@ -45,13 +46,12 @@ const PayrollHistory = () => {
           </div>
         </div>
 
-        <Link to="/dashboard/employees">
+        <Link to="/dashboard/employees/payroll">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
-            title="Back to Payroll"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
-            <RiHome3Line className="text-xl" />
+            <IoArrowBackCircleSharp className="text-xl" />
           </button>
         </Link>
       </div>

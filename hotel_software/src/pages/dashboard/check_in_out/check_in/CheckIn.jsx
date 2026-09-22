@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import { useEffect } from "react";
 import useAuth from "../../../../hooks/useAuth";
+import { RiHome3Line } from "react-icons/ri";
 
 const CheckIn = () => {
   const axiosInstance = useAxios();
@@ -207,9 +208,8 @@ const CheckIn = () => {
             <button
               type="button"
               className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
-              title="Back to Dashboard"
             >
-              <IoArrowBackCircleSharp className="text-3xl" />
+              <RiHome3Line className="text-xl" />
             </button>
           </Link>
         </div>

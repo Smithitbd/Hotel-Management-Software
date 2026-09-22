@@ -15,6 +15,7 @@ import { Link } from "react-router";
 import useAuth from "../../../../hooks/useAuth";
 import CheckoutInvoice from "../../../../components/CheckoutInvoice";
 import Swal from "sweetalert2";
+import { RiHome3Line } from "react-icons/ri";
 
 const GuestHistory = () => {
   const axiosInstance = useAxios();
@@ -188,12 +189,13 @@ const GuestHistory = () => {
           </div>
         </div>
 
-        <Link
-          to="/dashboard/guests"
-          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
-          title="Back"
-        >
-          <FaArrowLeft />
+        <Link to="/dashboard/guests">
+          <button
+            type="button"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
+          >
+            <RiHome3Line className="text-xl" />
+          </button>
         </Link>
       </div>
 

@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { FaCar, FaUtensils, FaTshirt, FaArrowLeft } from "react-icons/fa";
 import { MdAssessment } from "react-icons/md";
+import { RiHome3Line } from "react-icons/ri";
 
 const SalesReport = () => {
   return (
@@ -14,12 +15,13 @@ const SalesReport = () => {
           <h1 className="text-lg font-bold text-rose-900">Sales Report</h1>
         </div>
 
-        <Link
-          to="/dashboard/reports"
-          className="w-9 h-9 flex items-center justify-center bg-rose-900 text-white rounded-lg hover:bg-rose-800 transition-all duration-300 shadow-md"
-          title="Back"
-        >
-          <FaArrowLeft className="text-lg" />
+        <Link to="/dashboard/reports">
+          <button
+            type="button"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
+          >
+            <RiHome3Line className="text-xl" />
+          </button>
         </Link>
       </div>
 

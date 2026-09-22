@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
-import { MdSwapHoriz } from "react-icons/md";
+import { MdHotel, MdSwapHoriz } from "react-icons/md";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import { Link } from "react-router";
 import useAuth from "../../../../hooks/useAuth";
+import { RiHome3Line } from "react-icons/ri";
 
 const ChangeRoom = () => {
   const axiosInstance = useAxios();
@@ -130,12 +131,9 @@ const ChangeRoom = () => {
             <h1 className="text-lg font-bold text-rose-900">Change Room</h1>
           </div>
 
-          <Link to="/dashboard/check_in_out">
-            <button
-              className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
-              title="Back"
-            >
-              <IoArrowBackCircleSharp className="text-xl" />
+          <Link to="/dashboard/rooms">
+            <button className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
+              <RiHome3Line className="text-xl" />
             </button>
           </Link>
         </div>

@@ -2,17 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
 import { FaUsers, FaMoneyBillWave } from "react-icons/fa";
 import { MdHotel } from "react-icons/md";
-import { useNavigate, useSearchParams } from "react-router";
+import { RiHome3Line } from "react-icons/ri";
+import { useNavigate, useSearchParams, Link } from "react-router";
 import useAuth from "../../../../hooks/useAuth";
 
 const AllRooms = () => {
   const axiosInstance = useAxios();
-  const imageBaseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const imageBaseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
 
-  const mode = searchParams.get("mode"); // "reserve" or null
+  const mode = searchParams.get("mode");
   const selectedDate = searchParams.get("date");
 
   if (loading) {
@@ -41,8 +42,6 @@ const AllRooms = () => {
   const { data: availability, isLoading: availabilityLoading } = useQuery({
     queryKey: ["room-availability", selectedDate, user?.email],
     queryFn: async () => {
-      // We use the same date as both arriving & departure
-      // (because we only care about that single day)
       const res = await axiosInstance.get("/rooms/available", {
         params: {
           arriving: selectedDate,
@@ -86,11 +85,9 @@ const AllRooms = () => {
   // Helper: check if a room is available on the selected date
   const isRoomAvailableOnDate = (room) => {
     if (mode !== "reserve" || !selectedDate) {
-      // Normal mode → use static status
       return room.roomStatus?.toLowerCase() === "available";
     }
 
-    // Reserve mode → check against the availability API
     if (!availability) return false;
 
     const allAvailableRooms =
@@ -104,41 +101,49 @@ const AllRooms = () => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-900">
-            <MdHotel className="text-xl text-white" />
-          </div>
-          <div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
+              <MdHotel className="text-2xl text-white" />
+            </div>
             <h1 className="text-lg font-bold text-rose-900">
               {mode === "reserve" ? "Select Room to Reserve" : "All Rooms"}
             </h1>
-            {mode === "reserve" && selectedDate && (
-              <p className="text-sm text-gray-500">
+          </div>
+
+          <p className="text-gray-500 ml-9">
+            {mode === "reserve" ? (
+              <>
                 Selected Date:{" "}
                 <span className="font-medium text-rose-900">
                   {selectedDate}
                 </span>
-              </p>
+              </>
+            ) : (
+              "Manage rooms and make bookings easily."
             )}
-          </div>
+          </p>
         </div>
 
-        {mode === "reserve" && (
-          <button
-            onClick={() => navigate("/dashboard/reservations")}
-            className="btn btn-sm btn-outline border-rose-900 text-rose-900"
-          >
-            ← Back to Calendar
-          </button>
-        )}
+        {/* Header Buttons */}
+        <div className="flex items-center gap-3">
+          {mode === "reserve" ? (
+            <button
+              onClick={() => navigate("/dashboard/reservations")}
+              className="btn btn-sm btn-outline border-rose-900 text-rose-900"
+            >
+              ← Back to Calendar
+            </button>
+          ) : (
+            <Link to="/dashboard/rooms">
+              <button className="flex items-center justify-center w-11 h-11 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors">
+                <RiHome3Line className="text-xl" />
+              </button>
+            </Link>
+          )}
+        </div>
       </div>
-
-      <p className="mb-6 text-gray-500">
-        {mode === "reserve"
-          ? "Choose a room and click Reserve Now."
-          : "Manage rooms and make bookings easily."}
-      </p>
 
       {/* Room Count */}
       <div className="mb-8">
@@ -149,18 +154,20 @@ const AllRooms = () => {
 
       {/* No Rooms */}
       {rooms.length === 0 ? (
-        <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-md">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-rose-900">
-              No Rooms Found
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              There are currently no rooms available.
-            </p>
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <MdHotel className="text-2xl text-rose-400" />
           </div>
+          <h2 className="text-xl font-bold text-rose-400 mb-2">
+            No Rooms Found
+          </h2>
+          <p className="text-gray-500">
+            There are currently no rooms available.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        /* Room Cards - Horizontal Layout like RoomStatus */
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {rooms.map((room) => {
             const imageUrl = room.image
               ? room.image.startsWith("http")
@@ -173,85 +180,106 @@ const AllRooms = () => {
             return (
               <div
                 key={room._id}
-                className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:border-[#BF1E2E] hover:shadow-xl"
+                className="group bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:border-rose-900"
               >
-                {/* Image */}
-                <figure className="h-40 overflow-hidden bg-gray-100">
-                  <img
-                    src={imageUrl}
-                    alt={`Room ${room.roomNo || ""}`}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={(e) => {
-                      e.currentTarget.src =
-                        "https://images.unsplash.com/photo-1566665797739-1674de7a421a";
-                    }}
-                  />
-                </figure>
-
-                {/* Card Body */}
-                <div className="p-4">
-                  <div className="mb-3 flex items-start justify-between gap-2">
-                    <div>
-                      <h2 className="text-base font-bold text-rose-900">
-                        Room {room.roomNo || "N/A"}
-                      </h2>
-                      <p className="text-xs text-gray-500">
-                        {room.variantName || room.baseRoomType || "Standard"}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        isAvailable
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {isAvailable ? "Available" : "Reserved"}
-                    </span>
-                  </div>
-
-                  <div className="mb-4 flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1.5 text-gray-600">
-                      <FaMoneyBillWave className="text-[#BF1E2E]" />
-                      <span className="font-semibold">৳{room.price}</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-gray-600">
-                      <FaUsers className="text-[#BF1E2E]" />
-                      <span>{room.maxOccupancy} Guests</span>
-                    </div>
-                  </div>
-
-                  {/* Button */}
-                  {isAvailable ? (
-                    <button
-                      className="w-full rounded-lg bg-[#BF1E2E] py-2 text-sm font-medium text-white transition hover:bg-rose-900"
-                      onClick={() => {
-                        if (mode === "reserve") {
-                          navigate(`/dashboard/reservations/main-reserve`, {
-                            state: {
-                              room: room,
-                              date: selectedDate,
-                            },
-                          });
-                        } else {
-                          navigate("/dashboard/check_in_out/check_in", {
-                            state: { room },
-                          });
-                        }
+                <div className="flex flex-col sm:flex-row">
+                  {/* Image */}
+                  <figure className="w-full sm:w-44 sm:min-w-44 h-56 sm:h-auto bg-gray-100">
+                    <img
+                      src={imageUrl}
+                      alt={`Room ${room.roomNo || ""}`}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://images.unsplash.com/photo-1566665797739-1674de7a421a";
                       }}
-                    >
-                      {mode === "reserve" ? "Reserve Now" : "Book Room"}
-                    </button>
-                  ) : (
-                    <button
-                      className="w-full cursor-not-allowed rounded-lg bg-gray-200 py-2 text-sm font-medium text-gray-500"
-                      disabled
-                    >
-                      Not Available
-                    </button>
-                  )}
+                    />
+                  </figure>
+
+                  {/* Content */}
+                  <div className="p-6 flex-1 flex flex-col">
+                    {/* Title + Status */}
+                    <div className="flex justify-between items-start gap-3 mb-4">
+                      <div>
+                        <h2 className="text-lg font-bold text-rose-900">
+                          Room {room.roomNo || "N/A"}
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                          {room.variantName || room.baseRoomType || "Standard"}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                          isAvailable
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {isAvailable ? "Available" : "Reserved"}
+                      </span>
+                    </div>
+
+                    {/* Room Information */}
+                    <div className="space-y-2 text-sm flex-1">
+                      <p className="flex items-center gap-2">
+                        <FaMoneyBillWave className="text-[#BF1E2E]" />
+                        <span className="text-gray-500">Price:</span>{" "}
+                        <span className="font-semibold text-gray-800">
+                          ৳{Number(room.price || 0).toLocaleString()}
+                        </span>
+                      </p>
+
+                      <p className="flex items-center gap-2">
+                        <FaUsers className="text-[#BF1E2E]" />
+                        <span className="text-gray-500">Occupancy:</span>{" "}
+                        <span className="font-medium text-gray-800">
+                          {room.maxOccupancy || "-"} Guests
+                        </span>
+                      </p>
+
+                      {room.bedType && (
+                        <p>
+                          <span className="text-gray-500">Bed:</span>{" "}
+                          <span className="font-medium text-gray-800">
+                            {room.bedType}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Button */}
+                    <div className="flex justify-end mt-6 pt-4 border-t border-gray-100">
+                      {isAvailable ? (
+                        <button
+                          className="btn btn-sm h-10 bg-[#BF1E2E] hover:bg-rose-900 text-white border-none px-5"
+                          onClick={() => {
+                            if (mode === "reserve") {
+                              navigate(`/dashboard/reservations/main-reserve`, {
+                                state: {
+                                  room: room,
+                                  date: selectedDate,
+                                },
+                              });
+                            } else {
+                              navigate("/dashboard/check_in_out/check_in", {
+                                state: { room },
+                              });
+                            }
+                          }}
+                        >
+                          {mode === "reserve" ? "Reserve Now" : "Book Room"}
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-sm h-10 bg-gray-200 text-gray-500 border-none px-5 cursor-not-allowed"
+                          disabled
+                        >
+                          Not Available
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             );

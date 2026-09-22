@@ -15,6 +15,7 @@ import { MdSecurity } from "react-icons/md";
 import useAuth from "../../../../hooks/useAuth";
 import useAxios from "../../../../hooks/useAxios";
 import useUserStatus from "../../../../hooks/useUserStatus"; // make sure this hook exists
+import { RiHome3Line } from "react-icons/ri";
 
 const Security = () => {
   const { user, updateUserPassword, updateUserEmail } = useAuth();
@@ -278,11 +279,13 @@ const Security = () => {
           </div>
         </div>
 
-        <Link
-          to="/dashboard/settings"
-          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
-        >
-          <FaArrowLeft />
+        <Link to="/dashboard/settings">
+          <button
+            type="button"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
+          >
+            <RiHome3Line className="text-xl" />
+          </button>
         </Link>
       </div>
 

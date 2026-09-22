@@ -5,6 +5,7 @@ import { FaUsers } from "react-icons/fa";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import { MdEdit } from "react-icons/md";
 import useAuth from "../../../../hooks/useAuth";
+import { RiHome3Line } from "react-icons/ri";
 
 const CurrentEmployees = () => {
   const axiosInstance = useAxios();
@@ -63,10 +64,9 @@ const CurrentEmployees = () => {
         <Link to="/dashboard/employees">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
-            title="Back to Employees"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
           >
-            <IoArrowBackCircleSharp className="text-xl" />
+            <RiHome3Line className="text-xl" />
           </button>
         </Link>
       </div>

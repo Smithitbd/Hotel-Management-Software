@@ -12,6 +12,7 @@ import {
 import { MdMoneyOff } from "react-icons/md";
 import useAxios from "../../../../hooks/useAxios";
 import useAuth from "../../../../hooks/useAuth";
+import { RiHome3Line } from "react-icons/ri";
 
 const Refunds = () => {
   const axiosInstance = useAxios();
@@ -72,11 +73,13 @@ const Refunds = () => {
           </div>
         </div>
 
-        <Link
-          to="/dashboard/billing_and_payments"
-          className="btn btn-circle bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
-        >
-          <FaArrowLeft />
+        <Link to="/dashboard/billing_and_payments">
+          <button
+            type="button"
+            className="flex items-center justify-center w-9 h-9 border border-rose-900 text-rose-900 hover:bg-rose-900 hover:text-white rounded-lg transition-colors"
+          >
+            <RiHome3Line className="text-xl" />
+          </button>
         </Link>
       </div>
 
