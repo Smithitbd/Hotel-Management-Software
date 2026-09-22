@@ -66,7 +66,7 @@ const DashboardLayout = () => {
 
               {/* Copyright text */}
               <p className="text-xs text-gray-500 text-center">
-                © All Rights Reserved. Biddaloy is a product of{" "}
+                © All Rights Reserved. Obokash is a product of{" "}
                 <Link
                   to="https://smithitbd.com/"
                   target="_blank"

@@ -59,7 +59,11 @@ const Login = () => {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Welcome Back</h1>
-        <p className="text-gray-500 mt-2">Log in to start your lesson.</p>
+        <p className="text-center text-lg md:text-xl font-medium tracking-wide text-gray-700">
+          <span className="font-semibold text-teal-700">Obokash</span>
+          <span className="mx-2 text-gray-400">·</span>
+          <span className="italic text-gray-600">We demand excellence</span>
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -91,12 +95,6 @@ const Login = () => {
             <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
-            <Link
-              to="/forgot-password"
-              className="text-sm text-teal-600 hover:underline"
-            >
-              Forgot password?
-            </Link>
           </div>
           <div className="relative">
             <input
@@ -193,7 +191,7 @@ const Login = () => {
       <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center gap-3">
         <img src={smithLogo} alt="Smith IT" className="h-8 object-contain" />
         <p className="text-xs text-gray-500 text-center">
-          © All Rights Reserved. Biddaloy is a product of{" "}
+          © All Rights Reserved. Obokash is a product of{" "}
           <Link
             to="https://smithitbd.com/"
             target="_blank"

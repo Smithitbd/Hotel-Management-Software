@@ -398,7 +398,7 @@ const Signup = () => {
       <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center gap-3">
         <img src={smithLogo} alt="Smith IT" className="h-8 object-contain" />
         <p className="text-xs text-gray-500 text-center">
-          © All Rights Reserved. Biddaloy is a product of{" "}
+          © All Rights Reserved. Obokash is a product of{" "}
           <Link
             to="https://smithitbd.com/"
             target="_blank"
