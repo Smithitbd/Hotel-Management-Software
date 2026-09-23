@@ -255,28 +255,32 @@ const Hotels = () => {
                       <td className="text-sm">{hotel.phone || "—"}</td>
 
                       {/* Status Dropdown */}
-                      <td className="text-center">
-                        <select
-                          value={hotel.status || "Pending"}
-                          disabled={isProcessing}
-                          onChange={(e) => {
-                            if (e.target.value !== hotel.status) {
-                              handleStatusChange(
-                                hotel._id,
-                                e.target.value,
-                                hotel.hotelName,
-                                hotel.email,
-                              );
-                            }
-                          }}
-                          className="select select-bordered select-sm font-semibold bg-white m-6"
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Due">Due</option>
-                          <option value="Approved">Approved</option>
-                          <option value="Admin">Admin</option>
-                        </select>
-                      </td>
+                      {isAdmin ? (
+                        <>-</>
+                      ) : (
+                        <td className="text-center">
+                          <select
+                            value={hotel.status || "Pending"}
+                            disabled={isProcessing}
+                            onChange={(e) => {
+                              if (e.target.value !== hotel.status) {
+                                handleStatusChange(
+                                  hotel._id,
+                                  e.target.value,
+                                  hotel.hotelName,
+                                  hotel.email,
+                                );
+                              }
+                            }}
+                            className="select select-bordered select-sm font-semibold bg-white m-6"
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Due">Due</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Admin">Admin</option>
+                          </select>
+                        </td>
+                      )}
 
                       {/* Action Buttons - Hidden only when status is Admin */}
                       <td>
