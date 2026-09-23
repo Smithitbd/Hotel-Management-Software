@@ -86,7 +86,7 @@ const DashboardLayout = () => {
         <label htmlFor="dashboard-drawer" className="drawer-overlay"></label>
 
         <aside className="w-72 min-h-full bg-rose-900 text-white">
-          <div className="p-4">
+          <div className="pt-4">
             <Logo />
           </div>
 

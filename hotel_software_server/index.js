@@ -1280,7 +1280,7 @@ async function run() {
           req.body.checkInInfo?._id ||
           null;
 
-        console.log("Received checkinId:", rawId);
+        // console.log("Received checkinId:", rawId);
 
         if (!rawId) {
           console.log("No checkinId → order saved but not linked to check-in");
@@ -1330,8 +1330,8 @@ async function run() {
           updateDoc,
         );
 
-        console.log("matchedCount:", updateResult.matchedCount);
-        console.log("modifiedCount:", updateResult.modifiedCount);
+        // console.log("matchedCount:", updateResult.matchedCount);
+        // console.log("modifiedCount:", updateResult.modifiedCount);
 
         if (updateResult.matchedCount === 0) {
           console.log(

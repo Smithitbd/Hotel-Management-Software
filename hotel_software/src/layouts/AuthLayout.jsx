@@ -23,7 +23,7 @@ const AuthLayout = () => {
             <img
               src={logo}
               alt="Logo"
-              className="h-16 md:h-20 lg:h-24 object-contain"
+              className="h-16 md:h-32 lg:h-42 object-contain"
             />
           </Link>
 
