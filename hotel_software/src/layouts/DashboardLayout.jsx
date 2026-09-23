@@ -48,16 +48,7 @@ const DashboardLayout = () => {
           <footer className="px-6 py-5 mt-auto border-t border-gray-200 bg-white">
             <div className="flex flex-col items-center gap-3">
               {/* Smith IT Logo */}
-              <div className="flex items-center gap-1.5">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 text-red-600"
-                >
-                  <path d="M3 12c0-1.5 1.2-3 3-3.5 1.5-.4 3 .2 4 1.5 1-1.3 2.5-1.9 4-1.5 1.8.5 3 2 3 3.5s-1.2 3-3 3.5c-1.5.4-3-.2-4-1.5-1 1.3-2.5 1.9-4 1.5-1.8-.5-3-2-3-3.5z" />
-                </svg>
-              </div>
+              <div className="flex items-center gap-1.5"></div>
 
               {/* Copyright text */}
               <p className="text-xs text-gray-500 text-center">
