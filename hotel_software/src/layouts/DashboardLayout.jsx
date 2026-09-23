@@ -57,11 +57,6 @@ const DashboardLayout = () => {
                 >
                   <path d="M3 12c0-1.5 1.2-3 3-3.5 1.5-.4 3 .2 4 1.5 1-1.3 2.5-1.9 4-1.5 1.8.5 3 2 3 3.5s-1.2 3-3 3.5c-1.5.4-3-.2-4-1.5-1 1.3-2.5 1.9-4 1.5-1.8-.5-3-2-3-3.5z" />
                 </svg>
-                <span className="text-xl font-bold tracking-tight">
-                  <span className="text-red-600">SMITH</span>
-                  <span className="text-gray-800"> IT</span>
-                  <sup className="text-xs text-red-600">™</sup>
-                </span>
               </div>
 
               {/* Copyright text */}
