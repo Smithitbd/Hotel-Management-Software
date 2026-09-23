@@ -217,6 +217,7 @@ const Hotels = () => {
               <tbody>
                 {hotels.map((hotel) => {
                   const isProcessing = loadingId === hotel._id;
+                  const isAdmin = hotel.status === "Admin";
 
                   return (
                     <tr
@@ -273,40 +274,45 @@ const Hotels = () => {
                           <option value="Pending">Pending</option>
                           <option value="Due">Due</option>
                           <option value="Approved">Approved</option>
+                          <option value="Admin">Admin</option>
                         </select>
                       </td>
 
-                      {/* Action Buttons */}
+                      {/* Action Buttons - Hidden only when status is Admin */}
                       <td>
-                        <div className="flex items-center justify-center gap-2">
-                          {hotel.status !== "Approved" && (
+                        {isAdmin ? (
+                          <span className="text-xs text-gray-400">—</span>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2">
+                            {hotel.status !== "Approved" && (
+                              <button
+                                onClick={() => handleApprove(hotel)}
+                                disabled={isProcessing}
+                                className="btn btn-sm bg-green-600 text-white hover:bg-green-700 border-none gap-1"
+                              >
+                                {isProcessing ? (
+                                  <span className="loading loading-spinner loading-xs"></span>
+                                ) : (
+                                  <MdCheckCircle />
+                                )}
+                                Approve
+                              </button>
+                            )}
+
                             <button
-                              onClick={() => handleApprove(hotel)}
+                              onClick={() => handleDelete(hotel)}
                               disabled={isProcessing}
-                              className="btn btn-sm bg-green-600 text-white hover:bg-green-700 border-none gap-1"
+                              className="btn btn-sm btn-outline border-red-600 text-red-600 hover:bg-red-600 hover:text-white gap-1"
                             >
                               {isProcessing ? (
                                 <span className="loading loading-spinner loading-xs"></span>
                               ) : (
-                                <MdCheckCircle />
+                                <MdDelete />
                               )}
-                              Approve
+                              Delete
                             </button>
-                          )}
-
-                          <button
-                            onClick={() => handleDelete(hotel)}
-                            disabled={isProcessing}
-                            className="btn btn-sm btn-outline border-red-600 text-red-600 hover:bg-red-600 hover:text-white gap-1"
-                          >
-                            {isProcessing ? (
-                              <span className="loading loading-spinner loading-xs"></span>
-                            ) : (
-                              <MdDelete />
-                            )}
-                            Delete
-                          </button>
-                        </div>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
