@@ -1273,36 +1273,76 @@ async function run() {
           createdAt: new Date(),
         });
 
-        if (req.body.paymentStatus === "Due" && req.body.checkinId) {
-          const restaurantOrder = {
-            orderId: result.insertedId,
-            foodItems: (req.body.foodItems || []).map((item) => ({
-              itemName: item.itemName || "",
-              quantity: Number(item.quantity) || 0,
-              price: Number(item.price) || 0,
-              totalPrice:
-                (Number(item.quantity) || 0) * (Number(item.price) || 0),
-              paymentStatus: "Due",
-            })),
-            totalAmount: Number(req.body.totalAmount) || 0,
-            orderDate: req.body.orderDate || "",
-            orderTime: req.body.orderTime || "",
-            paymentStatus: "Due",
-            orderedAt: new Date(),
-          };
+        // Accept every possible name the frontend might send
+        const rawId =
+          req.body.checkinId ||
+          req.body.checkInId ||
+          req.body.checkInInfo?._id ||
+          null;
 
-          await checkInCollection.updateOne(
-            { _id: new ObjectId(req.body.checkinId) },
-            {
-              $push: { restaurantOrders: restaurantOrder },
-              $inc: { restaurantTotalAmount: restaurantOrder.totalAmount },
-            },
+        console.log("Received checkinId:", rawId);
+
+        if (!rawId) {
+          console.log("No checkinId → order saved but not linked to check-in");
+          return res.status(201).send(result);
+        }
+
+        let checkInObjectId;
+        try {
+          checkInObjectId = new ObjectId(rawId);
+        } catch (err) {
+          console.log("Invalid ObjectId:", rawId);
+          return res.status(201).send(result);
+        }
+
+        const restaurantOrder = {
+          orderId: result.insertedId,
+          foodItems: (req.body.foodItems || []).map((item) => ({
+            itemName: item.itemName || "",
+            quantity: Number(item.quantity) || 0,
+            price: Number(item.price) || 0,
+            totalPrice:
+              (Number(item.quantity) || 0) * (Number(item.price) || 0),
+            paymentStatus: req.body.paymentStatus || "Due",
+          })),
+          totalAmount: Number(req.body.totalAmount) || 0,
+          orderDate: req.body.orderDate || "",
+          orderTime: req.body.orderTime || "",
+          paymentMethod: req.body.paymentMethod || "",
+          paymentStatus: req.body.paymentStatus || "Due",
+          orderedAt: new Date(),
+        };
+
+        // Push for BOTH Due and Paid
+        const updateDoc = {
+          $push: { restaurantOrders: restaurantOrder },
+        };
+
+        // Only increase the due amount when status is Due
+        if (req.body.paymentStatus === "Due") {
+          updateDoc.$inc = {
+            restaurantTotalAmount: restaurantOrder.totalAmount,
+          };
+        }
+
+        const updateResult = await checkInCollection.updateOne(
+          { _id: checkInObjectId },
+          updateDoc,
+        );
+
+        console.log("matchedCount:", updateResult.matchedCount);
+        console.log("modifiedCount:", updateResult.modifiedCount);
+
+        if (updateResult.matchedCount === 0) {
+          console.log(
+            "No check-in found with _id:",
+            checkInObjectId.toString(),
           );
         }
 
         res.status(201).send(result);
       } catch (error) {
-        console.error(error);
+        console.error("Restaurant order error:", error);
         res.status(500).send({ message: "Failed to create restaurant order" });
       }
     });
