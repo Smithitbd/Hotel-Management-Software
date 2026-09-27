@@ -6,16 +6,16 @@ import { RiHome3Line } from "react-icons/ri";
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import useAxios from "../../../../../hooks/useAxios";
 import useAuth from "../../../../../hooks/useAuth";
+import { useState } from "react";
 
 const AddRoom = () => {
   const axiosInstance = useAxios();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   const {
     register,
@@ -24,8 +24,8 @@ const AddRoom = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      roomStatus: "",
-      roomNo: "",
+      roomStatus: "Available",
+      roomNumbers: "",
       assignedPerson: "",
       assignedPersonNumber: "",
       maintenanceCost: "",
@@ -49,50 +49,114 @@ const AddRoom = () => {
     enabled: !!id,
   });
 
-  const roomStatus = watch("roomStatus");
+  // Parse room numbers from input
+  // Supports: "201" | "201,202,205" | "201-210"
+  const parseRoomNumbers = (input) => {
+    if (!input || !input.trim()) return [];
+
+    const rooms = new Set();
+    const parts = input
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    for (const part of parts) {
+      if (part.includes("-")) {
+        const [startStr, endStr] = part.split("-").map((s) => s.trim());
+        const start = parseInt(startStr, 10);
+        const end = parseInt(endStr, 10);
+
+        if (!isNaN(start) && !isNaN(end) && start <= end) {
+          for (let i = start; i <= end; i++) {
+            rooms.add(String(i));
+          }
+        } else if (!isNaN(start)) {
+          rooms.add(String(start));
+        }
+      } else {
+        rooms.add(part);
+      }
+    }
+
+    return Array.from(rooms);
+  };
 
   const onSubmit = async (data) => {
-    const roomData = {
-      variantId: variant._id,
+    const roomNumbers = parseRoomNumbers(data.roomNumbers);
 
-      // Fixed variant information
-      variantName: variant.variantName,
-      baseRoomType: variant.baseRoomType,
-      price: variant.price,
-      maxOccupancy: variant.maxOccupancy,
-      bedType: variant.bedType,
-      amenities: variant.amenities,
-      description: variant.description,
-      image: variant.image,
-      hotelEmail: user.email,
-
-      // Room information
-      roomStatus: data.roomStatus,
-      roomNo: data.roomNo,
-      assignedPerson: data.assignedPerson,
-      assignedPersonNumber: data.assignedPersonNumber,
-      maintenanceCost: data.maintenanceCost,
-      correctives: data.correctives,
-      workBegins: data.workBegins,
-      workEnds: data.workEnds,
-    };
-
-    const res = await axiosInstance.post("/rooms", roomData);
-
-    if (res.status === 201 || res.data.insertedId) {
+    if (roomNumbers.length === 0) {
       Swal.fire({
+        icon: "warning",
+        title: "No Rooms",
+        text: "Please enter at least one valid room number.",
+        confirmButtonColor: "#9f1239",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const baseRoomData = {
+        variantId: variant._id,
+        variantName: variant.variantName,
+        baseRoomType: variant.baseRoomType,
+        price: variant.price,
+        maxOccupancy: variant.maxOccupancy,
+        bedType: variant.bedType,
+        amenities: variant.amenities,
+        description: variant.description,
+        image: variant.image,
+        hotelEmail: user.email,
+        roomStatus: data.roomStatus,
+        assignedPerson: data.assignedPerson || "",
+        assignedPersonNumber: data.assignedPersonNumber || "",
+        maintenanceCost: data.maintenanceCost || "",
+        correctives: data.correctives || "",
+        workBegins: data.workBegins || "",
+        workEnds: data.workEnds || "",
+      };
+
+      // Create all rooms
+      const results = await Promise.all(
+        roomNumbers.map((roomNo) =>
+          axiosInstance.post("/rooms", {
+            ...baseRoomData,
+            roomNo,
+          }),
+        ),
+      );
+
+      const successCount = results.filter(
+        (res) => res.status === 201 || res.data?.insertedId,
+      ).length;
+
+      await Swal.fire({
         icon: "success",
         title: "Success!",
-        text: "Room added successfully",
+        text:
+          successCount === 1
+            ? "Room added successfully"
+            : `${successCount} rooms added successfully`,
         showConfirmButton: false,
-        timer: 1500,
+        timer: 1800,
       });
 
       navigate("/dashboard/rooms");
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error?.response?.data?.message || "Failed to add room(s)",
+        confirmButtonColor: "#9f1239",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
+  if (loading || isLoading) {
     return (
       <div className="min-h-96 flex justify-center items-center">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
@@ -127,15 +191,14 @@ const AddRoom = () => {
         </div>
 
         <p className="text-gray-500 mt-2">
-          Add a new room to this room variant.
+          Add one or multiple rooms to this room variant.
         </p>
       </div>
 
       {/* ================================================= */}
       {/* SECTION 1 - ROOM VARIANT INFORMATION */}
       {/* ================================================= */}
-
-      <div className="card shadow-xl mb-8">
+      <div className="card shadow-xl mb-8 bg-white">
         <div className="card-body">
           <h2 className="card-title text-xl text-rose-900 mb-5">
             Room Variant Information
@@ -144,52 +207,51 @@ const AddRoom = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* IMAGE */}
             <div>
-              <img
-                src={`${axiosInstance.defaults.baseURL}${variant.image}`}
-                alt={variant.variantName}
-                className="w-full h-72 md:h-80 object-cover rounded-xl"
-              />
+              {variant.image ? (
+                <img
+                  src={`${imageBaseUrl}${variant.image}`}
+                  alt={variant.variantName}
+                  className="w-full h-72 md:h-80 object-cover rounded-xl"
+                />
+              ) : (
+                <div className="w-full h-72 md:h-80 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
+                  No Image
+                </div>
+              )}
             </div>
 
             {/* FIXED INFORMATION */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Variant Name */}
               <div>
                 <p className="text-sm text-gray-500">Variant Name</p>
                 <p className="font-semibold text-lg">{variant.variantName}</p>
               </div>
 
-              {/* Base Room Type */}
               <div>
                 <p className="text-sm text-gray-500">Base Room Type</p>
                 <p className="font-semibold">{variant.baseRoomType}</p>
               </div>
 
-              {/* Price */}
               <div>
                 <p className="text-sm text-gray-500">Price</p>
                 <p className="font-semibold">৳{variant.price}</p>
               </div>
 
-              {/* Max Occupancy */}
               <div>
                 <p className="text-sm text-gray-500">Max Occupancy</p>
                 <p className="font-semibold">{variant.maxOccupancy} Persons</p>
               </div>
 
-              {/* Bed Type */}
               <div>
                 <p className="text-sm text-gray-500">Bed Type</p>
                 <p className="font-semibold">{variant.bedType}</p>
               </div>
 
-              {/* Amenities */}
               <div>
                 <p className="text-sm text-gray-500">Amenities</p>
                 <p className="font-semibold">{variant.amenities}</p>
               </div>
 
-              {/* Description */}
               <div className="sm:col-span-2">
                 <p className="text-sm text-gray-500">Description</p>
                 <p className="font-semibold">{variant.description}</p>
@@ -202,8 +264,10 @@ const AddRoom = () => {
       {/* ================================================= */}
       {/* SECTION 2 - ROOM INFORMATION FORM */}
       {/* ================================================= */}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="card shadow-xl">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="card shadow-xl bg-white"
+      >
         <div className="card-body">
           <h2 className="card-title text-xl text-rose-900 mb-6">
             Room Information
@@ -225,9 +289,9 @@ const AddRoom = () => {
                 <option value="" disabled>
                   Select room status
                 </option>
+                <option value="Available">Available</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="In Progress">In Progress</option>
-                <option value="Available">Available</option>
                 <option value="Occupied">Occupied</option>
                 <option value="Reserved">Reserved</option>
               </select>
@@ -239,24 +303,29 @@ const AddRoom = () => {
               )}
             </div>
 
-            {/* ================= ROOM NUMBER ================= */}
+            {/* ================= ROOM NUMBERS (MULTIPLE) ================= */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-semibold">Room No</span>
+                <span className="label-text font-semibold">Room Number(s)</span>
               </label>
 
               <input
                 type="text"
-                placeholder="Example: 201"
+                placeholder="e.g. 201  or  201,202,205  or  201-210"
                 className="input input-bordered w-full bg-white"
-                {...register("roomNo", {
-                  required: "Room number is required",
+                {...register("roomNumbers", {
+                  required: "At least one room number is required",
                 })}
               />
 
-              {errors.roomNo && (
+              <p className="text-xs text-gray-500 mt-1">
+                Single: <code>201</code> · Multiple: <code>201,202,205</code> ·
+                Range: <code>201-210</code>
+              </p>
+
+              {errors.roomNumbers && (
                 <p className="text-error text-sm mt-1">
-                  {errors.roomNo.message}
+                  {errors.roomNumbers.message}
                 </p>
               )}
             </div>
@@ -359,15 +428,24 @@ const AddRoom = () => {
               type="button"
               onClick={() => navigate(-1)}
               className="btn btn-outline"
+              disabled={isSubmitting}
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="btn bg-rose-900 hover:bg-rose-900 text-white border-none"
+              className="btn bg-rose-900 hover:bg-rose-800 text-white border-none"
+              disabled={isSubmitting}
             >
-              Add Room
+              {isSubmitting ? (
+                <>
+                  <span className="loading loading-spinner loading-sm"></span>
+                  Adding...
+                </>
+              ) : (
+                "Add Room(s)"
+              )}
             </button>
           </div>
         </div>
