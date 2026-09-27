@@ -2,17 +2,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { MdOutlinePlaylistAddCheckCircle } from "react-icons/md";
-import { FaArrowLeft, FaUserEdit } from "react-icons/fa";
+import { FaUserEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
 import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
+import { useState, useMemo } from "react";
 
 const PresentGuestList = () => {
   const axiosInstance = useAxios();
   const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Change this if your backend runs on a different URL
+  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
   const {
     data: checkIns = [],
     isLoading,
@@ -20,7 +23,7 @@ const PresentGuestList = () => {
     refetch,
     error,
   } = useQuery({
-    queryKey: ["check-ins"],
+    queryKey: ["check-ins", user?.email],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
         params: {
@@ -29,13 +32,35 @@ const PresentGuestList = () => {
       });
       return res.data;
     },
+    enabled: !!user?.email,
   });
+
+  // Search filter: Name, NID, Contact Number, Room Number
+  const filteredGuests = useMemo(() => {
+    if (!searchTerm.trim()) return checkIns;
+
+    const term = searchTerm.toLowerCase().trim();
+
+    return checkIns.filter((guest) => {
+      const name = (guest.guestName || "").toLowerCase();
+      const nid = (guest.nidNumber || "").toLowerCase();
+      const contact = (guest.contactNumber || "").toLowerCase();
+      const room = String(guest.roomNumber || "").toLowerCase();
+
+      return (
+        name.includes(term) ||
+        nid.includes(term) ||
+        contact.includes(term) ||
+        room.includes(term)
+      );
+    });
+  }, [checkIns, searchTerm]);
 
   const Guest_Status_Change = async (checkInId, status, checkIn) => {
     if (status === "Normal") {
       const res = await axiosInstance.delete(`/banned-guests/${checkInId}`);
 
-      if (res.data.deletedCount > 0) {
+      if (res.data.deletedCount > 0 || res.data.success) {
         Swal.fire({
           title: "Guest Status Updated!",
           text: "Guest has been removed from the banned guest list.",
@@ -67,14 +92,12 @@ const PresentGuestList = () => {
           icon: "warning",
           confirmButtonColor: "#BF1E2E",
         });
-
         return;
       }
 
-      // NID doesn't exist, so insert guest
       const res = await axiosInstance.post("/banned-guests", bannedGuest);
 
-      if (res.data.insertedId) {
+      if (res.data.insertedId || res.data.result?.insertedId) {
         Swal.fire({
           title: "Guest Banned!",
           text: `${checkIn.guestName} has been added to the banned guest list.`,
@@ -86,7 +109,26 @@ const PresentGuestList = () => {
     }
   };
 
-  if (isLoading) {
+  // Format discount display
+  const formatDiscount = (guest) => {
+    if (!guest.discountValue || guest.discountValue <= 0) {
+      return { type: "-", value: "-" };
+    }
+
+    if (guest.discountType === "percentage") {
+      return {
+        type: "Percentage",
+        value: `${guest.discountValue}%`,
+      };
+    }
+
+    return {
+      type: "Amount",
+      value: `৳${Number(guest.discountValue).toLocaleString()}`,
+    };
+  };
+
+  if (loading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
@@ -121,7 +163,6 @@ const PresentGuestList = () => {
           </p>
         </div>
 
-        {/* Back Button */}
         <Link to="/dashboard/guests">
           <button
             type="button"
@@ -132,13 +173,33 @@ const PresentGuestList = () => {
         </Link>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="form-control w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Search by Name, NID, Contact or Room..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input input-bordered w-full bg-white focus:outline-none focus:border-rose-900"
+          />
+        </div>
+        {searchTerm && (
+          <p className="text-sm text-gray-500 mt-2">
+            Showing {filteredGuests.length} result
+            {filteredGuests.length !== 1 ? "s" : ""} for "{searchTerm}"
+          </p>
+        )}
+      </div>
+
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="table table-zebra w-full">
           <thead className="bg-rose-900 text-white">
             <tr className="text-center">
+              <th>Image</th>
               <th>Guest Name</th>
-              <th>Guest Id</th>
+              <th>NID Number</th>
               <th>Contact</th>
               <th>Room</th>
               <th>Variant</th>
@@ -146,6 +207,8 @@ const PresentGuestList = () => {
               <th>Check Out</th>
               <th>Nights</th>
               <th>Guests</th>
+              <th>Discount Type</th>
+              <th>Discount Value</th>
               <th>Total</th>
               <th>Advance</th>
               <th>Due</th>
@@ -155,99 +218,135 @@ const PresentGuestList = () => {
           </thead>
 
           <tbody>
-            {checkIns.length === 0 ? (
+            {filteredGuests.length === 0 ? (
               <tr>
-                <td colSpan="12" className="text-center py-10 text-gray-500">
-                  No check-in records found.
+                <td colSpan="17" className="text-center py-10 text-gray-500">
+                  {searchTerm
+                    ? "No guests found matching your search."
+                    : "No check-in records found."}
                 </td>
               </tr>
             ) : (
-              checkIns.map((checkIn) => (
-                <tr key={checkIn._id} className="hover text-center bg-white">
-                  <td>
-                    <div className="font-semibold">{checkIn.guestName}</div>
-                    <div className="text-xs text-gray-500">
-                      {checkIn.designation || "-"}
-                    </div>
-                  </td>
+              filteredGuests.map((checkIn) => {
+                const discount = formatDiscount(checkIn);
 
-                  <td>{checkIn._id || "-"}</td>
+                return (
+                  <tr key={checkIn._id} className="hover text-center bg-white">
+                    {/* Guest Image */}
+                    <td>
+                      <div className="flex justify-center">
+                        {checkIn.personImage ? (
+                          <img
+                            src={`${imageBaseUrl}${checkIn.personImage}`}
+                            alt={checkIn.guestName}
+                            className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                            onError={(e) => {
+                              e.target.src =
+                                "https://via.placeholder.com/48?text=N/A";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                            N/A
+                          </div>
+                        )}
+                      </div>
+                    </td>
 
-                  <td>{checkIn.contactNumber || "-"}</td>
+                    <td>
+                      <div className="font-semibold">{checkIn.guestName}</div>
+                      <div className="text-xs text-gray-500">
+                        {checkIn.designation || "-"}
+                      </div>
+                    </td>
 
-                  <td className="font-semibold">Room {checkIn.roomNumber}</td>
+                    {/* NID Number */}
+                    <td>{checkIn.nidNumber || "-"}</td>
 
-                  <td>{checkIn.roomVariantName || "-"}</td>
+                    <td>{checkIn.contactNumber || "-"}</td>
 
-                  <td>
-                    <div>
-                      {checkIn.checkInDate
-                        ? new Date(checkIn.checkInDate).toLocaleDateString()
+                    <td className="font-semibold">Room {checkIn.roomNumber}</td>
+
+                    <td>{checkIn.roomVariantName || "-"}</td>
+
+                    <td>
+                      <div>
+                        {checkIn.checkInDate
+                          ? new Date(checkIn.checkInDate).toLocaleDateString()
+                          : "-"}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {checkIn.checkInTime || ""}
+                      </div>
+                    </td>
+
+                    <td>
+                      {checkIn.checkOutDate
+                        ? new Date(checkIn.checkOutDate).toLocaleDateString()
                         : "-"}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {checkIn.checkInTime || ""}
-                    </div>
-                  </td>
+                    </td>
 
-                  <td>
-                    {checkIn.checkOutDate
-                      ? new Date(checkIn.checkOutDate).toLocaleDateString()
-                      : "-"}
-                  </td>
+                    <td>{checkIn.numberOfNights || 0}</td>
 
-                  <td>{checkIn.numberOfNights || 0}</td>
+                    <td>{checkIn.numberOfGuests || 1}</td>
 
-                  <td>{checkIn.numberOfGuests || 1}</td>
+                    {/* Discount Type */}
+                    <td className="font-medium text-sm">{discount.type}</td>
 
-                  <td className="font-medium">
-                    ৳{Number(checkIn.totalAmount || 0).toLocaleString()}
-                  </td>
+                    {/* Discount Value */}
+                    <td className="font-medium text-green-700">
+                      {discount.value}
+                    </td>
 
-                  <td className="text-green-600 font-medium">
-                    ৳{Number(checkIn.advancePayment || 0).toLocaleString()}
-                  </td>
+                    <td className="font-medium">
+                      ৳{Number(checkIn.totalAmount || 0).toLocaleString()}
+                    </td>
 
-                  <td className="text-orange-600 font-medium">
-                    ৳{Number(checkIn.dueAmount || 0).toLocaleString()}
-                  </td>
+                    <td className="text-green-600 font-medium">
+                      ৳{Number(checkIn.advancePayment || 0).toLocaleString()}
+                    </td>
 
-                  <td className="p-3">
-                    <select
-                      defaultValue={checkIn.status}
-                      onChange={(e) =>
-                        Guest_Status_Change(
-                          checkIn._id,
-                          e.target.value,
-                          checkIn,
-                        )
-                      }
-                      className={`select select-sm w-32 font-semibold text-white border-none outline-none ${
-                        checkIn.status === "Ban"
-                          ? "bg-black hover:bg-gray-900"
-                          : "bg-emerald-600 hover:bg-emerald-700"
-                      }`}
-                    >
-                      <option value="Normal" className="bg-white text-black">
-                        Normal
-                      </option>
+                    <td className="text-orange-600 font-medium">
+                      ৳{Number(checkIn.dueAmount || 0).toLocaleString()}
+                    </td>
 
-                      <option value="Ban" className="bg-white text-black">
-                        Ban
-                      </option>
-                    </select>
-                  </td>
-                  <td>
-                    <Link
-                      to={`/dashboard/guests/edit_guest_info/${checkIn._id}`}
-                    >
-                      <button className="btn btn-accent text-xl text-white m-2 rounded-2xl">
-                        <FaUserEdit />
-                      </button>
-                    </Link>
-                  </td>
-                </tr>
-              ))
+                    <td className="p-3">
+                      <select
+                        defaultValue={checkIn.status}
+                        onChange={(e) =>
+                          Guest_Status_Change(
+                            checkIn._id,
+                            e.target.value,
+                            checkIn,
+                          )
+                        }
+                        className={`select select-sm w-32 font-semibold text-white border-none outline-none ${
+                          checkIn.status === "Ban"
+                            ? "bg-black hover:bg-gray-900"
+                            : "bg-emerald-600 hover:bg-emerald-700"
+                        }`}
+                      >
+                        <option value="Normal" className="bg-white text-black">
+                          Normal
+                        </option>
+                        <option value="Ban" className="bg-white text-black">
+                          Ban
+                        </option>
+                      </select>
+                    </td>
+
+                    <td>
+                      <Link
+                        to={`/dashboard/guests/edit_guest_info/${checkIn._id}`}
+                      >
+                        <button className="btn btn-accent text-xl text-white m-2 rounded-2xl">
+                          <FaUserEdit />
+                        </button>
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
