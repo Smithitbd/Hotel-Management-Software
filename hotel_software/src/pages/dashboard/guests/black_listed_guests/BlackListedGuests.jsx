@@ -3,22 +3,21 @@ import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { RiHome3Line } from "react-icons/ri";
 import { MdBlock } from "react-icons/md";
-import { FaArrowLeft } from "react-icons/fa";
 import useAuth from "../../../../hooks/useAuth";
+import { useState, useMemo } from "react";
 
 const BlackListedGuests = () => {
   const axiosInstance = useAxios();
   const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const [searchTerm, setSearchTerm] = useState("");
+
   const {
     data: bannedGuests = [],
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["banned-guests"],
+    queryKey: ["banned-guests", user?.email],
     queryFn: async () => {
       const res = await axiosInstance.get("/banned-guests", {
         params: {
@@ -27,9 +26,35 @@ const BlackListedGuests = () => {
       });
       return res.data;
     },
+    enabled: !!user?.email,
   });
 
-  if (isLoading) {
+  // Search filter: Name, NID, Contact Number, Address, Designation
+  const filteredGuests = useMemo(() => {
+    if (!searchTerm.trim()) return bannedGuests;
+
+    const term = searchTerm.toLowerCase().trim();
+
+    return bannedGuests.filter((guest) => {
+      const name = (guest.guestName || "").toLowerCase();
+      const nid = (guest.nidNumber || "").toLowerCase();
+      const contact = (guest.contactNumber || "").toLowerCase();
+      const address = (guest.guestAddress || "").toLowerCase();
+      const designation = (guest.designation || "").toLowerCase();
+      const id = String(guest.checkinId || "").toLowerCase();
+
+      return (
+        name.includes(term) ||
+        nid.includes(term) ||
+        contact.includes(term) ||
+        address.includes(term) ||
+        designation.includes(term) ||
+        id.includes(term)
+      );
+    });
+  }, [bannedGuests, searchTerm]);
+
+  if (loading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
@@ -55,18 +80,15 @@ const BlackListedGuests = () => {
             <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <MdBlock className="text-xl text-white" />
             </div>
-
             <h1 className="text-lg font-bold text-rose-900">
               Blacklisted Guest/s
             </h1>
           </div>
-
           <p className="text-gray-500">
             Manage all guests currently added to the blacklist.
           </p>
         </div>
 
-        {/* Back Button */}
         <Link to="/dashboard/guests">
           <button
             type="button"
@@ -76,6 +98,31 @@ const BlackListedGuests = () => {
           </button>
         </Link>
       </div>
+
+      {/* Search + Total Badge */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="form-control w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Search by Name, NID, Contact, Address..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input input-bordered w-full bg-white focus:outline-none focus:border-rose-900"
+          />
+        </div>
+
+        <span className="badge badge-lg bg-rose-100 text-rose-900 border-none">
+          Total Blacklisted: {filteredGuests.length}
+          {searchTerm && ` (of ${bannedGuests.length})`}
+        </span>
+      </div>
+
+      {searchTerm && (
+        <p className="text-sm text-gray-500 mb-4">
+          Showing {filteredGuests.length} result
+          {filteredGuests.length !== 1 ? "s" : ""} for "{searchTerm}"
+        </p>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto">
@@ -93,42 +140,37 @@ const BlackListedGuests = () => {
           </thead>
 
           <tbody>
-            {bannedGuests.length === 0 ? (
+            {filteredGuests.length === 0 ? (
               <tr>
                 <td colSpan="7" className="text-center py-10 text-gray-500">
-                  No blacklisted guests found.
+                  {searchTerm
+                    ? "No blacklisted guests found matching your search."
+                    : "No blacklisted guests found."}
                 </td>
               </tr>
             ) : (
-              bannedGuests.map((guest) => (
+              filteredGuests.map((guest) => (
                 <tr key={guest._id} className="hover text-center bg-white">
-                  {/* Guest Name */}
                   <td>
                     <div className="font-semibold">
                       {guest.guestName || "-"}
                     </div>
                   </td>
 
-                  {/* Guest ID / Checkin ID */}
                   <td>
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-gray-600 break-all max-w-[140px]">
                       {guest.checkinId || "-"}
                     </div>
                   </td>
 
-                  {/* Designation */}
                   <td>{guest.designation || "-"}</td>
 
-                  {/* Address */}
                   <td>{guest.guestAddress || "-"}</td>
 
-                  {/* NID */}
                   <td>{guest.nidNumber || "-"}</td>
 
-                  {/* Contact */}
                   <td>{guest.contactNumber || "-"}</td>
 
-                  {/* Status */}
                   <td>
                     <span className="px-4 py-2 rounded-full bg-black text-white text-sm font-semibold">
                       Blacklisted

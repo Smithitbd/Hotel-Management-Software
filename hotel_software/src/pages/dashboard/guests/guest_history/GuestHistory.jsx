@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   FaPhone,
@@ -22,10 +22,9 @@ const GuestHistory = () => {
   const { user, loading } = useAuth();
   const [selectedCheckout, setSelectedCheckout] = useState(null);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   // Unique guests
   const { data: guests = [], isLoading } = useQuery({
@@ -51,10 +50,30 @@ const GuestHistory = () => {
     enabled: !!user?.email,
   });
 
+  // Search filter: Name, NID, Contact Number, Room
+  const filteredGuests = useMemo(() => {
+    if (!searchTerm.trim()) return guests;
+
+    const term = searchTerm.toLowerCase().trim();
+
+    return guests.filter((guest) => {
+      const name = (guest.guestName || "").toLowerCase();
+      const nid = (guest.nidNumber || "").toLowerCase();
+      const contact = (guest.contactNumber || "").toLowerCase();
+      const room = String(guest.lastRoomNumber || "").toLowerCase();
+
+      return (
+        name.includes(term) ||
+        nid.includes(term) ||
+        contact.includes(term) ||
+        room.includes(term)
+      );
+    });
+  }, [guests, searchTerm]);
+
   // ========== Load all stays of a guest and let user choose ==========
   const handlePrintInvoice = async (guest) => {
     try {
-      // Use the new clean endpoint
       const res = await axiosInstance.get("/check-out/guest", {
         params: {
           hotelEmail: user?.email,
@@ -63,7 +82,7 @@ const GuestHistory = () => {
         },
       });
 
-      const guestCheckouts = res.data; // already sorted newest first
+      const guestCheckouts = res.data;
 
       if (guestCheckouts.length === 0) {
         Swal.fire({
@@ -81,7 +100,7 @@ const GuestHistory = () => {
         return;
       }
 
-      // Multiple stays → let user choose which one
+      // Multiple stays → let user choose
       const options = {};
       guestCheckouts.forEach((checkout, index) => {
         const date =
@@ -122,15 +141,15 @@ const GuestHistory = () => {
     }
   };
 
-  if (isLoading) {
+  if (loading || isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
+      <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
 
-  // ========== SHOW BOTH INVOICES ==========
+  // ========== SHOW INVOICES ==========
   if (showInvoice && selectedCheckout) {
     return (
       <div className="p-4 sm:p-6 max-w-7xl mx-auto">
@@ -175,18 +194,19 @@ const GuestHistory = () => {
 
   // ========== GUEST LIST ==========
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
-            <MdPeople className="text-xl text-white" />
-          </div>
-          <div>
+    <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-2xl p-6 md:p-8">
+      {/* Header */}
+      <div className="flex flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
+              <MdPeople className="text-xl text-white" />
+            </div>
             <h1 className="text-lg font-bold text-rose-900">Unique Guests</h1>
-            <p className="text-sm text-gray-500">
-              All unique guests who have stayed in the hotel
-            </p>
           </div>
+          <p className="text-gray-500">
+            All unique guests who have stayed in the hotel
+          </p>
         </div>
 
         <Link to="/dashboard/guests">
@@ -199,133 +219,155 @@ const GuestHistory = () => {
         </Link>
       </div>
 
-      <div className="mb-6">
+      {/* Search + Total Badge */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="form-control w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Search by Name, NID, Contact or Room..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input input-bordered w-full bg-white focus:outline-none focus:border-rose-900"
+          />
+        </div>
+
         <span className="badge badge-lg bg-rose-100 text-rose-900 border-none">
-          Total Unique Guests: {guests.length}
+          Total Unique Guests: {filteredGuests.length}
+          {searchTerm && ` (of ${guests.length})`}
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table w-full">
-            <thead className="bg-rose-50 text-rose-900">
-              <tr>
-                <th className="font-semibold">Guest</th>
-                <th className="font-semibold">Contact</th>
-                <th className="font-semibold">NID</th>
-                <th className="font-semibold">Total Stays</th>
-                <th className="font-semibold">Last Stay</th>
-                <th className="font-semibold">Last Room</th>
-                <th className="font-semibold">Total Spent</th>
-                <th className="font-semibold text-center">Action</th>
-              </tr>
-            </thead>
+      {searchTerm && (
+        <p className="text-sm text-gray-500 mb-4">
+          Showing {filteredGuests.length} result
+          {filteredGuests.length !== 1 ? "s" : ""} for "{searchTerm}"
+        </p>
+      )}
 
-            <tbody>
-              {guests.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="text-center py-16 text-gray-400">
-                    No guests found
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="table table-zebra w-full">
+          <thead className="bg-rose-900 text-white">
+            <tr className="text-center">
+              <th>Guest</th>
+              <th>Contact</th>
+              <th>NID</th>
+              <th>Total Stays</th>
+              <th>Last Stay</th>
+              <th>Last Room</th>
+              <th>Total Spent</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredGuests.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="text-center py-10 text-gray-500">
+                  {searchTerm
+                    ? "No guests found matching your search."
+                    : "No guests found."}
+                </td>
+              </tr>
+            ) : (
+              filteredGuests.map((guest) => (
+                <tr key={guest._id} className="hover text-center bg-white">
+                  {/* Guest + Image */}
+                  <td>
+                    <div className="flex items-center gap-3 justify-center sm:justify-start">
+                      <div className="avatar">
+                        <div className="w-12 h-12 rounded-full ring ring-rose-200 ring-offset-1">
+                          {guest.personImage ? (
+                            <img
+                              src={`${imageBaseUrl}${guest.personImage}`}
+                              alt={guest.guestName}
+                              className="object-cover"
+                              onError={(e) => {
+                                e.target.src =
+                                  "https://via.placeholder.com/48?text=N/A";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-900 font-bold text-lg">
+                              {guest.guestName?.charAt(0)?.toUpperCase() || "G"}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <div className="font-bold text-gray-800">
+                          {guest.guestName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {guest.designation || "Guest"}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="flex items-center justify-center gap-1 text-sm">
+                      <FaPhone className="text-rose-600 text-xs" />
+                      {guest.contactNumber || "—"}
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="flex items-center justify-center gap-1 text-sm">
+                      <FaIdCard className="text-rose-600 text-xs" />
+                      {guest.nidNumber || "—"}
+                    </div>
+                  </td>
+
+                  <td>
+                    <span className="badge badge-ghost font-medium">
+                      {guest.totalStays}{" "}
+                      {guest.totalStays > 1 ? "times" : "time"}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div className="flex items-center justify-center gap-1 text-sm">
+                      <FaCalendarAlt className="text-rose-600 text-xs" />
+                      {guest.lastCheckoutDate
+                        ? new Date(guest.lastCheckoutDate).toLocaleDateString(
+                            "en-GB",
+                          )
+                        : "—"}
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="flex items-center justify-center gap-1 text-sm font-semibold">
+                      <FaBed className="text-rose-600 text-xs" />
+                      Room {guest.lastRoomNumber || "—"}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {guest.lastRoomVariant || ""}
+                    </div>
+                  </td>
+
+                  <td>
+                    <div className="flex items-center justify-center gap-1 font-bold text-rose-900">
+                      <FaMoneyBillWave className="text-xs" />৳
+                      {(guest.totalSpent || 0).toLocaleString()}
+                    </div>
+                  </td>
+
+                  <td>
+                    <button
+                      onClick={() => handlePrintInvoice(guest)}
+                      className="btn btn-sm bg-rose-900 hover:bg-rose-800 text-white border-none gap-1"
+                      title="Print Invoice"
+                    >
+                      <FaPrint /> Print
+                    </button>
                   </td>
                 </tr>
-              ) : (
-                guests.map((guest) => (
-                  <tr key={guest._id} className="hover:bg-gray-50">
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div className="avatar">
-                          <div className="w-12 h-12 rounded-full ring ring-rose-200 ring-offset-1">
-                            {guest.personImage ? (
-                              <img
-                                src={`${
-                                  import.meta.env.VITE_API_URL ||
-                                  "http://localhost:3000"
-                                }${guest.personImage}`}
-                                alt={guest.guestName}
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-900 font-bold text-lg">
-                                {guest.guestName?.charAt(0)?.toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="font-bold text-gray-800">
-                            {guest.guestName}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {guest.designation || "Guest"}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td>
-                      <div className="flex items-center gap-1 text-sm">
-                        <FaPhone className="text-rose-600 text-xs" />
-                        {guest.contactNumber || "—"}
-                      </div>
-                    </td>
-
-                    <td>
-                      <div className="flex items-center gap-1 text-sm">
-                        <FaIdCard className="text-rose-600 text-xs" />
-                        {guest.nidNumber || "—"}
-                      </div>
-                    </td>
-
-                    <td>
-                      <span className="badge badge-ghost font-sm w-26 ">
-                        {guest.totalStays}{" "}
-                        {guest.totalStays > 1 ? "times" : "time"}
-                      </span>
-                    </td>
-
-                    <td>
-                      <div className="flex items-center gap-1 text-sm">
-                        <FaCalendarAlt className="text-rose-600 text-xs" />
-                        {guest.lastCheckoutDate
-                          ? new Date(guest.lastCheckoutDate).toLocaleDateString(
-                              "en-GB",
-                            )
-                          : "—"}
-                      </div>
-                    </td>
-
-                    <td>
-                      <div className="flex items-center gap-1 text-sm">
-                        <FaBed className="text-rose-600 text-xs" />
-                        {guest.lastRoomNumber}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {guest.lastRoomVariant}
-                      </div>
-                    </td>
-
-                    <td>
-                      <div className="flex items-center gap-1 font-bold text-rose-900">
-                        <FaMoneyBillWave className="text-xs" />৳
-                        {(guest.totalSpent || 0).toLocaleString()}
-                      </div>
-                    </td>
-
-                    <td className="text-center">
-                      <button
-                        onClick={() => handlePrintInvoice(guest)}
-                        className="btn btn-sm bg-rose-900 hover:bg-rose-800 text-white border-none gap-1"
-                        title="Print Invoice"
-                      >
-                        <FaPrint /> Print
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
