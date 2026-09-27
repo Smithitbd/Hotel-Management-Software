@@ -187,6 +187,13 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
               </p>
             )}
 
+            {/* BIN Number */}
+            {hotelInfo?.binNumber && (
+              <p className="text-[11px] text-gray-700 mt-0.5 font-semibold">
+                BIN: {hotelInfo.binNumber}
+              </p>
+            )}
+
             <p className="text-[10px] italic text-gray-500 mt-0.5">
               {hotelInfo?.tagline || "A luxury hotel of your comfort"}
             </p>
