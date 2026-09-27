@@ -1,24 +1,27 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
-import { FaUsers, FaMoneyBillWave } from "react-icons/fa";
+import { FaUsers, FaMoneyBillWave, FaEdit, FaTrash } from "react-icons/fa";
 import { MdHotel } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { useNavigate, useSearchParams, Link } from "react-router";
 import useAuth from "../../../../hooks/useAuth";
+import { useState, useMemo } from "react";
+import Swal from "sweetalert2";
 
 const AllRooms = () => {
   const axiosInstance = useAxios();
+  const queryClient = useQueryClient();
   const imageBaseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading } = useAuth();
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [variantFilter, setVariantFilter] = useState("");
+  const [roomNoFilter, setRoomNoFilter] = useState("");
+
   const mode = searchParams.get("mode");
   const selectedDate = searchParams.get("date");
-
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
 
   // 1. Always fetch all rooms
   const {
@@ -38,7 +41,7 @@ const AllRooms = () => {
     enabled: !!user?.email,
   });
 
-  // 2. When in reserve mode → check real availability for the selected date
+  // 2. When in reserve mode → check real availability
   const { data: availability, isLoading: availabilityLoading } = useQuery({
     queryKey: ["room-availability", selectedDate, user?.email],
     queryFn: async () => {
@@ -54,9 +57,94 @@ const AllRooms = () => {
     enabled: mode === "reserve" && !!selectedDate && !!user?.email,
   });
 
+  // Unique variant names for filter dropdown
+  const variantNames = useMemo(() => {
+    const names = [...new Set(rooms.map((r) => r.variantName).filter(Boolean))];
+    return names.sort();
+  }, [rooms]);
+
+  // Filtered rooms
+  const filteredRooms = useMemo(() => {
+    return rooms.filter((room) => {
+      const term = searchTerm.toLowerCase().trim();
+
+      const matchesSearch =
+        !term ||
+        String(room.roomNo || "")
+          .toLowerCase()
+          .includes(term) ||
+        (room.variantName || "").toLowerCase().includes(term) ||
+        (room.baseRoomType || "").toLowerCase().includes(term) ||
+        (room.bedType || "").toLowerCase().includes(term);
+
+      const matchesVariant =
+        !variantFilter || room.variantName === variantFilter;
+
+      const matchesRoomNo =
+        !roomNoFilter.trim() ||
+        String(room.roomNo || "")
+          .toLowerCase()
+          .includes(roomNoFilter.toLowerCase().trim());
+
+      return matchesSearch && matchesVariant && matchesRoomNo;
+    });
+  }, [rooms, searchTerm, variantFilter, roomNoFilter]);
+
   const isLoading = roomsLoading || (mode === "reserve" && availabilityLoading);
 
-  if (isLoading) {
+  // Helper: check if a room is available on the selected date
+  const isRoomAvailableOnDate = (room) => {
+    if (mode !== "reserve" || !selectedDate) {
+      return room.roomStatus?.toLowerCase() === "available";
+    }
+
+    if (!availability) return false;
+
+    const allAvailableRooms =
+      availability.variants?.flatMap((v) => v.rooms) || [];
+
+    return allAvailableRooms.some(
+      (r) => r._id === room._id || r.roomNo === room.roomNo,
+    );
+  };
+
+  // Delete room
+  const handleDelete = async (room) => {
+    const result = await Swal.fire({
+      title: "Delete Room?",
+      text: `Are you sure you want to delete Room ${room.roomNo}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#BF1E2E",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, delete it",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axiosInstance.delete(`/room-delete/${room._id}`);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: `Room ${room.roomNo} has been deleted.`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["all-rooms"] });
+      refetch();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err?.response?.data?.message || "Failed to delete room",
+      });
+    }
+  };
+
+  if (loading || isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
@@ -82,26 +170,10 @@ const AllRooms = () => {
     );
   }
 
-  // Helper: check if a room is available on the selected date
-  const isRoomAvailableOnDate = (room) => {
-    if (mode !== "reserve" || !selectedDate) {
-      return room.roomStatus?.toLowerCase() === "available";
-    }
-
-    if (!availability) return false;
-
-    const allAvailableRooms =
-      availability.variants?.flatMap((v) => v.rooms) || [];
-
-    return allAvailableRooms.some(
-      (r) => r._id === room._id || r.roomNo === room.roomNo,
-    );
-  };
-
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
@@ -126,7 +198,6 @@ const AllRooms = () => {
           </p>
         </div>
 
-        {/* Header Buttons */}
         <div className="flex items-center gap-3">
           {mode === "reserve" ? (
             <button
@@ -145,15 +216,90 @@ const AllRooms = () => {
         </div>
       </div>
 
+      {/* Search + Filters */}
+      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="form-control">
+            <label className="label py-1">
+              <span className="label-text font-medium text-sm">Search</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Search by room no, variant, bed type..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input input-bordered w-full bg-white focus:outline-none focus:border-rose-900"
+            />
+          </div>
+
+          {/* Variant Filter */}
+          <div className="form-control">
+            <label className="label py-1">
+              <span className="label-text font-medium text-sm">
+                Room Variant
+              </span>
+            </label>
+            <select
+              value={variantFilter}
+              onChange={(e) => setVariantFilter(e.target.value)}
+              className="select select-bordered w-full bg-white focus:outline-none focus:border-rose-900"
+            >
+              <option value="">All Variants</option>
+              {variantNames.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Room Number Filter */}
+          <div className="form-control">
+            <label className="label py-1">
+              <span className="label-text font-medium text-sm">
+                Room Number
+              </span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. 201"
+              value={roomNoFilter}
+              onChange={(e) => setRoomNoFilter(e.target.value)}
+              className="input input-bordered w-full bg-white focus:outline-none focus:border-rose-900"
+            />
+          </div>
+        </div>
+
+        {/* Clear filters */}
+        {(searchTerm || variantFilter || roomNoFilter) && (
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              Showing {filteredRooms.length} of {rooms.length} rooms
+            </p>
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setVariantFilter("");
+                setRoomNoFilter("");
+              }}
+              className="btn btn-sm btn-ghost text-rose-900"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Room Count */}
-      <div className="mb-8">
+      <div className="mb-6">
         <span className="inline-flex items-center rounded-full bg-red-100 px-4 py-1.5 text-sm font-medium text-[#BF1E2E]">
-          {rooms.length} Rooms
+          {filteredRooms.length} Rooms
         </span>
       </div>
 
       {/* No Rooms */}
-      {rooms.length === 0 ? (
+      {filteredRooms.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-12 text-center">
           <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <MdHotel className="text-2xl text-rose-400" />
@@ -162,13 +308,14 @@ const AllRooms = () => {
             No Rooms Found
           </h2>
           <p className="text-gray-500">
-            There are currently no rooms available.
+            {searchTerm || variantFilter || roomNoFilter
+              ? "No rooms match your filters."
+              : "There are currently no rooms available."}
           </p>
         </div>
       ) : (
-        /* Room Cards - Horizontal Layout like RoomStatus */
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {rooms.map((room) => {
+          {filteredRooms.map((room) => {
             const imageUrl = room.image
               ? room.image.startsWith("http")
                 ? room.image
@@ -184,7 +331,7 @@ const AllRooms = () => {
               >
                 <div className="flex flex-col sm:flex-row">
                   {/* Image */}
-                  <figure className="w-full sm:w-44 sm:min-w-44 h-56 sm:h-auto bg-gray-100">
+                  <figure className="w-full sm:w-44 sm:min-w-44 h-56 sm:h-auto bg-gray-100 relative">
                     <img
                       src={imageUrl}
                       alt={`Room ${room.roomNo || ""}`}
@@ -198,7 +345,7 @@ const AllRooms = () => {
 
                   {/* Content */}
                   <div className="p-6 flex-1 flex flex-col">
-                    {/* Title + Status */}
+                    {/* Title + Status + Edit/Delete */}
                     <div className="flex justify-between items-start gap-3 mb-4">
                       <div>
                         <h2 className="text-lg font-bold text-rose-900">
@@ -209,15 +356,41 @@ const AllRooms = () => {
                         </p>
                       </div>
 
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                          isAvailable
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {isAvailable ? "Available" : "Reserved"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                            isAvailable
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {isAvailable
+                            ? "Available"
+                            : room.roomStatus || "Reserved"}
+                        </span>
+
+                        {/* Edit & Delete - only in normal mode */}
+                        {mode !== "reserve" && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() =>
+                                navigate(`/dashboard/rooms/edit/${room._id}`)
+                              }
+                              className="btn btn-ghost btn-xs text-blue-600 hover:bg-blue-50"
+                              title="Edit Room"
+                            >
+                              <FaEdit className="text-sm" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(room)}
+                              className="btn btn-ghost btn-xs text-red-600 hover:bg-red-50"
+                              title="Delete Room"
+                            >
+                              <FaTrash className="text-sm" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Room Information */}

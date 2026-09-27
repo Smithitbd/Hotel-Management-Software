@@ -74,6 +74,7 @@ import AllRooms from "../pages/dashboard/rooms/all-rooms/AllRooms";
 import MainReserve from "../pages/dashboard/reservations/MainReserve";
 import ChangeRoom from "../pages/dashboard/rooms/change-room/ChangeRoom";
 import SubUser from "../pages/dashboard/settings/sub-user/SubUser";
+import EditRoom from "../pages/dashboard/rooms/all-rooms/edit-room/EditRoom";
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -240,6 +241,14 @@ const Router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <ViewRooms />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "rooms/edit/:id",
+        element: (
+          <PrivateRoute>
+            <EditRoom />
           </PrivateRoute>
         ),
       },
