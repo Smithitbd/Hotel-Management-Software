@@ -4,33 +4,28 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
-import { IoArrowBackCircleSharp } from "react-icons/io5";
-import { useEffect } from "react";
 import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
 
 const CheckIn = () => {
   const axiosInstance = useAxios();
   const { user, loading } = useAuth();
-
   const navigate = useNavigate();
   const location = useLocation();
 
   // Room data coming from AllRooms page
   const prefilledRoom = location.state?.room;
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
 
   const {
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
       advancePayment: 0,
+      discountType: "amount",
+      discountValue: 0,
       roomVariant: prefilledRoom?.variantId || "",
       roomNumber: prefilledRoom?.roomNo || "",
     },
@@ -40,18 +35,19 @@ const CheckIn = () => {
   const checkInDate = watch("checkInDate");
   const checkOutDate = watch("checkOutDate");
   const advancePayment = watch("advancePayment");
+  const discountType = watch("discountType");
+  const discountValue = watch("discountValue");
 
   // Get all room variants
   const { data: roomVariants = [], isLoading: variantsLoading } = useQuery({
-    queryKey: ["room-variants"],
+    queryKey: ["room-variants", user?.email],
     queryFn: async () => {
       const res = await axiosInstance.get("/room-variants", {
-        params: {
-          hotelEmail: user.email, // or whatever your logged-in hotel email is
-        },
+        params: { hotelEmail: user.email },
       });
       return res.data;
     },
+    enabled: !!user?.email,
   });
 
   // Get rooms of selected variant
@@ -66,22 +62,10 @@ const CheckIn = () => {
     enabled: !!selectedVariantId,
   });
 
-  // Auto select room variant + room number when coming from AllRooms
-  useEffect(() => {
-    if (prefilledRoom) {
-      setValue("roomVariant", prefilledRoom.variantId);
-
-      // Wait until rooms of that variant are loaded, then set room number
-      if (rooms.length > 0) {
-        setValue("roomNumber", prefilledRoom.roomNo);
-      }
-    }
-  }, [prefilledRoom, rooms, setValue]);
-
   // Selected variant object
   const selectedVariant = roomVariants.find((v) => v._id === selectedVariantId);
 
-  // Calculate number of nights
+  // Calculate number of nights (client-side for UI only)
   let nights = 0;
   if (checkInDate && checkOutDate) {
     const inDate = new Date(checkInDate);
@@ -91,13 +75,24 @@ const CheckIn = () => {
     nights = diffDays > 0 ? diffDays : 0;
   }
 
-  // Calculate total amount
-  const totalAmount =
+  // Subtotal (before discount) – for display only
+  const subtotal =
     selectedVariant && nights > 0 ? selectedVariant.price * nights : 0;
 
-  // Calculate due amount
+  // Discount calculation – for display only
+  const discountVal = Number(discountValue) || 0;
+  let discountAmount = 0;
+
+  if (discountType === "percentage") {
+    const pct = Math.min(Math.max(discountVal, 0), 100);
+    discountAmount = (subtotal * pct) / 100;
+  } else {
+    discountAmount = Math.min(Math.max(discountVal, 0), subtotal);
+  }
+
+  const totalAmount = Math.max(subtotal - discountAmount, 0);
   const advance = Number(advancePayment) || 0;
-  const dueAmount = totalAmount - advance >= 0 ? totalAmount - advance : 0;
+  const dueAmount = Math.max(totalAmount - advance, 0);
 
   const onSubmit = async (data) => {
     const nidImageFile = data.nidImage?.[0];
@@ -139,10 +134,10 @@ const CheckIn = () => {
     formData.append("numberOfNights", nights);
     formData.append("numberOfGuests", data.numberOfGuests);
 
-    // Payment Info
-    formData.append("totalAmount", totalAmount);
+    // Payment Info – only send raw values, server calculates the rest
+    formData.append("discountType", data.discountType || "amount");
+    formData.append("discountValue", Number(data.discountValue) || 0);
     formData.append("advancePayment", Number(data.advancePayment) || 0);
-    formData.append("dueAmount", dueAmount);
 
     formData.append("specialRequests", data.specialRequests || "");
     formData.append("status", "Normal");
@@ -162,7 +157,6 @@ const CheckIn = () => {
           icon: "success",
           confirmButtonColor: "#9f1239",
         });
-
         navigate("/dashboard/check_in_out");
       }
     } catch (error) {
@@ -175,6 +169,10 @@ const CheckIn = () => {
     }
   };
 
+  if (loading) {
+    return <span className="loading loading-spinner text-error"></span>;
+  }
+
   return (
     <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-8">
       {/* Header */}
@@ -185,17 +183,13 @@ const CheckIn = () => {
               <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
                 <MdOutlinePlaylistAddCheckCircle className="text-xl text-white" />
               </div>
-
               <h1 className="text-lg font-bold text-rose-900">
                 Guest Check In
               </h1>
             </div>
-
             <p className="text-gray-500 ml-12">
               Manage guest check-ins, room assignments, and stay details.
             </p>
-
-            {/* Show prefilled room info */}
             {prefilledRoom && (
               <p className="ml-12 mt-2 text-sm font-medium text-rose-600">
                 Booking → Room {prefilledRoom.roomNo} (
@@ -502,7 +496,7 @@ const CheckIn = () => {
             Payment Summary
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <p className="text-sm text-gray-500">Price / Night</p>
               <p className="text-lg font-semibold text-gray-800">
@@ -513,6 +507,25 @@ const CheckIn = () => {
             <div>
               <p className="text-sm text-gray-500">Number of Nights</p>
               <p className="text-lg font-semibold text-gray-800">{nights}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Subtotal</p>
+              <p className="text-lg font-semibold text-gray-800">
+                ৳{subtotal.toLocaleString()}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Discount</p>
+              <p className="text-lg font-semibold text-green-600">
+                −৳{discountAmount.toLocaleString()}
+                {discountType === "percentage" && discountVal > 0 && (
+                  <span className="text-sm font-normal text-gray-500 ml-1">
+                    ({Math.min(discountVal, 100)}%)
+                  </span>
+                )}
+              </p>
             </div>
 
             <div>
@@ -530,6 +543,69 @@ const CheckIn = () => {
             </div>
           </div>
 
+          {/* Discount Type + Value */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 max-w-2xl">
+            <div>
+              <label className="label">
+                <span className="label-text font-medium">Discount Type</span>
+              </label>
+              <div className="flex gap-6 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="amount"
+                    {...register("discountType")}
+                    className="radio radio-sm radio-error"
+                  />
+                  <span className="text-sm">Amount (৳)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="percentage"
+                    {...register("discountType")}
+                    className="radio radio-sm radio-error"
+                  />
+                  <span className="text-sm">Percentage (%)</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="label">
+                <span className="label-text font-medium">
+                  Discount Value {discountType === "percentage" ? "(%)" : "(৳)"}
+                </span>
+              </label>
+              <input
+                type="number"
+                min="0"
+                step={discountType === "percentage" ? "0.01" : "1"}
+                placeholder="0"
+                {...register("discountValue", {
+                  valueAsNumber: true,
+                  min: {
+                    value: 0,
+                    message: "Discount cannot be negative",
+                  },
+                  validate: (value) => {
+                    if (discountType === "percentage" && value > 100) {
+                      return "Percentage cannot exceed 100%";
+                    }
+                    return true;
+                  },
+                })}
+                className="bg-white input input-bordered w-full"
+              />
+              {errors.discountValue && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.discountValue.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Advance Payment */}
           <div className="max-w-xs mt-4">
             <label className="label">
               <span className="label-text font-medium">Advance Payment</span>

@@ -758,6 +758,25 @@ async function run() {
         const roomNumber = String(req.body.roomNumber);
         const checkInDate = req.body.checkInDate;
         const checkOutDate = req.body.checkOutDate;
+        const pricePerNight = Number(req.body.pricePerNight) || 0;
+        const numberOfNights = Number(req.body.numberOfNights) || 0;
+        const discountType = req.body.discountType || "amount"; // "amount" | "percentage"
+        const discountValue = Number(req.body.discountValue) || 0;
+        const advancePayment = Number(req.body.advancePayment) || 0;
+
+        // ---- Server-side discount calculation ----
+        const subtotal = pricePerNight * numberOfNights;
+        let discountAmount = 0;
+
+        if (discountType === "percentage") {
+          const pct = Math.min(Math.max(discountValue, 0), 100);
+          discountAmount = (subtotal * pct) / 100;
+        } else {
+          discountAmount = Math.min(Math.max(discountValue, 0), subtotal);
+        }
+
+        const totalAmount = Math.max(subtotal - discountAmount, 0);
+        const dueAmount = Math.max(totalAmount - advancePayment, 0);
 
         // Check existing Reservations
         const reservationConflict = await reservationCollection.findOne({
@@ -818,15 +837,22 @@ async function run() {
           roomVariantId: req.body.roomVariantId,
           roomVariantName: req.body.roomVariantName,
           roomNumber: roomNumber,
-          pricePerNight: Number(req.body.pricePerNight) || 0,
-          checkInDate: checkInDate,
+          pricePerNight,
+          checkInDate,
           checkInTime: req.body.checkInTime,
-          checkOutDate: checkOutDate,
-          numberOfNights: Number(req.body.numberOfNights) || 0,
+          checkOutDate,
+          numberOfNights,
           numberOfGuests: Number(req.body.numberOfGuests) || 0,
-          totalAmount: Number(req.body.totalAmount) || 0,
-          advancePayment: Number(req.body.advancePayment) || 0,
-          dueAmount: Number(req.body.dueAmount) || 0,
+
+          // Payment + Discount (server calculated)
+          subtotal,
+          discountType,
+          discountValue,
+          discountAmount,
+          totalAmount,
+          advancePayment,
+          dueAmount,
+
           specialRequests: req.body.specialRequests || "",
           status: req.body.status || "Normal",
           restaurantOrders: [],
