@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import Swal from "sweetalert2";
 import {
-  FaArrowLeft,
   FaEnvelope,
   FaMapMarkerAlt,
   FaPhone,
   FaUser,
+  FaIdCard,
 } from "react-icons/fa";
 import { MdHotel } from "react-icons/md";
 import useAuth from "../../../../hooks/useAuth";
@@ -17,6 +17,8 @@ import { RiHome3Line } from "react-icons/ri";
 const HotelInformation = () => {
   const { user } = useAuth();
   const axiosInstance = useAxios();
+
+  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   const {
     data: hotel,
@@ -47,6 +49,7 @@ const HotelInformation = () => {
           ownerName: hotel.ownerName || "",
           email: hotel.email || "",
           phone: hotel.phone || "",
+          binNumber: hotel.binNumber || "",
         }
       : undefined,
   });
@@ -60,6 +63,7 @@ const HotelInformation = () => {
         ownerName: data.ownerName,
         email: data.email,
         phone: data.phone,
+        binNumber: data.binNumber || "",
       });
 
       await refetch();
@@ -98,8 +102,7 @@ const HotelInformation = () => {
     );
   }
 
-  // Logo URL (change port if needed)
-  const logoUrl = hotel.logo ? `http://localhost:3000${hotel.logo}` : null;
+  const logoUrl = hotel.logo ? `${imageBaseUrl}${hotel.logo}` : null;
 
   return (
     <div className="p-6">
@@ -158,16 +161,20 @@ const HotelInformation = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 text-sm">
           <p className="flex items-center gap-2 text-gray-600">
-            <FaMapMarkerAlt className="text-rose-900" /> {hotel.address}
+            <FaMapMarkerAlt className="text-rose-900" /> {hotel.address || "—"}
           </p>
           <p className="flex items-center gap-2 text-gray-600">
-            <FaUser className="text-rose-900" /> {hotel.ownerName}
+            <FaUser className="text-rose-900" /> {hotel.ownerName || "—"}
           </p>
           <p className="flex items-center gap-2 text-gray-600">
-            <FaPhone className="text-rose-900" /> {hotel.phone}
+            <FaPhone className="text-rose-900" /> {hotel.phone || "—"}
           </p>
           <p className="flex items-center gap-2 text-gray-600">
-            <FaEnvelope className="text-rose-900" /> {hotel.email}
+            <FaEnvelope className="text-rose-900" /> {hotel.email || "—"}
+          </p>
+          <p className="flex items-center gap-2 text-gray-600 md:col-span-2">
+            <FaIdCard className="text-rose-900" />
+            <span className="font-medium">BIN:</span> {hotel.binNumber || "—"}
           </p>
         </div>
       </div>
@@ -250,6 +257,19 @@ const HotelInformation = () => {
               className="input input-bordered w-full bg-white"
               {...register("email", { required: true })}
               readOnly
+            />
+          </div>
+
+          {/* BIN Number */}
+          <div className="form-control md:col-span-2">
+            <label className="label">
+              <span className="label-text font-medium">BIN Number</span>
+            </label>
+            <input
+              type="text"
+              className="input input-bordered w-full bg-white"
+              placeholder="Enter BIN number"
+              {...register("binNumber")}
             />
           </div>
         </div>

@@ -47,6 +47,7 @@ const Signup = () => {
       formData.append("email", data.email);
       formData.append("phone", data.phone);
       formData.append("password", data.password);
+      formData.append("binNumber", data.binNumber || "");
 
       if (data.logo?.[0]) {
         formData.append("logo", data.logo[0]);
@@ -192,8 +193,28 @@ const Signup = () => {
               )}
             </div>
 
+            {/* BIN Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                BIN Number
+              </label>
+              <input
+                {...register("binNumber", {
+                  required: "BIN number is required",
+                })}
+                type="text"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
+                placeholder="Enter BIN number"
+              />
+              {errors.binNumber && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.binNumber.message}
+                </p>
+              )}
+            </div>
+
             {/* Hotel Logo */}
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Hotel Logo
               </label>
@@ -321,7 +342,6 @@ const Signup = () => {
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
-                    // Eye-off icon
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -337,7 +357,6 @@ const Signup = () => {
                       />
                     </svg>
                   ) : (
-                    // Eye icon
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5"
@@ -394,7 +413,7 @@ const Signup = () => {
         </Link>
       </p>
 
-      {/* ===== Smith IT Logo + Copyright (after form) ===== */}
+      {/* ===== Smith IT Logo + Copyright ===== */}
       <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center gap-3">
         <img src={smithLogo} alt="Smith IT" className="h-8 object-contain" />
         <p className="text-xs text-gray-500 text-center">

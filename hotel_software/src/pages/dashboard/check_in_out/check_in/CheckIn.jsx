@@ -13,8 +13,40 @@ const CheckIn = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Room data coming from AllRooms page
+  // Data coming from AllRooms OR Reservations History
   const prefilledRoom = location.state?.room;
+  const prefilledReservation = location.state?.reservation;
+
+  // Build default values from reservation OR room
+  const getDefaults = () => {
+    if (prefilledReservation) {
+      const r = prefilledReservation;
+      return {
+        guestName: r.guestName || "",
+        contactNumber: r.contactNumber || "",
+        guestAddress: r.guestAddress || "",
+        designation: r.designation || "",
+        nidNumber: r.nidNumber || "",
+        roomVariant: r.room?.variantId || r.roomVariantId || "",
+        roomNumber: String(r.room?.roomNo || r.roomNo || ""),
+        checkInDate: r.arrivingDate || "",
+        checkOutDate: r.departureDate || "",
+        numberOfGuests: r.numberOfGuests || 1,
+        advancePayment: Number(r.advancePayment) || 0,
+        discountType: "amount",
+        discountValue: 0,
+        specialRequests: r.specialRequests || "",
+      };
+    }
+
+    return {
+      advancePayment: 0,
+      discountType: "amount",
+      discountValue: 0,
+      roomVariant: prefilledRoom?.variantId || "",
+      roomNumber: prefilledRoom?.roomNo || "",
+    };
+  };
 
   const {
     register,
@@ -22,13 +54,7 @@ const CheckIn = () => {
     watch,
     formState: { errors },
   } = useForm({
-    defaultValues: {
-      advancePayment: 0,
-      discountType: "amount",
-      discountValue: 0,
-      roomVariant: prefilledRoom?.variantId || "",
-      roomNumber: prefilledRoom?.roomNo || "",
-    },
+    defaultValues: getDefaults(),
   });
 
   const selectedVariantId = watch("roomVariant");
@@ -143,6 +169,11 @@ const CheckIn = () => {
     formData.append("status", "Normal");
     formData.append("hotelEmail", user.email);
 
+    // Link to reservation if coming from one
+    if (prefilledReservation?._id) {
+      formData.append("reservationId", prefilledReservation._id);
+    }
+
     try {
       const res = await axiosInstance.post("/check-in", formData, {
         headers: {
@@ -153,7 +184,9 @@ const CheckIn = () => {
       if (res.data.insertedId) {
         await Swal.fire({
           title: "Success!",
-          text: "Guest checked in successfully.",
+          text: prefilledReservation
+            ? "Guest checked in from reservation successfully."
+            : "Guest checked in successfully.",
           icon: "success",
           confirmButtonColor: "#9f1239",
         });
@@ -190,10 +223,24 @@ const CheckIn = () => {
             <p className="text-gray-500 ml-12">
               Manage guest check-ins, room assignments, and stay details.
             </p>
-            {prefilledRoom && (
+
+            {/* From Room Booking */}
+            {prefilledRoom && !prefilledReservation && (
               <p className="ml-12 mt-2 text-sm font-medium text-rose-600">
                 Booking → Room {prefilledRoom.roomNo} (
                 {prefilledRoom.variantName || prefilledRoom.baseRoomType})
+              </p>
+            )}
+
+            {/* From Reservation */}
+            {prefilledReservation && (
+              <p className="ml-12 mt-2 text-sm font-medium text-emerald-600">
+                From Reservation → Room{" "}
+                {prefilledReservation.room?.roomNo ||
+                  prefilledReservation.roomNo}{" "}
+                ({prefilledReservation.room?.variantName || "—"}) ·{" "}
+                {prefilledReservation.arrivingDate} →{" "}
+                {prefilledReservation.departureDate}
               </p>
             )}
           </div>
@@ -261,6 +308,10 @@ const CheckIn = () => {
               placeholder="017XXXXXXXX"
               {...register("contactNumber", {
                 required: "Contact number is required",
+                pattern: {
+                  value: /^\d{11}$/,
+                  message: "Contact number must be exactly 11 digits",
+                },
               })}
               className="bg-white input input-bordered w-full"
             />
@@ -298,10 +349,21 @@ const CheckIn = () => {
             </label>
             <input
               type="text"
-              placeholder="Enter National ID Number"
-              {...register("nidNumber")}
+              placeholder="Enter 10-digit National ID Number"
+              {...register("nidNumber", {
+                required: "NID number is required",
+                pattern: {
+                  value: /^\d{10}$/,
+                  message: "NID must be exactly 10 digits",
+                },
+              })}
               className="bg-white input input-bordered w-full"
             />
+            {errors.nidNumber && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.nidNumber.message}
+              </p>
+            )}
           </div>
 
           {/* NID Image */}
@@ -393,10 +455,22 @@ const CheckIn = () => {
                     : "Select room number"}
               </option>
               {rooms
-                .filter((room) => room.roomStatus === "Available")
+                .filter(
+                  (room) =>
+                    room.roomStatus === "Available" ||
+                    room.roomStatus === "Reserved" ||
+                    // Always show the prefilled room from reservation
+                    String(room.roomNo) ===
+                      String(
+                        prefilledReservation?.room?.roomNo ||
+                          prefilledRoom?.roomNo ||
+                          "",
+                      ),
+                )
                 .map((room) => (
                   <option key={room._id} value={room.roomNo}>
                     Room {room.roomNo}
+                    {room.roomStatus === "Reserved" ? " (Reserved)" : ""}
                   </option>
                 ))}
             </select>

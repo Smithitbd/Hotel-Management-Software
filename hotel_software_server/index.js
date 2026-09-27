@@ -760,9 +760,10 @@ async function run() {
         const checkOutDate = req.body.checkOutDate;
         const pricePerNight = Number(req.body.pricePerNight) || 0;
         const numberOfNights = Number(req.body.numberOfNights) || 0;
-        const discountType = req.body.discountType || "amount"; // "amount" | "percentage"
+        const discountType = req.body.discountType || "amount";
         const discountValue = Number(req.body.discountValue) || 0;
         const advancePayment = Number(req.body.advancePayment) || 0;
+        const reservationId = req.body.reservationId || null;
 
         // ---- Server-side discount calculation ----
         const subtotal = pricePerNight * numberOfNights;
@@ -778,13 +779,21 @@ async function run() {
         const totalAmount = Math.max(subtotal - discountAmount, 0);
         const dueAmount = Math.max(totalAmount - advancePayment, 0);
 
-        // Check existing Reservations
-        const reservationConflict = await reservationCollection.findOne({
+        // ---- Check existing Reservations ----
+        // Skip conflict if this check-in is for THAT reservation
+        const reservationQuery = {
           status: "Reserved",
           "room.roomNo": roomNumber,
           arrivingDate: { $lte: checkOutDate },
           departureDate: { $gte: checkInDate },
-        });
+        };
+
+        if (reservationId && ObjectId.isValid(reservationId)) {
+          reservationQuery._id = { $ne: new ObjectId(reservationId) };
+        }
+
+        const reservationConflict =
+          await reservationCollection.findOne(reservationQuery);
 
         if (reservationConflict) {
           return res.status(409).send({
@@ -792,7 +801,7 @@ async function run() {
           });
         }
 
-        // Check existing active Check-Ins
+        // ---- Check existing active Check-Ins ----
         const checkInConflict = await checkInCollection.findOne({
           roomNumber: roomNumber,
           status: { $ne: "Checked Out" },
@@ -806,6 +815,7 @@ async function run() {
           });
         }
 
+        // ---- Upload images ----
         const uploadDir = path.join(__dirname, "uploads", "check-in");
         if (!fs.existsSync(uploadDir)) {
           fs.mkdirSync(uploadDir, { recursive: true });
@@ -825,6 +835,7 @@ async function run() {
         await nidImage.mv(path.join(uploadDir, nidUniqueName));
         await personImage.mv(path.join(uploadDir, personUniqueName));
 
+        // ---- Build check-in document ----
         const checkInData = {
           hotelEmail: req.body.hotelEmail,
           guestName: req.body.guestName,
@@ -844,7 +855,7 @@ async function run() {
           numberOfNights,
           numberOfGuests: Number(req.body.numberOfGuests) || 0,
 
-          // Payment + Discount (server calculated)
+          // Payment + Discount
           subtotal,
           discountType,
           discountValue,
@@ -862,15 +873,31 @@ async function run() {
           transportOrders: [],
           transportTotalAmount: 0,
           roomChangeHistory: [],
+          reservationId: reservationId || null,
           createdAt: new Date(),
         };
 
         const result = await checkInCollection.insertOne(checkInData);
 
+        // ---- Mark room as Occupied ----
         await roomCollection.updateOne(
           { roomNo: roomNumber },
           { $set: { roomStatus: "Occupied" } },
         );
+
+        // ---- If came from a reservation → mark it Checked-In ----
+        if (reservationId && ObjectId.isValid(reservationId)) {
+          await reservationCollection.updateOne(
+            { _id: new ObjectId(reservationId) },
+            {
+              $set: {
+                status: "Checked-In",
+                checkedInAt: new Date(),
+                checkInId: result.insertedId,
+              },
+            },
+          );
+        }
 
         res.status(201).send(result);
       } catch (error) {
@@ -1627,6 +1654,7 @@ async function run() {
           email: req.body.email,
           phone: req.body.phone,
           password: hashedPassword,
+          binNumber: req.body.binNumber || "",
           logo: `/uploads/hotels/${uniqueName}`,
           status: "Pending",
           createdAt: new Date(),

@@ -118,8 +118,8 @@ const ReservationsHistory = () => {
                   <th className="font-semibold">Contact</th>
                   <th className="font-semibold">Room</th>
                   <th className="font-semibold">Room No</th>
-                  <th className="font-semibold">Arrival</th>
-                  <th className="font-semibold">Departure</th>
+                  <th className="font-semibold">Check In</th>
+                  <th className="font-semibold">Check Out</th>
                   <th className="font-semibold text-right">Price</th>
                   <th className="font-semibold text-center">Status</th>
                   <th className="font-semibold">Booked At</th>
@@ -225,7 +225,21 @@ const ReservationsHistory = () => {
 
                     {/* Action Column */}
                     <td>
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {reservation.status === "Reserved" && (
+                          <Link
+                            to="/dashboard/check_in_out/check_in"
+                            state={{ reservation }}
+                          >
+                            <button
+                              type="button"
+                              className="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white border-none gap-1"
+                            >
+                              Check In
+                            </button>
+                          </Link>
+                        )}
+
                         <button
                           type="button"
                           className="btn btn-sm bg-[#BF1E2E] text-white hover:bg-red-800 border-none gap-1"
