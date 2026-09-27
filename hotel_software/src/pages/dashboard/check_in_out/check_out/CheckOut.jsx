@@ -2,51 +2,96 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { MdCheckCircleOutline } from "react-icons/md";
-import { IoArrowBackCircleSharp } from "react-icons/io5";
 import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
+import { useState, useMemo } from "react";
 
 const CheckOut = () => {
   const axiosInstance = useAxios();
   const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
   const {
     data: checkIns = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["check-ins-for-checkout"],
+    queryKey: ["check-ins-for-checkout", user?.email],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
         params: {
           hotelEmail: user?.email,
         },
       });
-      // Only show guests who are still checked-in (not already checked-out)
       return res.data;
     },
+    enabled: !!user?.email,
   });
 
+  // Search by Name, NID, Contact, Room
+  const filteredGuests = useMemo(() => {
+    if (!searchTerm.trim()) return checkIns;
+
+    const term = searchTerm.toLowerCase().trim();
+
+    return checkIns.filter((guest) => {
+      const name = (guest.guestName || "").toLowerCase();
+      const nid = (guest.nidNumber || "").toLowerCase();
+      const contact = (guest.contactNumber || "").toLowerCase();
+      const room = String(guest.roomNumber || "").toLowerCase();
+
+      return (
+        name.includes(term) ||
+        nid.includes(term) ||
+        contact.includes(term) ||
+        room.includes(term)
+      );
+    });
+  }, [checkIns, searchTerm]);
+
+  // Format discount
+  const formatDiscount = (guest) => {
+    if (!guest.discountValue || guest.discountValue <= 0) {
+      return { type: "-", value: "-" };
+    }
+
+    if (guest.discountType === "percentage") {
+      return {
+        type: "Percentage",
+        value: `${guest.discountValue}%`,
+      };
+    }
+
+    return {
+      type: "Amount",
+      value: `৳${Number(guest.discountValue).toLocaleString()}`,
+    };
+  };
+
+  if (loading || isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto p-6">
+    <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-2xl p-6 md:p-8">
       {/* Header */}
-      <div className="flex justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-full bg-rose-900 flex items-center justify-center shadow-md">
+      <div className="flex flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
               <MdCheckCircleOutline className="text-xl text-white" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-rose-900">
-                Guest Checkout
-              </h1>
-              <p className="text-sm text-gray-500">
-                Select a guest to complete checkout process
-              </p>
-            </div>
+            <h1 className="text-lg font-bold text-rose-900">Guest Checkout</h1>
           </div>
+          <p className="text-gray-500">
+            Select a guest to complete the checkout process
+          </p>
         </div>
 
         <Link to="/dashboard/check_in_out">
@@ -59,108 +104,178 @@ const CheckOut = () => {
         </Link>
       </div>
 
-      {/* Table Card */}
-      <div className="bg-white shadow-lg rounded-2xl overflow-hidden">
-        <div className="bg-rose-900 text-white px-6 py-4">
-          <h2 className="text-lg font-bold">Currently Checked-In Guests</h2>
-          <p className="text-sm text-rose-100">
-            Click Checkout to review bill and complete the process
-          </p>
+      {/* Search + Total */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="form-control w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Search by Name, NID, Contact or Room..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input input-bordered w-full bg-white focus:outline-none focus:border-rose-900"
+          />
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <span className="loading loading-spinner loading-lg text-rose-900"></span>
-          </div>
-        ) : isError ? (
-          <div className="text-center py-20 text-red-500 font-medium">
-            Failed to load check-in data. Please try again.
-          </div>
-        ) : checkIns.length === 0 ? (
-          <div className="text-center py-20 text-gray-500">
-            No guests currently checked-in.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="table w-full">
-              <thead>
-                <tr className="bg-rose-50 text-rose-900 text-sm">
-                  <th className="font-semibold py-4">#</th>
-                  <th className="font-semibold">Guest Name</th>
-                  <th className="font-semibold">Room</th>
-                  <th className="font-semibold">Check-In</th>
-                  <th className="font-semibold">Check-Out</th>
-                  <th className="font-semibold">Nights</th>
-                  <th className="font-semibold text-right">Room Total</th>
-                  <th className="font-semibold text-right">Advance</th>
-                  <th className="font-semibold text-right">Due</th>
-                  <th className="font-semibold text-center">Action</th>
-                </tr>
-              </thead>
+        <span className="badge badge-lg bg-rose-100 text-rose-900 border-none">
+          Currently Checked-In: {filteredGuests.length}
+          {searchTerm && ` (of ${checkIns.length})`}
+        </span>
+      </div>
 
-              <tbody>
-                {checkIns.map((guest, index) => (
-                  <tr
-                    key={guest._id}
-                    className="hover:bg-rose-50/50 border-b border-gray-100"
-                  >
-                    <td className="font-medium text-gray-500">{index + 1}</td>
+      {searchTerm && (
+        <p className="text-sm text-gray-500 mb-4">
+          Showing {filteredGuests.length} result
+          {filteredGuests.length !== 1 ? "s" : ""} for "{searchTerm}"
+        </p>
+      )}
 
-                    <td className="font-medium">{guest.guestName}</td>
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="table table-zebra w-full">
+          <thead className="bg-rose-900 text-white">
+            <tr className="text-center">
+              <th>Image</th>
+              <th>Guest Name</th>
+              <th>NID</th>
+              <th>Contact</th>
+              <th>Room</th>
+              <th>Variant</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Nights</th>
+              <th>Guests</th>
+              <th>Discount Type</th>
+              <th>Discount Value</th>
+              <th>Subtotal</th>
+              <th>Total</th>
+              <th>Advance</th>
+              <th>Due</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {isError ? (
+              <tr>
+                <td colSpan="17" className="text-center py-10 text-red-500">
+                  Failed to load check-in data. Please try again.
+                </td>
+              </tr>
+            ) : filteredGuests.length === 0 ? (
+              <tr>
+                <td colSpan="17" className="text-center py-10 text-gray-500">
+                  {searchTerm
+                    ? "No guests found matching your search."
+                    : "No guests currently checked-in."}
+                </td>
+              </tr>
+            ) : (
+              filteredGuests.map((guest) => {
+                const discount = formatDiscount(guest);
+
+                return (
+                  <tr key={guest._id} className="hover text-center bg-white">
+                    {/* Image */}
+                    <td>
+                      <div className="flex justify-center">
+                        {guest.personImage ? (
+                          <img
+                            src={`${imageBaseUrl}${guest.personImage}`}
+                            alt={guest.guestName}
+                            className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                            onError={(e) => {
+                              e.target.src =
+                                "https://via.placeholder.com/48?text=N/A";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                            N/A
+                          </div>
+                        )}
+                      </div>
+                    </td>
 
                     <td>
-                      <span className="font-semibold">
-                        {guest.roomVariantName}
-                      </span>
-                      <br />
-                      <span className="text-xs text-gray-500">
-                        Room {guest.roomNumber}
-                      </span>
+                      <div className="font-semibold">{guest.guestName}</div>
+                      <div className="text-xs text-gray-500">
+                        {guest.designation || "-"}
+                      </div>
                     </td>
 
-                    <td className="text-sm">
-                      {guest.checkInDate}
-                      <br />
-                      <span className="text-xs text-gray-500">
-                        {guest.checkInTime}
-                      </span>
+                    <td>{guest.nidNumber || "-"}</td>
+
+                    <td>{guest.contactNumber || "-"}</td>
+
+                    <td className="font-semibold">Room {guest.roomNumber}</td>
+
+                    <td>{guest.roomVariantName || "-"}</td>
+
+                    <td>
+                      <div>
+                        {guest.checkInDate
+                          ? new Date(guest.checkInDate).toLocaleDateString()
+                          : "-"}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {guest.checkInTime || ""}
+                      </div>
                     </td>
 
-                    <td className="text-sm">{guest.checkOutDate}</td>
-
-                    <td className="text-sm text-center">
-                      {guest.numberOfNights}
+                    <td>
+                      {guest.checkOutDate
+                        ? new Date(guest.checkOutDate).toLocaleDateString()
+                        : "-"}
                     </td>
 
-                    <td className="text-right font-medium">
+                    <td>{guest.numberOfNights || 0}</td>
+
+                    <td>{guest.numberOfGuests || 1}</td>
+
+                    {/* Discount Type */}
+                    <td className="font-medium text-sm">{discount.type}</td>
+
+                    {/* Discount Value */}
+                    <td className="font-medium text-green-700">
+                      {discount.value}
+                    </td>
+
+                    <td className="font-medium">
+                      ৳
+                      {Number(
+                        guest.subtotal || guest.totalAmount || 0,
+                      ).toLocaleString()}
+                    </td>
+
+                    <td className="font-medium">
                       ৳{Number(guest.totalAmount || 0).toLocaleString()}
                     </td>
 
-                    <td className="text-right text-green-600 font-medium">
+                    <td className="text-green-600 font-medium">
                       ৳{Number(guest.advancePayment || 0).toLocaleString()}
                     </td>
 
-                    <td className="text-right font-bold text-rose-900">
+                    <td className="text-orange-600 font-bold">
                       ৳{Number(guest.dueAmount || 0).toLocaleString()}
                     </td>
 
-                    {/* Action - Checkout Button */}
-                    <td className="text-center">
+                    {/* Action */}
+                    <td>
                       <Link
                         to={`/dashboard/check_in_out/check_out/${guest._id}`}
                       >
-                        <button className="btn btn-sm bg-rose-900 hover:bg-rose-900 text-white border-none gap-1">
+                        <button className="btn btn-sm bg-rose-900 hover:bg-rose-800 text-white border-none gap-1">
                           <MdCheckCircleOutline />
                           Checkout
                         </button>
                       </Link>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
