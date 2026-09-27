@@ -156,24 +156,15 @@ const GuestHistory = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
           <h1 className="text-xl font-bold text-rose-900">Guest Invoices</h1>
 
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => window.print()}
-              className="btn bg-rose-900 hover:bg-rose-800 text-white border-none gap-2"
-            >
-              <FaPrint /> Print Both Invoices
-            </button>
-
-            <button
-              onClick={() => {
-                setShowInvoice(false);
-                setSelectedCheckout(null);
-              }}
-              className="btn btn-outline border-rose-900 text-rose-900 gap-2"
-            >
-              <FaArrowLeft /> Back to Guest List
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              setShowInvoice(false);
+              setSelectedCheckout(null);
+            }}
+            className="btn btn-outline border-rose-900 text-rose-900 gap-2"
+          >
+            <FaArrowLeft /> Back to Guest List
+          </button>
         </div>
 
         <div className="print-area">

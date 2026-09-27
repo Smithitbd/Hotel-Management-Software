@@ -98,7 +98,19 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
   const amountInWords = numberToWords(Math.round(final)) + " Taka Only";
 
   const handlePrint = () => {
+    // Mark which invoice we want to print
+    document.body.classList.add(`print-${variant}`);
+
+    const cleanup = () => {
+      document.body.classList.remove(`print-${variant}`);
+      window.removeEventListener("afterprint", cleanup);
+    };
+
+    window.addEventListener("afterprint", cleanup);
     window.print();
+
+    // Fallback cleanup (in case afterprint doesn't fire)
+    setTimeout(cleanup, 1000);
   };
 
   const formatMoney = (value) =>
@@ -108,8 +120,8 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
     });
 
   return (
-    <div className="bg-white invoice-page">
-      {/* Print styles for A4 + footer at bottom */}
+    <div className={`bg-white invoice-page ${variant}-invoice`}>
+      {/* Print styles */}
       <style>{`
         @media print {
           @page {
@@ -121,11 +133,18 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
+
+          /* Hide the invoice that is NOT being printed */
+          body.print-guest .hotel-invoice,
+          body.print-hotel .guest-invoice {
+            display: none !important;
+          }
+
           .invoice-page {
             width: 100%;
           }
           .invoice-container {
-            min-height: calc(297mm - 24mm); /* A4 height minus top+bottom margins */
+            min-height: calc(297mm - 24mm);
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
@@ -155,7 +174,6 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
 
       {/* ===================== INVOICE ===================== */}
       <div className="invoice-container border border-gray-400 p-4 sm:p-5 max-w-4xl mx-auto text-xs text-gray-800 leading-tight">
-        {/* Everything above the thank-you / generated footer */}
         <div className="invoice-body">
           {/* Header */}
           <div className="text-center mb-3">
@@ -163,7 +181,6 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
               {hotelInfo?.hotelName || "YOUR HOTEL NAME"}
             </h1>
 
-            {/* Hotel Location */}
             {hotelInfo?.address && (
               <p className="text-[11px] text-gray-700 mt-0.5 font-medium">
                 {hotelInfo.address}
@@ -183,7 +200,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
 
           {/* Title */}
           <h2 className="text-center text-sm font-bold underline tracking-wider mb-1">
-            {isHotelCopy ? "HOTEL COPY – GUEST INVOICE" : "GUEST INVOICE"}
+            {isHotelCopy ? "HOTEL INVOICE    " : "GUEST INVOICE"}
           </h2>
 
           {isHotelCopy && (
@@ -324,7 +341,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
                   </td>
                 </tr>
 
-                {/* Restaurant Items - SHOW ALL */}
+                {/* Restaurant Items */}
                 {restaurantOrders.map((order, idx) =>
                   (order.foodItems || []).map((item, i) => (
                     <tr key={`rest-${idx}-${i}`}>
@@ -353,7 +370,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
                   )),
                 )}
 
-                {/* Laundry Items - SHOW ALL */}
+                {/* Laundry Items */}
                 {laundryOrders.map((order, idx) =>
                   (order.clothItems || []).map((item, i) => (
                     <tr key={`lnd-${idx}-${i}`}>
@@ -383,7 +400,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
                   )),
                 )}
 
-                {/* Transport - SHOW ALL */}
+                {/* Transport */}
                 {transportOrders.map((order, idx) => (
                   <tr key={`trn-${idx}`}>
                     <td className="border border-gray-400 px-1.5 py-1">
@@ -467,7 +484,7 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
             <strong>Taka In Word :</strong> {amountInWords}
           </p>
 
-          {/* PAID Stamp - only when fully paid */}
+          {/* PAID Stamp */}
           {final === 0 && (
             <div className="text-center my-3 paid-stamp">
               <span className="inline-block border-4 border-blue-600 text-blue-600 text-2xl font-bold px-6 py-0.5 -rotate-6 tracking-widest">
@@ -475,24 +492,32 @@ const CheckoutInvoice = ({ checkoutData, hotelInfo, variant = "guest" }) => {
               </span>
             </div>
           )}
+        </div>
 
-          {/* Signatures */}
-          <div className="flex justify-between mt-8 signature-area text-xs">
-            <div className="text-center w-36">
+        {/* Footer */}
+        <div className="invoice-footer">
+          {/* Signatures – just above Thank You */}
+          <div className="flex justify-between mt-6 mb-6 signature-area text-xs">
+            <div className="text-center w-40">
+              <div className="h-8" /> {/* space for handwritten signature */}
               <div className="border-t border-gray-700 pt-1">
                 Authorized Signature
               </div>
             </div>
-            <div className="text-center w-36">
+
+            <div className="text-center w-40">
+              {/* Pre-filled guest name */}
+              <div className="h-8 flex items-end justify-center pb-0.5">
+                <span className="font-semibold text-[11px] tracking-wide">
+                  {guestName?.toUpperCase() || "GUEST"}
+                </span>
+              </div>
               <div className="border-t border-gray-700 pt-1">
                 Guest Signature
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ===== Footer that sticks to bottom of A4 ===== */}
-        <div className="invoice-footer">
           <p className="text-center font-semibold text-sm mb-2">
             Thank You For Staying With Us
           </p>
