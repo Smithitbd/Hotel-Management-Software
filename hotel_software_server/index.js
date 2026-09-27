@@ -755,6 +755,7 @@ async function run() {
             .json({ message: "Only image files are allowed" });
         }
 
+        const hotelEmail = req.body.hotelEmail;
         const roomNumber = String(req.body.roomNumber);
         const checkInDate = req.body.checkInDate;
         const checkOutDate = req.body.checkOutDate;
@@ -764,6 +765,10 @@ async function run() {
         const discountValue = Number(req.body.discountValue) || 0;
         const advancePayment = Number(req.body.advancePayment) || 0;
         const reservationId = req.body.reservationId || null;
+
+        if (!hotelEmail) {
+          return res.status(400).json({ message: "hotelEmail is required" });
+        }
 
         // ---- Server-side discount calculation ----
         const subtotal = pricePerNight * numberOfNights;
@@ -779,15 +784,16 @@ async function run() {
         const totalAmount = Math.max(subtotal - discountAmount, 0);
         const dueAmount = Math.max(totalAmount - advancePayment, 0);
 
-        // ---- Check existing Reservations ----
-        // Skip conflict if this check-in is for THAT reservation
+        // ---- Check existing Reservations (same hotel only) ----
         const reservationQuery = {
+          hotelEmail,
           status: "Reserved",
           "room.roomNo": roomNumber,
           arrivingDate: { $lte: checkOutDate },
           departureDate: { $gte: checkInDate },
         };
 
+        // Skip conflict if this check-in is for THAT reservation
         if (reservationId && ObjectId.isValid(reservationId)) {
           reservationQuery._id = { $ne: new ObjectId(reservationId) };
         }
@@ -801,8 +807,9 @@ async function run() {
           });
         }
 
-        // ---- Check existing active Check-Ins ----
+        // ---- Check existing active Check-Ins (same hotel only) ----
         const checkInConflict = await checkInCollection.findOne({
+          hotelEmail,
           roomNumber: roomNumber,
           status: { $ne: "Checked Out" },
           checkInDate: { $lte: checkOutDate },
@@ -837,7 +844,7 @@ async function run() {
 
         // ---- Build check-in document ----
         const checkInData = {
-          hotelEmail: req.body.hotelEmail,
+          hotelEmail,
           guestName: req.body.guestName,
           guestAddress: req.body.guestAddress,
           contactNumber: req.body.contactNumber,
@@ -879,9 +886,9 @@ async function run() {
 
         const result = await checkInCollection.insertOne(checkInData);
 
-        // ---- Mark room as Occupied ----
+        // ---- Mark room as Occupied (same hotel only) ----
         await roomCollection.updateOne(
-          { roomNo: roomNumber },
+          { roomNo: roomNumber, hotelEmail },
           { $set: { roomStatus: "Occupied" } },
         );
 
