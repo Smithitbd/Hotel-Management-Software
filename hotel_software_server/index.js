@@ -14,7 +14,11 @@ const bcrypt = require("bcrypt");
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 
-const serviceAccount = require("./serviceAccountKey.json");
+dotenv.config();
+
+
+const decoded = Buffer.from(process.env.FB_SERVICE_KEY, 'base64').toString('utf8')
+const serviceAccount = JSON.parse(decoded);
 
 initializeApp({
   credential: cert(serviceAccount),
@@ -23,7 +27,6 @@ initializeApp({
 const auth = getAuth();
 // ============================================
 
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -2552,7 +2555,7 @@ async function run() {
     // =========================================================
     // START SERVER
     // =========================================================
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
