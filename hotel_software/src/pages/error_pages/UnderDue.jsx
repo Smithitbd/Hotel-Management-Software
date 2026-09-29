@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { AlertCircle, Clock, CreditCard, LogOut } from "lucide-react";
+import { AlertCircle, Clock, CreditCard, LogOut, QrCode } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import useAuth from "../../hooks/useAuth";
+import QR_IMAGE from "../../assets/qr.jpeg";
 
 const UnderDue = () => {
   const { logOut } = useAuth();
@@ -100,24 +101,20 @@ const UnderDue = () => {
                   <CreditCard size={42} strokeWidth={1.75} />
                 </div>
 
-                {/* Small badge */}
                 <div className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-gray-100">
                   <Clock size={18} className="text-red-500" />
                 </div>
               </motion.div>
 
-              {/* Title */}
               <h2 className="text-2xl font-bold text-gray-900">
                 No Overdue Members
               </h2>
 
-              {/* Description */}
               <p className="mt-3 max-w-md text-[15px] leading-relaxed text-gray-500">
                 Members who have unpaid monthly bills will appear here.
                 Currently everything looks clear.
               </p>
 
-              {/* Status Badge */}
               <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 ring-1 ring-emerald-200/70">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -126,7 +123,30 @@ const UnderDue = () => {
                 All payments up to date
               </div>
 
-              {/* Extra note */}
+              {/* ========== QR CODE SECTION ========== */}
+              <div className="mt-10 w-full max-w-xs">
+                <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-5 shadow-sm">
+                  <div className="mb-3 flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
+                    <QrCode size={18} className="text-red-500" />
+                    <span>Scan to Pay</span>
+                  </div>
+
+                  <div className="overflow-hidden rounded-xl bg-white p-3 ring-1 ring-gray-200">
+                    <img
+                      src={QR_IMAGE}
+                      alt="Smith IT Payment QR Code - Scan with any banking app"
+                      className="mx-auto h-auto w-full max-w-[220px]"
+                      loading="lazy"
+                    />
+                  </div>
+
+                  <p className="mt-3 text-xs text-gray-500">
+                    Open your banking app → Scan QR → Pay monthly dues
+                  </p>
+                </div>
+              </div>
+              {/* ========== END QR CODE ========== */}
+
               <p className="mt-8 max-w-sm text-xs leading-5 text-gray-400">
                 When a member misses a monthly payment, their details will show
                 up in this section automatically.
@@ -134,20 +154,17 @@ const UnderDue = () => {
             </div>
           </motion.div>
 
-          {/* Footer tip */}
           <p className="mt-6 text-center text-xs text-gray-400">
             Stay on top of dues to keep everything running smoothly.
           </p>
         </motion.div>
       </div>
 
-      {/* ================= FOOTER ================= */}
+      {/* Footer */}
       <footer className="px-6 py-5 mt-auto border-t border-gray-200 bg-white">
         <div className="flex flex-col items-center gap-3">
-          {/* Smith IT Logo */}
           <div className="flex items-center gap-1.5"></div>
 
-          {/* Copyright text */}
           <p className="text-xs text-gray-500 text-center">
             © All Rights Reserved. Obokash is a product of{" "}
             <Link
