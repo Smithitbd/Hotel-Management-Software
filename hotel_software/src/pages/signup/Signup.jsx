@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
+import imageCompression from "browser-image-compression"; // ← add this
 import useAxios from "../../hooks/useAxios";
 import useAuth from "../../hooks/useAuth";
 import smithLogo from "../../assets/logo_smith.png";
@@ -10,6 +11,7 @@ const Signup = () => {
   const axiosInstance = useAxios();
   const [logoPreview, setLogoPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false); // optional loading state
   const { createUser, updateUserProfile } = useAuth();
 
   const {
@@ -17,16 +19,67 @@ const Signup = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
+    setValue, // needed to update the file input value
   } = useForm();
 
+  // ====================== COMPRESSOR ======================
   const handleLogoChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoPreview(URL.createObjectURL(file));
-    } else {
+    const file = e.target.files?.[0];
+    if (!file) {
       setLogoPreview(null);
+      return;
+    }
+
+    // Only compress images
+    if (!file.type.startsWith("image/")) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid file",
+        text: "Please select an image file.",
+        confirmButtonColor: "#0d9488",
+      });
+      return;
+    }
+
+    try {
+      setIsCompressing(true);
+
+      // Compression options
+      const options = {
+        maxSizeMB: 0.5, // max size after compression (0.5 MB)
+        maxWidthOrHeight: 800, // max width/height
+        useWebWorker: true, // better performance
+        fileType: "image/jpeg", // convert to jpeg for better compression
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      // Create a new File object with a proper name
+      const compressedFileWithName = new File(
+        [compressedFile],
+        file.name.replace(/\.[^/.]+$/, "") + ".jpg", // force .jpg extension
+        { type: "image/jpeg" },
+      );
+
+      // Update react-hook-form value
+      setValue("logo", [compressedFileWithName], { shouldValidate: true });
+
+      // Show preview
+      setLogoPreview(URL.createObjectURL(compressedFileWithName));
+    } catch (error) {
+      console.error("Compression error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Compression Failed",
+        text: "Could not compress the image. Please try another one.",
+        confirmButtonColor: "#0d9488",
+      });
+      setLogoPreview(null);
+    } finally {
+      setIsCompressing(false);
     }
   };
+  // ========================================================
 
   const onSubmit = async (data) => {
     try {
@@ -50,7 +103,7 @@ const Signup = () => {
       formData.append("binNumber", data.binNumber || "");
 
       if (data.logo?.[0]) {
-        formData.append("logo", data.logo[0]);
+        formData.append("logo", data.logo[0]); // this will now be the compressed file
       }
 
       // 4. Send to /hotels
@@ -225,7 +278,8 @@ const Signup = () => {
                   required: "Hotel logo is required",
                 })}
                 onChange={handleLogoChange}
-                className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg cursor-pointer"
+                disabled={isCompressing}
+                className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 border border-gray-300 rounded-lg cursor-pointer disabled:opacity-60"
               />
               {errors.logo && (
                 <p className="text-red-500 text-xs mt-1">
@@ -233,7 +287,14 @@ const Signup = () => {
                 </p>
               )}
 
-              {logoPreview && (
+              {isCompressing && (
+                <p className="text-xs text-teal-600 mt-1.5 flex items-center gap-1.5">
+                  <span className="loading loading-spinner loading-xs"></span>
+                  Compressing image...
+                </p>
+              )}
+
+              {logoPreview && !isCompressing && (
                 <div className="mt-2">
                   <img
                     src={logoPreview}
@@ -391,7 +452,7 @@ const Signup = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isCompressing}
           className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
