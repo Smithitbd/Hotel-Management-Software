@@ -22,6 +22,7 @@
     "aos": "^2.3.4",
     "apexcharts": "^7.1.0",
     "axios": "^1.19.0",
+    "browser-image-compression": "^2.0.2",
     "express-fileupload": "^1.5.2",
     "firebase": "^12.18.0",
     "framer-motion": "^13.2.0",

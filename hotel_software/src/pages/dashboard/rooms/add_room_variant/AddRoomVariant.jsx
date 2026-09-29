@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import useAxios from "../../../../hooks/useAxios";
 import { RiHome3Line } from "react-icons/ri";
 import useAuth from "../../../../hooks/useAuth";
+import imageCompression from "browser-image-compression";
 
 const AddRoomVariant = () => {
   const axiosInstance = useAxios();
@@ -33,6 +34,32 @@ const AddRoomVariant = () => {
     },
   });
 
+  // Compress image before upload
+  const compressImage = async (file) => {
+    // Skip compression for already-small files (< 500 KB)
+    if (file.size < 500 * 1024) return file;
+
+    const options = {
+      maxSizeMB: 0.8, // target ≈ 800 KB
+      maxWidthOrHeight: 1920, // keep good quality for room photos
+      useWebWorker: true, // faster, non-blocking
+      fileType: "image/jpeg", // force JPEG (smaller than PNG)
+      initialQuality: 0.8,
+    };
+
+    try {
+      const compressed = await imageCompression(file, options);
+      // Preserve a proper filename with .jpg extension
+      return new File([compressed], file.name.replace(/\.[^.]+$/, ".jpg"), {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+    } catch (err) {
+      console.error("Compression failed, using original:", err);
+      return file; // fallback – never break the upload
+    }
+  };
+
   const onSubmit = async (data) => {
     const imageFile = data.image?.[0];
 
@@ -46,8 +73,21 @@ const AddRoomVariant = () => {
       return;
     }
 
+    // Show loading while compressing
+    Swal.fire({
+      title: "Preparing image…",
+      text: "Compressing for faster upload",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    // Compress before creating FormData
+    const compressedFile = await compressImage(imageFile);
+
+    Swal.close();
+
     const formData = new FormData();
-    formData.append("image", imageFile);
+    formData.append("image", compressedFile);
     formData.append("variantName", data.variantName);
     formData.append("baseRoomType", data.baseRoomType);
     formData.append("price", data.price);
@@ -57,22 +97,34 @@ const AddRoomVariant = () => {
     formData.append("description", data.description || "");
     formData.append("hotelEmail", user.email);
 
-    const res = await axiosInstance.post("/add-room-variant", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    if (res.data.insertedId) {
-      await Swal.fire({
-        title: "Success!",
-        text: "Room variant added successfully.",
-        icon: "success",
-        confirmButtonColor: "#9f1239",
+    try {
+      const res = await axiosInstance.post("/add-room-variant", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      reset();
-      navigate("/dashboard/rooms");
+      if (res.data.insertedId) {
+        await Swal.fire({
+          title: "Success!",
+          text: "Room variant added successfully.",
+          icon: "success",
+          confirmButtonColor: "#9f1239",
+        });
+
+        reset();
+        navigate("/dashboard/rooms");
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        title: "Upload failed",
+        text:
+          error.response?.data?.message ||
+          "Something went wrong. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#9f1239",
+      });
     }
   };
 
@@ -249,7 +301,7 @@ const AddRoomVariant = () => {
               type="text"
               placeholder="e.g. WiFi, AC, Mini Bar, Balcony"
               {...register("amenities")}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-900 focus:border-transparent"
             />
           </div>
 
@@ -279,7 +331,7 @@ const AddRoomVariant = () => {
 
             <button
               type="submit"
-              className="flex items-center gap-2 px-6 py-2.5 bg-rose-900 hover:bg-rose-900 text-white rounded-lg transition-colors border-none"
+              className="flex items-center gap-2 px-6 py-2.5 bg-rose-900 hover:bg-rose-800 text-white rounded-lg transition-colors border-none"
             >
               <FaSave className="text-sm" />
               Save Variant

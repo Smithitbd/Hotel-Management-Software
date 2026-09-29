@@ -6,6 +6,7 @@ import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
 import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
+import imageCompression from "browser-image-compression";
 
 const CheckIn = () => {
   const axiosInstance = useAxios();
@@ -120,6 +121,31 @@ const CheckIn = () => {
   const advance = Number(advancePayment) || 0;
   const dueAmount = Math.max(totalAmount - advance, 0);
 
+  // Compress image before upload
+  const compressImage = async (file) => {
+    // Skip compression for already-small files (< 400 KB)
+    if (file.size < 400 * 1024) return file;
+
+    const options = {
+      maxSizeMB: 0.6, // target ≈ 600 KB (good for NID / person photos)
+      maxWidthOrHeight: 1600,
+      useWebWorker: true,
+      fileType: "image/jpeg",
+      initialQuality: 0.8,
+    };
+
+    try {
+      const compressed = await imageCompression(file, options);
+      return new File([compressed], file.name.replace(/\.[^.]+$/, ".jpg"), {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+    } catch (err) {
+      console.error("Compression failed, using original:", err);
+      return file; // fallback – never break the upload
+    }
+  };
+
   const onSubmit = async (data) => {
     const nidImageFile = data.nidImage?.[0];
     const personImageFile = data.personImage?.[0];
@@ -134,6 +160,22 @@ const CheckIn = () => {
       return;
     }
 
+    // Show loading while compressing
+    Swal.fire({
+      title: "Preparing images…",
+      text: "Compressing for faster upload",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    // Compress both images in parallel
+    const [compressedNid, compressedPerson] = await Promise.all([
+      compressImage(nidImageFile),
+      compressImage(personImageFile),
+    ]);
+
+    Swal.close();
+
     const formData = new FormData();
 
     // Guest Info
@@ -143,9 +185,9 @@ const CheckIn = () => {
     formData.append("designation", data.designation);
     formData.append("nidNumber", data.nidNumber || "");
 
-    // Images
-    formData.append("nidImage", nidImageFile);
-    formData.append("personImage", personImageFile);
+    // Images (compressed)
+    formData.append("nidImage", compressedNid);
+    formData.append("personImage", compressedPerson);
 
     // Room Info
     formData.append("roomVariantId", data.roomVariant);
