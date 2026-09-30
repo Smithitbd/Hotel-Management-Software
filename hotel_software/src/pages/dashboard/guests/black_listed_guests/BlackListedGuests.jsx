@@ -3,12 +3,12 @@ import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { RiHome3Line } from "react-icons/ri";
 import { MdBlock } from "react-icons/md";
-import useAuth from "../../../../hooks/useAuth";
 import { useState, useMemo } from "react";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const BlackListedGuests = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
+  const { hotelEmail, statusLoading } = useUserStatus(); // ← changed
   const [searchTerm, setSearchTerm] = useState("");
 
   const {
@@ -17,16 +17,14 @@ const BlackListedGuests = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["banned-guests", user?.email],
+    queryKey: ["banned-guests", hotelEmail], // ← changed
     queryFn: async () => {
       const res = await axiosInstance.get("/banned-guests", {
-        params: {
-          hotelEmail: user?.email,
-        },
+        params: { hotelEmail }, // ← changed
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail, // ← changed
   });
 
   // Search filter: Name, NID, Contact Number, Address, Designation
@@ -54,10 +52,24 @@ const BlackListedGuests = () => {
     });
   }, [bannedGuests, searchTerm]);
 
-  if (loading || isLoading) {
+  if (statusLoading || isLoading) {
+    // ← changed
     return (
       <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    // ← added
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
       </div>
     );
   }

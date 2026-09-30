@@ -4,17 +4,18 @@ import useAxios from "../../../../hooks/useAxios";
 import { MdOutlinePlaylistAddCheckCircle } from "react-icons/md";
 import { FaUserEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
-import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
 import { useState, useMemo } from "react";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const PresentGuestList = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
+  const { hotelEmail, statusLoading } = useUserStatus();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Change this if your backend runs on a different URL
-  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const imageBaseUrl = (
+    import.meta.env.VITE_API_URL || "http://localhost:3000"
+  ).replace(/\/$/, "");
 
   const {
     data: checkIns = [],
@@ -23,16 +24,14 @@ const PresentGuestList = () => {
     refetch,
     error,
   } = useQuery({
-    queryKey: ["check-ins", user?.email],
+    queryKey: ["check-ins", hotelEmail], // ← changed
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
-        params: {
-          hotelEmail: user?.email,
-        },
+        params: { hotelEmail }, // ← changed
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail, // ← changed
   });
 
   // Search filter: Name, NID, Contact Number, Room Number
@@ -80,7 +79,6 @@ const PresentGuestList = () => {
         contactNumber: checkIn.contactNumber,
       };
 
-      // Check whether NID already exists
       const checkNid = await axiosInstance.get(
         `/banned-guests/check/${checkIn.nidNumber}`,
       );
@@ -109,7 +107,6 @@ const PresentGuestList = () => {
     }
   };
 
-  // Format discount display
   const formatDiscount = (guest) => {
     if (!guest.discountValue || guest.discountValue <= 0) {
       return { type: "-", value: "-" };
@@ -128,10 +125,34 @@ const PresentGuestList = () => {
     };
   };
 
-  if (loading || isLoading) {
+  // Better image URL helper (same as CheckOut page)
+  const getImageUrl = (path) => {
+    if (!path || typeof path !== "string") return null;
+    const trimmed = path.trim();
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    return `${imageBaseUrl}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
+  };
+
+  if (statusLoading || isLoading) {
+    // ← changed
     return (
       <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    // ← added
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
       </div>
     );
   }
@@ -229,19 +250,21 @@ const PresentGuestList = () => {
             ) : (
               filteredGuests.map((checkIn) => {
                 const discount = formatDiscount(checkIn);
+                const imageUrl = getImageUrl(checkIn.personImage);
 
                 return (
                   <tr key={checkIn._id} className="hover text-center bg-white">
                     {/* Guest Image */}
                     <td>
                       <div className="flex justify-center">
-                        {checkIn.personImage ? (
+                        {imageUrl ? (
                           <img
-                            src={`${imageBaseUrl}${checkIn.personImage}`}
+                            src={imageUrl}
                             alt={checkIn.guestName}
                             className="w-12 h-12 rounded-full object-cover border border-gray-200"
                             onError={(e) => {
-                              e.target.src =
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src =
                                 "https://via.placeholder.com/48?text=N/A";
                             }}
                           />
@@ -260,13 +283,9 @@ const PresentGuestList = () => {
                       </div>
                     </td>
 
-                    {/* NID Number */}
                     <td>{checkIn.nidNumber || "-"}</td>
-
                     <td>{checkIn.contactNumber || "-"}</td>
-
                     <td className="font-semibold">Room {checkIn.roomNumber}</td>
-
                     <td>{checkIn.roomVariantName || "-"}</td>
 
                     <td>
@@ -287,13 +306,8 @@ const PresentGuestList = () => {
                     </td>
 
                     <td>{checkIn.numberOfNights || 0}</td>
-
                     <td>{checkIn.numberOfGuests || 1}</td>
-
-                    {/* Discount Type */}
                     <td className="font-medium text-sm">{discount.type}</td>
-
-                    {/* Discount Value */}
                     <td className="font-medium text-green-700">
                       {discount.value}
                     </td>
@@ -301,11 +315,9 @@ const PresentGuestList = () => {
                     <td className="font-medium">
                       ৳{Number(checkIn.totalAmount || 0).toLocaleString()}
                     </td>
-
                     <td className="text-green-600 font-medium">
                       ৳{Number(checkIn.advancePayment || 0).toLocaleString()}
                     </td>
-
                     <td className="text-orange-600 font-medium">
                       ৳{Number(checkIn.dueAmount || 0).toLocaleString()}
                     </td>

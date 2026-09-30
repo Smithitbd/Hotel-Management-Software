@@ -4,27 +4,26 @@ import { Link } from "react-router";
 import useAxios from "../../../hooks/useAxios";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import Swal from "sweetalert2";
-import useAuth from "../../../hooks/useAuth";
+import useUserStatus from "../../../hooks/useUserStatus";
 
 const ReservationsHistory = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus(); // ← changed
+
   const {
     data: reservations = [],
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["reservations-history"],
+    queryKey: ["reservations-history", hotelEmail], // ← changed
     queryFn: async () => {
       const res = await axiosInstance.get("/reservations", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail }, // ← changed
       });
       return res.data;
     },
+    enabled: !!hotelEmail, // ← added
   });
 
   const handleDelete = async (id, guestName) => {
@@ -60,6 +59,28 @@ const ReservationsHistory = () => {
       });
     }
   };
+
+  if (statusLoading) {
+    // ← changed
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    // ← added
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">

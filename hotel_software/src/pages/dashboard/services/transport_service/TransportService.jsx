@@ -6,15 +6,12 @@ import { Link, useNavigate } from "react-router";
 import Swal from "sweetalert2";
 import useAxios from "../../../../hooks/useAxios";
 import { MdWorkHistory } from "react-icons/md";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const TransportService = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const {
     register,
@@ -27,15 +24,16 @@ const TransportService = () => {
 
   // Get current check-in guests
   const { data: checkIns = [], isLoading } = useQuery({
-    queryKey: ["check-ins"],
+    queryKey: ["check-ins", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
         params: {
-          hotelEmail: user.email,
+          hotelEmail,
         },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
   // Find selected guest/room
@@ -59,7 +57,7 @@ const TransportService = () => {
       checkinId: selectedCheckIn._id,
       guestName: selectedCheckIn.guestName || "",
       contactNumber: selectedCheckIn.contactNumber || "",
-      hotelEmail: user.email,
+      hotelEmail,
     };
 
     try {
@@ -83,6 +81,26 @@ const TransportService = () => {
       });
     }
   };
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">

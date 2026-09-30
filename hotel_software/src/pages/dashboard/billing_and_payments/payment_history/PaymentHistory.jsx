@@ -2,32 +2,41 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import { FaEye, FaPhone, FaIdCard, FaCalendarAlt } from "react-icons/fa";
 import { MdCheckCircleOutline } from "react-icons/md";
-import { IoArrowBackCircleSharp } from "react-icons/io5";
 import useAxios from "../../../../hooks/useAxios";
-import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const PaymentHistory = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const { data: checkouts = [], isLoading } = useQuery({
-    queryKey: ["checkout-list"],
+    queryKey: ["checkout-list", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-out", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
-  if (isLoading) {
+  if (statusLoading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
       </div>
     );
   }
@@ -62,7 +71,6 @@ const PaymentHistory = () => {
       <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="table w-full">
-            {/* head */}
             <thead className="bg-rose-50 text-rose-900">
               <tr>
                 <th className="font-semibold">Guest</th>

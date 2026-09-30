@@ -4,14 +4,12 @@ import { MdPayments, MdSearch } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const AllGuestDues = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
+
   const { register, watch } = useForm({
     defaultValues: {
       searchRoom: "",
@@ -21,13 +19,14 @@ const AllGuestDues = () => {
   const searchRoom = watch("searchRoom");
 
   const { data: duesList = [], isLoading } = useQuery({
-    queryKey: ["all-dues"],
+    queryKey: ["all-dues", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in/all-dues", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
   // Filter by room number
@@ -43,6 +42,26 @@ const AllGuestDues = () => {
     (sum, item) => sum + (item.totalDue || 0),
     0,
   );
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">

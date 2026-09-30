@@ -7,16 +7,12 @@ import { Link } from "react-router";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
 import { IoCaretBackOutline } from "react-icons/io5";
-import useAuth from "../../../../../hooks/useAuth";
+import useUserStatus from "../../../../../hooks/useUserStatus"; // adjust path if needed
 
 const FoodMenu = () => {
   const axiosInstance = useAxios();
   const queryClient = useQueryClient();
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const {
     register,
@@ -28,15 +24,16 @@ const FoodMenu = () => {
 
   // Get all food items
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ["food-menu"],
+    queryKey: ["food-menu", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/food-menu", {
         params: {
-          hotelEmail: user.email,
+          hotelEmail,
         },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
   const onSubmit = async (data) => {
@@ -44,11 +41,10 @@ const FoodMenu = () => {
       itemName: data.itemName,
       itemDescription: data.itemDescription || "",
       price: Number(data.price),
-      hotelEmail: user.email,
+      hotelEmail,
     };
 
     if (data.editId) {
-      // Update
       await axiosInstance.patch(`/food-menu/${data.editId}`, payload);
 
       Swal.fire({
@@ -58,7 +54,6 @@ const FoodMenu = () => {
         confirmButtonColor: "#9f1239",
       });
     } else {
-      // Add
       await axiosInstance.post("/food-menu", payload);
 
       Swal.fire({
@@ -103,6 +98,26 @@ const FoodMenu = () => {
       });
     }
   };
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">
@@ -197,7 +212,6 @@ const FoodMenu = () => {
           Add / Edit Food Item
         </h2>
 
-        {/* Hidden field for edit */}
         <input type="hidden" {...register("editId")} />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

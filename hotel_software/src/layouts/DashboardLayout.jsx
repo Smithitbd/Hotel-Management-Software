@@ -19,6 +19,11 @@ const DashboardLayout = () => {
     );
   }
 
+  if (status) {
+    console.log(status);
+    console.log(type);
+  }
+
   return (
     <div className="drawer lg:drawer-open min-h-screen bg-gray-100">
       <input id="dashboard-drawer" type="checkbox" className="drawer-toggle" />

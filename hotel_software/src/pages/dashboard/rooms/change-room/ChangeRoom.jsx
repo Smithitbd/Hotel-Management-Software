@@ -2,46 +2,45 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
-import { MdHotel, MdSwapHoriz } from "react-icons/md";
-import { IoArrowBackCircleSharp } from "react-icons/io5";
+import { MdSwapHoriz } from "react-icons/md";
+
 import { Link } from "react-router";
-import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const ChangeRoom = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
+
   const [selectedCheckInId, setSelectedCheckInId] = useState("");
   const [newRoomNumber, setNewRoomNumber] = useState("");
   const [daysStayed, setDaysStayed] = useState(0);
 
   // Get all active check-ins
   const { data: checkIns = [], isLoading: checkInsLoading } = useQuery({
-    queryKey: ["active-checkins"],
+    queryKey: ["active-checkins", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data.filter((item) => item.status !== "Checked Out");
     },
+    enabled: !!hotelEmail,
   });
 
   // Get available rooms
   const { data: rooms = [], isLoading: roomsLoading } = useQuery({
-    queryKey: ["all-rooms"],
+    queryKey: ["all-rooms", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/rooms", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data.filter((room) => room.roomStatus === "Available");
     },
+    enabled: !!hotelEmail,
   });
 
   const selectedCheckIn = checkIns.find((c) => c._id === selectedCheckInId);
-
   const selectedNewRoom = rooms.find((r) => r.roomNo === newRoomNumber);
 
   // Calculate days stayed so far
@@ -119,6 +118,26 @@ const ChangeRoom = () => {
       );
     }
   };
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">

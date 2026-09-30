@@ -3,31 +3,42 @@ import { useForm } from "react-hook-form";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router";
 import Swal from "sweetalert2";
-import {
-  FaArrowLeft,
-  FaLock,
-  FaEnvelope,
-  FaImage,
-  FaEye,
-  FaEyeSlash,
-} from "react-icons/fa";
+import imageCompression from "browser-image-compression";
+import { FaLock, FaImage, FaEye, FaEyeSlash } from "react-icons/fa";
 import { MdSecurity } from "react-icons/md";
 import useAuth from "../../../../hooks/useAuth";
 import useAxios from "../../../../hooks/useAxios";
-import useUserStatus from "../../../../hooks/useUserStatus"; // make sure this hook exists
+import useUserStatus from "../../../../hooks/useUserStatus";
 import { RiHome3Line } from "react-icons/ri";
 
+const getImageUrl = (path) => {
+  if (!path || typeof path !== "string") return null;
+
+  const trimmed = path.trim().replace(/\\/g, "/");
+
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+
+  const origin = (import.meta.env.VITE_API_URL || "http://localhost:3000")
+    .replace(/\/$/, "")
+    .replace(/\/api$/, "");
+
+  return `${origin}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
+};
+
 const Security = () => {
-  const { user, updateUserPassword, updateUserEmail } = useAuth();
-  const { type, hotelEmail } = useUserStatus(); // "owner" | "admin" | "sub-user"
+  const { user, updateUserPassword } = useAuth();
+  const { type, hotelEmail } = useUserStatus();
+
   const axiosInstance = useAxios();
   const queryClient = useQueryClient();
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
   const [selectedLogo, setSelectedLogo] = useState(null);
+  const [isCompressing, setIsCompressing] = useState(false);
 
-  // Get hotel data (only needed for owner/admin)
   const { data: hotel, isLoading: hotelLoading } = useQuery({
     queryKey: ["hotel-by-email", hotelEmail],
     queryFn: async () => {
@@ -39,7 +50,6 @@ const Security = () => {
     enabled: !!hotelEmail && (type === "owner" || type === "admin"),
   });
 
-  // Get sub-user data (only needed for sub-user)
   const { data: subUser, isLoading: subUserLoading } = useQuery({
     queryKey: ["sub-user", user?.email],
     queryFn: async () => {
@@ -51,7 +61,6 @@ const Security = () => {
     enabled: !!hotelEmail && type === "sub-user",
   });
 
-  // Password Form
   const {
     register: registerPassword,
     handleSubmit: handlePasswordSubmit,
@@ -59,18 +68,6 @@ const Security = () => {
     formState: { isSubmitting: isPasswordSubmitting, errors: passwordErrors },
   } = useForm();
 
-  // Email Form
-  const {
-    register: registerEmail,
-    handleSubmit: handleEmailSubmit,
-    formState: { isSubmitting: isEmailSubmitting },
-  } = useForm({
-    values: {
-      email: user?.email || "",
-    },
-  });
-
-  // ====================== UPDATE PASSWORD ======================
   const onPasswordSubmit = async (data) => {
     if (data.newPassword !== data.confirmPassword) {
       return Swal.fire({
@@ -89,16 +86,15 @@ const Security = () => {
     }
 
     try {
-      // Update Firebase password
       await updateUserPassword(data.newPassword);
 
-      // Also update in database if needed
       if (type === "owner" || type === "admin") {
-        await axiosInstance.patch(`/hotels/${hotel._id}`, {
-          passwordUpdatedAt: new Date(),
-        });
-      } else if (type === "sub-user") {
-        // Update password1 or password2
+        if (hotel?._id) {
+          await axiosInstance.patch(`/hotels/${hotel._id}`, {
+            passwordUpdatedAt: new Date(),
+          });
+        }
+      } else if (type === "sub-user" && subUser?._id) {
         const updateField =
           subUser.email1 === user.email
             ? { password1: data.newPassword }
@@ -120,6 +116,7 @@ const Security = () => {
       console.error(error);
 
       let message = "Failed to update password";
+
       if (error.code === "auth/requires-recent-login") {
         message =
           "Please logout and login again, then try changing your password.";
@@ -133,76 +130,12 @@ const Security = () => {
     }
   };
 
-  // ====================== UPDATE EMAIL ======================
-  const onEmailSubmit = async (data) => {
-    if (data.email === user.email) {
-      return Swal.fire({
-        icon: "info",
-        title: "No Change",
-        text: "This is already your current email",
-      });
-    }
-
-    try {
-      // 1. Update email in Firebase
-      await updateUserEmail(data.email);
-
-      // 2. Update in MongoDB
-      if (type === "owner" || type === "admin") {
-        // Owner → update hotel email
-        await axiosInstance.patch(`/hotels/${hotel._id}`, {
-          email: data.email,
-        });
-      } else if (type === "sub-user") {
-        // Sub-user → update email1 or email2 only
-        const updateField =
-          subUser.email1 === user.email
-            ? { email1: data.email }
-            : { email2: data.email };
-
-        await axiosInstance.patch(`/users/${subUser._id}`, updateField);
-      }
-
-      await queryClient.invalidateQueries();
-
-      Swal.fire({
-        icon: "success",
-        title: "Email Updated",
-        text: "Your email has been updated successfully",
-        timer: 2000,
-        showConfirmButton: false,
-      }).then(() => {
-        // Force logout after email change is safer
-        window.location.href = "/";
-      });
-    } catch (error) {
-      console.error(error);
-
-      let message = "Failed to update email";
-
-      if (error.code === "auth/requires-recent-login") {
-        message =
-          "For security reasons, please logout and login again, then try updating your email.";
-      } else if (error.code === "auth/email-already-in-use") {
-        message = "This email is already used by another account.";
-      } else if (error.code === "auth/invalid-email") {
-        message = "Please enter a valid email address.";
-      }
-
-      Swal.fire({
-        icon: "error",
-        title: "Update Failed",
-        text: message,
-      });
-    }
-  };
-
-  // ====================== UPDATE LOGO (Owner only) ======================
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
+  const handleLogoChange = async (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
+      e.target.value = "";
       return Swal.fire({
         icon: "error",
         title: "Invalid File",
@@ -210,8 +143,44 @@ const Security = () => {
       });
     }
 
-    setSelectedLogo(file);
-    setLogoPreview(URL.createObjectURL(file));
+    try {
+      setIsCompressing(true);
+
+      const options = {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+        fileType: "image/jpeg",
+      };
+
+      const compressedBlob = await imageCompression(file, options);
+
+      const compressedFile = new File(
+        [compressedBlob],
+        file.name.replace(/\.[^/.]+$/, "") + ".jpg",
+        { type: "image/jpeg" },
+      );
+
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview);
+      }
+
+      setSelectedLogo(compressedFile);
+      setLogoPreview(URL.createObjectURL(compressedFile));
+    } catch (error) {
+      console.error("Compression error:", error);
+      setSelectedLogo(null);
+      setLogoPreview(null);
+      e.target.value = "";
+
+      Swal.fire({
+        icon: "error",
+        title: "Compression Failed",
+        text: "Could not compress the image. Please try another one.",
+      });
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleLogoUpload = async () => {
@@ -223,13 +192,29 @@ const Security = () => {
       });
     }
 
+    if (!hotel?._id) {
+      return Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Hotel data not loaded",
+      });
+    }
+
     try {
       const formData = new FormData();
       formData.append("logo", selectedLogo);
 
       await axiosInstance.patch(`/hotels/${hotel._id}/logo`, formData);
 
-      await queryClient.invalidateQueries({ queryKey: ["hotel-by-email"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["hotel-by-email", hotelEmail],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["rooms"] });
+
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview);
+      }
+
       setSelectedLogo(null);
       setLogoPreview(null);
 
@@ -241,7 +226,7 @@ const Security = () => {
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error(error);
+      console.error("Logo upload error:", error);
       Swal.fire({
         icon: "error",
         title: "Upload Failed",
@@ -258,23 +243,21 @@ const Security = () => {
     );
   }
 
-  const currentLogoUrl = hotel?.logo
-    ? `${import.meta.env.VITE_API_URL || "http://localhost:3000"}${hotel.logo}`
-    : null;
+  const currentLogoUrl = getImageUrl(hotel?.logo);
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-rose-900 flex items-center justify-center">
             <MdSecurity className="text-xl text-white" />
           </div>
+
           <div>
             <h1 className="text-lg font-bold text-rose-900">Security</h1>
             <p className="text-sm text-gray-500">
-              Update password, email{" "}
-              {type === "owner" || type === "admin" ? "& logo" : ""}
+              Update password
+              {(type === "owner" || type === "admin") && " & logo"}
             </p>
           </div>
         </div>
@@ -290,7 +273,6 @@ const Security = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* ====================== CHANGE PASSWORD ====================== */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
           <div className="flex items-center gap-2 mb-5">
             <FaLock className="text-rose-900" />
@@ -306,6 +288,7 @@ const Security = () => {
               <label className="label">
                 <span className="label-text font-medium">New Password</span>
               </label>
+
               <div className="relative">
                 <input
                   type={showNewPassword ? "text" : "password"}
@@ -320,6 +303,7 @@ const Security = () => {
                     },
                   })}
                 />
+
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
@@ -328,6 +312,7 @@ const Security = () => {
                   {showNewPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
               </div>
+
               {passwordErrors.newPassword && (
                 <p className="text-red-500 text-xs mt-1">
                   {passwordErrors.newPassword.message}
@@ -339,6 +324,7 @@ const Security = () => {
               <label className="label">
                 <span className="label-text font-medium">Confirm Password</span>
               </label>
+
               <input
                 type="password"
                 className="input input-bordered w-full bg-white"
@@ -360,101 +346,87 @@ const Security = () => {
           </form>
         </div>
 
-        {/* ====================== CHANGE EMAIL ====================== */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <FaEnvelope className="text-rose-900" />
-            <h2 className="text-lg font-bold text-rose-900">Change Email</h2>
-          </div>
-
-          <form
-            onSubmit={handleEmailSubmit(onEmailSubmit)}
-            className="space-y-4"
-            autoComplete="off"
-          >
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">Current Email</span>
-              </label>
-              <input
-                type="email"
-                className="input input-bordered w-full bg-gray-100"
-                value={user?.email || ""}
-                readOnly
-              />
-            </div>
-
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text font-medium">New Email</span>
-              </label>
-              <input
-                type="email"
-                className="input input-bordered w-full bg-white"
-                placeholder="Enter new email"
-                autoComplete="off"
-                {...registerEmail("email", { required: true })}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isEmailSubmitting}
-              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none w-full"
-            >
-              {isEmailSubmitting ? "Updating..." : "Update Email"}
-            </button>
-          </form>
-        </div>
-
-        {/* ====================== CHANGE LOGO (Only Owner/Admin) ====================== */}
         {(type === "owner" || type === "admin") && (
-          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 lg:col-span-2">
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
             <div className="flex items-center gap-2 mb-5">
               <FaImage className="text-rose-900" />
               <h2 className="text-lg font-bold text-rose-900">Update Logo</h2>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden bg-rose-50 border flex items-center justify-center shrink-0">
-                {logoPreview ? (
+            <div className="flex flex-col items-center gap-6">
+              <div className="w-40 h-40 rounded-2xl overflow-hidden bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+                {isCompressing ? (
+                  <span className="loading loading-spinner loading-md text-rose-900"></span>
+                ) : logoPreview ? (
                   <img
                     src={logoPreview}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
+                    alt="New hotel logo preview"
+                    className="w-full h-full object-contain p-2"
                   />
                 ) : currentLogoUrl ? (
                   <img
                     src={currentLogoUrl}
-                    alt="Current Logo"
-                    className="w-full h-full object-cover"
+                    alt={`${hotel?.hotelName || "Hotel"} logo`}
+                    className="w-full h-full object-contain p-2"
+                    onError={(e) => {
+                      console.error(
+                        "Logo failed to load:",
+                        e.currentTarget.src,
+                      );
+                    }}
                   />
                 ) : (
-                  <span className="text-rose-900 font-bold text-3xl">
-                    {hotel?.hotelName?.charAt(0) || "H"}
-                  </span>
+                  <div className="w-full h-full flex items-center justify-center bg-rose-50">
+                    <span className="text-rose-900 font-bold text-5xl">
+                      {hotel?.hotelName?.charAt(0) || "H"}
+                    </span>
+                  </div>
                 )}
               </div>
 
-              <div className="flex-1 space-y-4">
+              {hotel?.hotelName && (
+                <div className="text-center">
+                  <h3 className="font-semibold text-gray-800">
+                    {hotel.hotelName}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">Hotel Logo</p>
+                </div>
+              )}
+
+              <div className="w-full space-y-4">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
                   onChange={handleLogoChange}
-                  className="file-input file-input-bordered w-full max-w-md bg-white"
+                  disabled={isCompressing}
+                  className="file-input file-input-bordered w-full bg-white disabled:opacity-60"
                 />
+
+                {isCompressing && (
+                  <p className="text-xs text-rose-900 text-center flex items-center justify-center gap-1.5">
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Compressing image...
+                  </p>
+                )}
 
                 <button
                   type="button"
                   onClick={handleLogoUpload}
-                  disabled={!selectedLogo}
-                  className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
+                  disabled={!selectedLogo || isCompressing}
+                  className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none w-full disabled:bg-gray-300 disabled:text-gray-500"
                 >
-                  Upload New Logo
+                  {isCompressing
+                    ? "Compressing..."
+                    : selectedLogo
+                      ? "Upload New Logo"
+                      : "Select Logo First"}
                 </button>
 
-                <p className="text-xs text-gray-500">
-                  Recommended: Square image (at least 200×200 px)
+                <p className="text-xs text-gray-500 text-center">
+                  Recommended: Square image, at least 200×200 px
+                </p>
+                <p className="text-xs text-gray-400 text-center">
+                  Image is compressed to ~0.5MB JPEG before upload
                 </p>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { FaUsers, FaMoneyBillWave, FaEdit, FaTrash } from "react-icons/fa";
 import { MdHotel } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { useNavigate, useSearchParams, Link } from "react-router";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus"; // adjust path if needed
 import { useState, useMemo } from "react";
 import Swal from "sweetalert2";
 
@@ -14,7 +14,8 @@ const AllRooms = () => {
   const imageBaseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading } = useAuth();
+
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [variantFilter, setVariantFilter] = useState("");
@@ -31,30 +32,30 @@ const AllRooms = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["all-rooms", user?.email],
+    queryKey: ["all-rooms", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/rooms", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail,
   });
 
   // 2. When in reserve mode → check real availability
   const { data: availability, isLoading: availabilityLoading } = useQuery({
-    queryKey: ["room-availability", selectedDate, user?.email],
+    queryKey: ["room-availability", selectedDate, hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/rooms/available", {
         params: {
           arriving: selectedDate,
           departure: selectedDate,
-          hotelEmail: user.email,
+          hotelEmail,
         },
       });
       return res.data;
     },
-    enabled: mode === "reserve" && !!selectedDate && !!user?.email,
+    enabled: mode === "reserve" && !!selectedDate && !!hotelEmail,
   });
 
   // Unique variant names for filter dropdown
@@ -90,7 +91,10 @@ const AllRooms = () => {
     });
   }, [rooms, searchTerm, variantFilter, roomNoFilter]);
 
-  const isLoading = roomsLoading || (mode === "reserve" && availabilityLoading);
+  const isLoading =
+    statusLoading ||
+    roomsLoading ||
+    (mode === "reserve" && availabilityLoading);
 
   // Helper: check if a room is available on the selected date
   const isRoomAvailableOnDate = (room) => {
@@ -144,10 +148,22 @@ const AllRooms = () => {
     }
   };
 
-  if (loading || isLoading) {
+  if (statusLoading || isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
       </div>
     );
   }

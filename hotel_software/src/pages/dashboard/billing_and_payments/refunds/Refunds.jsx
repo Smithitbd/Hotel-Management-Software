@@ -7,19 +7,15 @@ import {
   FaIdCard,
   FaCalendarAlt,
   FaMoneyBillWave,
-  FaArrowLeft,
 } from "react-icons/fa";
 import { MdMoneyOff } from "react-icons/md";
 import useAxios from "../../../../hooks/useAxios";
-import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const Refunds = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const { register, handleSubmit, getValues } = useForm();
 
@@ -29,7 +25,7 @@ const Refunds = () => {
     refetch,
     isFetched,
   } = useQuery({
-    queryKey: ["refunded-checkouts"],
+    queryKey: ["refunded-checkouts", hotelEmail],
     queryFn: async () => {
       const { fromDate, toDate, contactNumber } = getValues();
 
@@ -38,16 +34,17 @@ const Refunds = () => {
           fromDate,
           toDate,
           contactNumber: contactNumber || undefined,
-          hotelEmail: user.email,
+          hotelEmail,
         },
       });
 
       return res.data;
     },
-    enabled: false,
+    enabled: false, // only runs on form submit via refetch
   });
 
   const onSubmit = () => {
+    if (!hotelEmail) return;
     refetch();
   };
 
@@ -56,6 +53,26 @@ const Refunds = () => {
     (sum, item) => sum + (Number(item.finalAmount) || 0),
     0,
   );
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

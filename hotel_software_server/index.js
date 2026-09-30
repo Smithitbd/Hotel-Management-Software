@@ -16,8 +16,9 @@ const { getAuth } = require("firebase-admin/auth");
 
 dotenv.config();
 
-
-const decoded = Buffer.from(process.env.FB_SERVICE_KEY, 'base64').toString('utf8')
+const decoded = Buffer.from(process.env.FB_SERVICE_KEY, "base64").toString(
+  "utf8",
+);
 const serviceAccount = JSON.parse(decoded);
 
 initializeApp({
@@ -26,7 +27,6 @@ initializeApp({
 
 const auth = getAuth();
 // ============================================
-
 
 const app = express();
 const port = process.env.PORT || 3000;

@@ -3,28 +3,46 @@ import { MdLocalLaundryService, MdWorkHistory } from "react-icons/md";
 import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const LaundryServiceHistory = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const {
     data: laundryOrders = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["laundry-service-history"],
+    queryKey: ["laundry-service-history", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/laundry-service", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">
@@ -86,7 +104,6 @@ const LaundryServiceHistory = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="table w-full">
-              {/* head */}
               <thead>
                 <tr className="bg-rose-50 text-rose-900 text-sm">
                   <th className="font-semibold py-4">#</th>
@@ -134,7 +151,6 @@ const LaundryServiceHistory = () => {
 
                     <td className="text-sm">{order.assignedStaff || "—"}</td>
 
-                    {/* Items - Cleaner look */}
                     <td>
                       <div className="space-y-1">
                         {order.clothItems?.map((item, i) => (
@@ -154,14 +170,12 @@ const LaundryServiceHistory = () => {
                       </div>
                     </td>
 
-                    {/* Total Cost */}
                     <td className="text-right">
                       <span className="font-bold text-rose-900 text-base">
                         ৳{Number(order.totalCost || 0).toLocaleString()}
                       </span>
                     </td>
 
-                    {/* Payment Status */}
                     <td className="text-center">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${

@@ -4,21 +4,19 @@ import { Link, useNavigate, useLocation } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
-import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
 import imageCompression from "browser-image-compression";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const CheckIn = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
+  const { hotelEmail, statusLoading } = useUserStatus();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Data coming from AllRooms OR Reservations History
   const prefilledRoom = location.state?.room;
   const prefilledReservation = location.state?.reservation;
 
-  // Build default values from reservation OR room
   const getDefaults = () => {
     if (prefilledReservation) {
       const r = prefilledReservation;
@@ -65,19 +63,17 @@ const CheckIn = () => {
   const discountType = watch("discountType");
   const discountValue = watch("discountValue");
 
-  // Get all room variants
   const { data: roomVariants = [], isLoading: variantsLoading } = useQuery({
-    queryKey: ["room-variants", user?.email],
+    queryKey: ["room-variants", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/room-variants", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail,
   });
 
-  // Get rooms of selected variant
   const { data: rooms = [], isLoading: roomsLoading } = useQuery({
     queryKey: ["rooms-by-variant", selectedVariantId],
     queryFn: async () => {
@@ -89,10 +85,8 @@ const CheckIn = () => {
     enabled: !!selectedVariantId,
   });
 
-  // Selected variant object
   const selectedVariant = roomVariants.find((v) => v._id === selectedVariantId);
 
-  // Calculate number of nights (client-side for UI only)
   let nights = 0;
   if (checkInDate && checkOutDate) {
     const inDate = new Date(checkInDate);
@@ -102,11 +96,9 @@ const CheckIn = () => {
     nights = diffDays > 0 ? diffDays : 0;
   }
 
-  // Subtotal (before discount) – for display only
   const subtotal =
     selectedVariant && nights > 0 ? selectedVariant.price * nights : 0;
 
-  // Discount calculation – for display only
   const discountVal = Number(discountValue) || 0;
   let discountAmount = 0;
 
@@ -121,13 +113,11 @@ const CheckIn = () => {
   const advance = Number(advancePayment) || 0;
   const dueAmount = Math.max(totalAmount - advance, 0);
 
-  // Compress image before upload
   const compressImage = async (file) => {
-    // Skip compression for already-small files (< 400 KB)
     if (file.size < 400 * 1024) return file;
 
     const options = {
-      maxSizeMB: 0.6, // target ≈ 600 KB (good for NID / person photos)
+      maxSizeMB: 0.6,
       maxWidthOrHeight: 1600,
       useWebWorker: true,
       fileType: "image/jpeg",
@@ -142,7 +132,7 @@ const CheckIn = () => {
       });
     } catch (err) {
       console.error("Compression failed, using original:", err);
-      return file; // fallback – never break the upload
+      return file;
     }
   };
 
@@ -160,7 +150,6 @@ const CheckIn = () => {
       return;
     }
 
-    // Show loading while compressing
     Swal.fire({
       title: "Preparing images…",
       text: "Compressing for faster upload",
@@ -168,7 +157,6 @@ const CheckIn = () => {
       didOpen: () => Swal.showLoading(),
     });
 
-    // Compress both images in parallel
     const [compressedNid, compressedPerson] = await Promise.all([
       compressImage(nidImageFile),
       compressImage(personImageFile),
@@ -178,40 +166,29 @@ const CheckIn = () => {
 
     const formData = new FormData();
 
-    // Guest Info
     formData.append("guestName", data.guestName);
     formData.append("guestAddress", data.guestAddress);
     formData.append("contactNumber", data.contactNumber);
     formData.append("designation", data.designation);
     formData.append("nidNumber", data.nidNumber || "");
-
-    // Images (compressed)
     formData.append("nidImage", compressedNid);
     formData.append("personImage", compressedPerson);
-
-    // Room Info
     formData.append("roomVariantId", data.roomVariant);
     formData.append("roomVariantName", selectedVariant?.variantName || "");
     formData.append("roomNumber", data.roomNumber);
     formData.append("pricePerNight", selectedVariant?.price || 0);
-
-    // Stay Info
     formData.append("checkInDate", data.checkInDate);
     formData.append("checkInTime", data.checkInTime);
     formData.append("checkOutDate", data.checkOutDate);
     formData.append("numberOfNights", nights);
     formData.append("numberOfGuests", data.numberOfGuests);
-
-    // Payment Info – only send raw values, server calculates the rest
     formData.append("discountType", data.discountType || "amount");
     formData.append("discountValue", Number(data.discountValue) || 0);
     formData.append("advancePayment", Number(data.advancePayment) || 0);
-
     formData.append("specialRequests", data.specialRequests || "");
     formData.append("status", "Normal");
-    formData.append("hotelEmail", user.email);
+    formData.append("hotelEmail", hotelEmail);
 
-    // Link to reservation if coming from one
     if (prefilledReservation?._id) {
       formData.append("reservationId", prefilledReservation._id);
     }
@@ -244,13 +221,28 @@ const CheckIn = () => {
     }
   };
 
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-8">
-      {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between">
           <div>
@@ -266,7 +258,6 @@ const CheckIn = () => {
               Manage guest check-ins, room assignments, and stay details.
             </p>
 
-            {/* From Room Booking */}
             {prefilledRoom && !prefilledReservation && (
               <p className="ml-12 mt-2 text-sm font-medium text-rose-600">
                 Booking → Room {prefilledRoom.roomNo} (
@@ -274,7 +265,6 @@ const CheckIn = () => {
               </p>
             )}
 
-            {/* From Reservation */}
             {prefilledReservation && (
               <p className="ml-12 mt-2 text-sm font-medium text-emerald-600">
                 From Reservation → Room{" "}
@@ -300,7 +290,6 @@ const CheckIn = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Guest Name */}
           <div>
             <label className="label">
               <span className="label-text">Guest Name</span>
@@ -320,7 +309,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Guest Address */}
           <div>
             <label className="label">
               <span className="label-text">Guest Address</span>
@@ -340,7 +328,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Contact Number */}
           <div>
             <label className="label">
               <span className="label-text">Contact Number</span>
@@ -364,7 +351,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Guest Designation */}
           <div>
             <label className="label">
               <span className="label-text">Guest Designation</span>
@@ -384,7 +370,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* NID Number */}
           <div>
             <label className="label">
               <span className="label-text">NID Number</span>
@@ -408,7 +393,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* NID Image */}
           <div>
             <label className="label">
               <span className="label-text">NID Image</span>
@@ -428,7 +412,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Person Image */}
           <div>
             <label className="label">
               <span className="label-text">Person Image</span>
@@ -448,7 +431,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Room Variant */}
           <div>
             <label className="label">
               <span className="label-text">Room Variant</span>
@@ -477,7 +459,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Room Number */}
           <div>
             <label className="label">
               <span className="label-text">Room Number</span>
@@ -501,7 +482,6 @@ const CheckIn = () => {
                   (room) =>
                     room.roomStatus === "Available" ||
                     room.roomStatus === "Reserved" ||
-                    // Always show the prefilled room from reservation
                     String(room.roomNo) ===
                       String(
                         prefilledReservation?.room?.roomNo ||
@@ -523,7 +503,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Check In Date */}
           <div>
             <label className="label">
               <span className="label-text">Check In Date</span>
@@ -542,7 +521,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Check Out Date */}
           <div>
             <label className="label">
               <span className="label-text">Check Out Date</span>
@@ -561,7 +539,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Check In Time */}
           <div>
             <label className="label">
               <span className="label-text">Check In Time</span>
@@ -580,7 +557,6 @@ const CheckIn = () => {
             )}
           </div>
 
-          {/* Number of Guests */}
           <div>
             <label className="label">
               <span className="label-text">Number of Guests</span>
@@ -606,7 +582,6 @@ const CheckIn = () => {
           </div>
         </div>
 
-        {/* ========== PAYMENT SUMMARY ========== */}
         <div className="bg-rose-50 border border-rose-200 rounded-xl p-6 space-y-4">
           <h3 className="text-lg font-bold text-rose-900 mb-2">
             Payment Summary
@@ -659,7 +634,6 @@ const CheckIn = () => {
             </div>
           </div>
 
-          {/* Discount Type + Value */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 max-w-2xl">
             <div>
               <label className="label">
@@ -721,7 +695,6 @@ const CheckIn = () => {
             </div>
           </div>
 
-          {/* Advance Payment */}
           <div className="max-w-xs mt-4">
             <label className="label">
               <span className="label-text font-medium">Advance Payment</span>
@@ -747,7 +720,6 @@ const CheckIn = () => {
           </div>
         </div>
 
-        {/* Special Requests */}
         <div>
           <label className="label">
             <span className="label-text">Special Requests</span>
@@ -759,7 +731,6 @@ const CheckIn = () => {
           ></textarea>
         </div>
 
-        {/* Buttons */}
         <div className="flex justify-end gap-4 pt-4">
           <button
             type="reset"

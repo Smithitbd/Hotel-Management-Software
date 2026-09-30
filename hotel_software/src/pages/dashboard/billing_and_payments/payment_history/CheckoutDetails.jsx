@@ -9,11 +9,9 @@ import {
   FaIdCard,
   FaMapMarkerAlt,
   FaCalendarAlt,
-  FaMoneyBillWave,
   FaArrowLeft,
 } from "react-icons/fa";
 import { MdCheckCircleOutline } from "react-icons/md";
-import { IoArrowBackCircleSharp } from "react-icons/io5";
 import useAxios from "../../../../hooks/useAxios";
 
 const CheckoutDetails = () => {

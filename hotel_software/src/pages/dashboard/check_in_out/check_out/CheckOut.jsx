@@ -2,75 +2,72 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { MdCheckCircleOutline } from "react-icons/md";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 import { RiHome3Line } from "react-icons/ri";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 const CheckOut = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
+  const { hotelEmail, statusLoading } = useUserStatus();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const getImageUrl = (path) => {
+    if (!path || typeof path !== "string") return null;
+    const trimmed = path.trim();
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    const base = (
+      import.meta.env.VITE_API_URL || "http://localhost:3000"
+    ).replace(/\/$/, "");
+    return `${base}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
+  };
 
   const {
     data: checkIns = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["check-ins-for-checkout", user?.email],
+    queryKey: ["check-ins-for-checkout", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
-        params: {
-          hotelEmail: user?.email,
-        },
+        params: { hotelEmail },
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail,
   });
 
-  // Search by Name, NID, Contact, Room
-  const filteredGuests = useMemo(() => {
-    if (!searchTerm.trim()) return checkIns;
+  const term = searchTerm.toLowerCase().trim();
+  const filteredGuests = !term
+    ? checkIns
+    : checkIns.filter((guest) => {
+        const name = (guest.guestName || "").toLowerCase();
+        const nid = (guest.nidNumber || "").toLowerCase();
+        const contact = (guest.contactNumber || "").toLowerCase();
+        const room = String(guest.roomNumber || "").toLowerCase();
+        return (
+          name.includes(term) ||
+          nid.includes(term) ||
+          contact.includes(term) ||
+          room.includes(term)
+        );
+      });
 
-    const term = searchTerm.toLowerCase().trim();
-
-    return checkIns.filter((guest) => {
-      const name = (guest.guestName || "").toLowerCase();
-      const nid = (guest.nidNumber || "").toLowerCase();
-      const contact = (guest.contactNumber || "").toLowerCase();
-      const room = String(guest.roomNumber || "").toLowerCase();
-
-      return (
-        name.includes(term) ||
-        nid.includes(term) ||
-        contact.includes(term) ||
-        room.includes(term)
-      );
-    });
-  }, [checkIns, searchTerm]);
-
-  // Format discount
   const formatDiscount = (guest) => {
     if (!guest.discountValue || guest.discountValue <= 0) {
       return { type: "-", value: "-" };
     }
-
     if (guest.discountType === "percentage") {
-      return {
-        type: "Percentage",
-        value: `${guest.discountValue}%`,
-      };
+      return { type: "Percentage", value: `${guest.discountValue}%` };
     }
-
     return {
       type: "Amount",
       value: `৳${Number(guest.discountValue).toLocaleString()}`,
     };
   };
 
-  if (loading || isLoading) {
+  if (statusLoading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
@@ -80,7 +77,6 @@ const CheckOut = () => {
 
   return (
     <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-2xl p-6 md:p-8">
-      {/* Header */}
       <div className="flex flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 mb-2">
@@ -104,7 +100,6 @@ const CheckOut = () => {
         </Link>
       </div>
 
-      {/* Search + Total */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="form-control w-full max-w-md">
           <input
@@ -129,7 +124,6 @@ const CheckOut = () => {
         </p>
       )}
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="table table-zebra w-full">
           <thead className="bg-rose-900 text-white">
@@ -172,27 +166,32 @@ const CheckOut = () => {
             ) : (
               filteredGuests.map((guest) => {
                 const discount = formatDiscount(guest);
+                const imageUrl = getImageUrl(guest.personImage);
 
                 return (
                   <tr key={guest._id} className="hover text-center bg-white">
-                    {/* Image */}
                     <td>
                       <div className="flex justify-center">
-                        {guest.personImage ? (
+                        {imageUrl ? (
                           <img
-                            src={`${imageBaseUrl}${guest.personImage}`}
+                            src={imageUrl}
                             alt={guest.guestName}
                             className="w-12 h-12 rounded-full object-cover border border-gray-200"
                             onError={(e) => {
-                              e.target.src =
-                                "https://via.placeholder.com/48?text=N/A";
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.style.display = "none";
+                              const fallback =
+                                e.currentTarget.nextElementSibling;
+                              if (fallback) fallback.style.display = "flex";
                             }}
                           />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                            N/A
-                          </div>
-                        )}
+                        ) : null}
+                        <div
+                          className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs"
+                          style={{ display: imageUrl ? "none" : "flex" }}
+                        >
+                          N/A
+                        </div>
                       </div>
                     </td>
 
@@ -204,11 +203,8 @@ const CheckOut = () => {
                     </td>
 
                     <td>{guest.nidNumber || "-"}</td>
-
                     <td>{guest.contactNumber || "-"}</td>
-
                     <td className="font-semibold">Room {guest.roomNumber}</td>
-
                     <td>{guest.roomVariantName || "-"}</td>
 
                     <td>
@@ -229,13 +225,8 @@ const CheckOut = () => {
                     </td>
 
                     <td>{guest.numberOfNights || 0}</td>
-
                     <td>{guest.numberOfGuests || 1}</td>
-
-                    {/* Discount Type */}
                     <td className="font-medium text-sm">{discount.type}</td>
-
-                    {/* Discount Value */}
                     <td className="font-medium text-green-700">
                       {discount.value}
                     </td>
@@ -259,7 +250,6 @@ const CheckOut = () => {
                       ৳{Number(guest.dueAmount || 0).toLocaleString()}
                     </td>
 
-                    {/* Action */}
                     <td>
                       <Link
                         to={`/dashboard/check_in_out/check_out/${guest._id}`}

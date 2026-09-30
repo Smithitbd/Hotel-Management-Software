@@ -19,48 +19,42 @@ import { MdCheckCircleOutline } from "react-icons/md";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import Swal from "sweetalert2";
 import useAxios from "../../../../../hooks/useAxios";
-import useAuth from "../../../../../hooks/useAuth";
+import useUserStatus from "../../../../../hooks/useUserStatus";
 import CheckoutInvoice from "../../../../../components/CheckoutInvoice";
 
 const MainCheckout = () => {
   const { id } = useParams();
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
+  const { hotelEmail, statusLoading } = useUserStatus();
   const [isCheckedOut, setIsCheckedOut] = useState(false);
   const [checkoutData, setCheckoutData] = useState(null);
-
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
 
   const {
     data: guest,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["check-in-details", id],
+    queryKey: ["check-in-details", id, hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get(`/check-in/${id}`, {
-        params: { hotelEmail: user?.email },
+        params: { hotelEmail },
       });
       return res.data;
     },
-    enabled: !!id && !!user?.email,
+    enabled: !!id && !!hotelEmail,
   });
 
-  // Get Hotel Info
   const { data: hotelInfo } = useQuery({
-    queryKey: ["hotel-info", user?.email],
+    queryKey: ["hotel-info", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/hotels/by-email", {
-        params: { email: user?.email },
+        params: { email: hotelEmail },
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail,
   });
 
-  // ====================== FORM FOR ACTUAL CHECKOUT DATE ======================
   const { register, watch } = useForm({
     defaultValues: {
       actualCheckoutDate: "",
@@ -69,7 +63,6 @@ const MainCheckout = () => {
 
   const actualCheckoutDate = watch("actualCheckoutDate");
 
-  // ====================== HELPER: Get order payment status ======================
   const getOrderStatus = (order) => {
     if (order.paymentStatus) return order.paymentStatus;
     if (order.foodItems?.some((item) => item.paymentStatus === "Paid")) {
@@ -78,7 +71,6 @@ const MainCheckout = () => {
     return "Due";
   };
 
-  // ====================== CALCULATIONS ======================
   const previousRoomsCharge = (guest?.roomChangeHistory || []).reduce(
     (sum, item) => sum + (Number(item.charge) || 0),
     0,
@@ -123,13 +115,11 @@ const MainCheckout = () => {
     actualRoomCharge + restaurantDue + laundryDue + transportDue;
 
   const balance = totalCharges - advance;
-  const hotelEmail = user?.email;
   const isRefund = balance < 0;
   const finalAmount = Math.abs(balance);
 
   const isEarlyCheckout = actualNights < Number(guest?.numberOfNights || 0);
 
-  // ====================== CHECKOUT HANDLER ======================
   const handleCheckout = async () => {
     const result = await Swal.fire({
       title: "Confirm Checkout?",
@@ -189,7 +179,6 @@ const MainCheckout = () => {
       const res = await axiosInstance.post(`/check-out/${id}`, payload);
 
       if (res.data.success) {
-        // Prepare full data for invoice
         setCheckoutData({
           ...guest,
           ...payload,
@@ -216,10 +205,22 @@ const MainCheckout = () => {
     }
   };
 
-  if (isLoading) {
+  if (statusLoading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
       </div>
     );
   }
@@ -241,13 +242,9 @@ const MainCheckout = () => {
     );
   }
 
-  // ========== SHOW INVOICE AFTER CHECKOUT ==========
-  // Inside MainCheckout.jsx – the isCheckedOut block
-
   if (isCheckedOut && checkoutData) {
     return (
       <div className="mx-auto p-4 sm:p-6 max-w-7xl">
-        {/* Header - hidden when printing */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
           <h1 className="text-xl font-bold text-rose-900">Checkout Invoices</h1>
 
@@ -267,7 +264,6 @@ const MainCheckout = () => {
           </div>
         </div>
 
-        {/* ===== PRINTABLE AREA ===== */}
         <div className="print-area">
           <CheckoutInvoice
             checkoutData={checkoutData}

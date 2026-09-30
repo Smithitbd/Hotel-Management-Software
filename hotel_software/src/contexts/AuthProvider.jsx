@@ -7,7 +7,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  updateEmail,
+  verifyBeforeUpdateEmail, // ← changed (was updateEmail)
   updatePassword,
   updateProfile,
 } from "firebase/auth";
@@ -34,16 +34,16 @@ const AuthProvider = ({ children }) => {
     return updateProfile(auth.currentUser, profileInfo);
   };
 
-  // update user passwrod
+  // Update user password
   const updateUserPassword = (newPassword) => {
     setLoading(true);
     return updatePassword(auth.currentUser, newPassword);
   };
 
-  // inside AuthProvider
+  // Update user email (sends verification link to the NEW email)
   const updateUserEmail = (newEmail) => {
     setLoading(true);
-    return updateEmail(auth.currentUser, newEmail);
+    return verifyBeforeUpdateEmail(auth.currentUser, newEmail);
   };
 
   // Logout

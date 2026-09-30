@@ -4,31 +4,48 @@ import { RiHome3Line } from "react-icons/ri";
 import { Link } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import { FaFileInvoiceDollar } from "react-icons/fa";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const RestaurantOrdersHistory = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const {
     data: restaurantOrders = [],
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["restaurant-orders-history"],
+    queryKey: ["restaurant-orders-history", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/restaurant-orders", {
         params: {
-          hotelEmail: user.email,
+          hotelEmail,
         },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">
@@ -130,7 +147,6 @@ const RestaurantOrdersHistory = () => {
 
                     <td className="text-sm">{order.assignedWaiter || "—"}</td>
 
-                    {/* Food Items */}
                     <td>
                       <div className="space-y-1">
                         {order.foodItems?.map((item, i) => (
@@ -168,10 +184,8 @@ const RestaurantOrdersHistory = () => {
                       </span>
                     </td>
 
-                    {/* ===== Fixed Action Buttons ===== */}
                     <td>
                       <div className="flex items-center justify-center gap-2">
-                        {/* Invoice Button */}
                         <Link
                           to={`/dashboard/services/restaurant_orders/invoice/${order._id}`}
                         >
@@ -185,7 +199,6 @@ const RestaurantOrdersHistory = () => {
                           </button>
                         </Link>
 
-                        {/* Update Order Button */}
                         <Link
                           to={`/dashboard/services/restaurant_orders/edit_restaurant_history/${order._id}`}
                         >

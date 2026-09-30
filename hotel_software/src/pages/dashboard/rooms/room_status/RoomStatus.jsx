@@ -5,34 +5,46 @@ import { RiHome3Line } from "react-icons/ri";
 import { FaLayerGroup, FaPlus } from "react-icons/fa";
 import { FaEye } from "react-icons/fa6";
 import useAxios from "../../../../hooks/useAxios";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const RoomStatus = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const { data: variants = [], isLoading } = useQuery({
-    queryKey: ["room-variants"],
+    queryKey: ["room-variants", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/room-variants", {
         params: {
-          hotelEmail: user.email, // or whatever your logged-in hotel email is
+          hotelEmail,
         },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
-  if (isLoading) {
+  if (statusLoading || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
       </div>
     );
   }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const imageBaseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   return (
     <div className="p-6">
@@ -97,9 +109,17 @@ const RoomStatus = () => {
                 {item.image ? (
                   <figure className="w-full sm:w-44 sm:min-w-44 h-56 sm:h-auto bg-gray-100">
                     <img
-                      src={`${axiosInstance.defaults.baseURL}${item.image}`}
+                      src={
+                        item.image.startsWith("http")
+                          ? item.image
+                          : `${imageBaseURL}${item.image}`
+                      }
                       alt={item.variantName}
                       className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src =
+                          "https://images.unsplash.com/photo-1566665797739-1674de7a421a";
+                      }}
                     />
                   </figure>
                 ) : (

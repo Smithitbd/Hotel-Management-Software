@@ -5,15 +5,13 @@ import { RiHome3Line } from "react-icons/ri";
 import { Link, useNavigate } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const RoomService = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
+
   const {
     register,
     handleSubmit,
@@ -24,15 +22,16 @@ const RoomService = () => {
   const selectedRoom = watch("roomNumber");
 
   const { data: checkIns = [], isLoading } = useQuery({
-    queryKey: ["check-ins"],
+    queryKey: ["check-ins", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
         params: {
-          hotelEmail: user?.email,
+          hotelEmail,
         },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
   const selectedCheckIn = checkIns.find(
@@ -46,7 +45,7 @@ const RoomService = () => {
       roomVariantName: selectedCheckIn?.roomVariantName || "",
       nidNumber: selectedCheckIn?.nidNumber || "",
       orderedBy: selectedCheckIn?.guestName || "",
-      hotelEmail: selectedCheckIn?.hotelEmail || "",
+      hotelEmail: selectedCheckIn?.hotelEmail || hotelEmail || "",
     };
 
     const res = await axiosInstance.post("/room-service", serviceData);
@@ -61,6 +60,26 @@ const RoomService = () => {
       navigate("/dashboard/services");
     }
   };
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">

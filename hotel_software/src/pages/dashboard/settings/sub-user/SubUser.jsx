@@ -2,26 +2,28 @@ import { useForm } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router";
 import Swal from "sweetalert2";
-import { FaArrowLeft, FaUserPlus } from "react-icons/fa";
+import { FaUserPlus } from "react-icons/fa";
 import { MdHotel } from "react-icons/md";
-import useAuth from "../../../../hooks/useAuth";
 import useAxios from "../../../../hooks/useAxios";
+import useUserStatus from "../../../../hooks/useUserStatus";
+import useAuth from "../../../../hooks/useAuth";
 import { RiHome3Line } from "react-icons/ri";
 
 const SubUser = () => {
-  const { user, createUser } = useAuth();
+  const { createUser } = useAuth();
+  const { hotelEmail, statusLoading } = useUserStatus();
   const axiosInstance = useAxios();
 
   // Get hotel info
   const { data: hotel, isLoading: hotelLoading } = useQuery({
-    queryKey: ["hotel-by-email", user?.email],
+    queryKey: ["hotel-by-email", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/hotels/by-email", {
-        params: { email: user.email },
+        params: { email: hotelEmail },
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail,
   });
 
   // Get existing sub users
@@ -30,39 +32,58 @@ const SubUser = () => {
     isLoading: subUsersLoading,
     refetch,
   } = useQuery({
-    queryKey: ["sub-users", user?.email],
+    queryKey: ["sub-users", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/users", {
-        params: { hotelEmail: user.email },
+        params: { hotelEmail },
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail,
   });
 
-  // Form for Email 1 (no auto-fill)
+  const hasUser1 = !!subUsers?.email1;
+  const hasUser2 = !!subUsers?.email2;
+
+  // Form for Email 1
   const {
     register: register1,
     handleSubmit: handleSubmit1,
     reset: reset1,
     formState: { isSubmitting: isSubmitting1 },
-  } = useForm();
+  } = useForm({
+    values: {
+      email1: subUsers?.email1 || "",
+      password1: "",
+    },
+  });
 
-  // Form for Email 2 (no auto-fill)
+  // Form for Email 2
   const {
     register: register2,
     handleSubmit: handleSubmit2,
     reset: reset2,
     formState: { isSubmitting: isSubmitting2 },
-  } = useForm();
+  } = useForm({
+    values: {
+      email2: subUsers?.email2 || "",
+      password2: "",
+    },
+  });
 
   // ========== Submit Email 1 ==========
   const onSubmitEmail1 = async (data) => {
+    if (hasUser1) {
+      return Swal.fire({
+        icon: "info",
+        title: "Already Exists",
+        text: "Sub User 1 is already created. You cannot create it again.",
+      });
+    }
+
     try {
-      // Create Firebase user
       await createUser(data.email1, data.password1);
 
-      // Update in database
       await axiosInstance.patch(`/users/${subUsers._id}`, {
         email1: data.email1,
         password1: data.password1,
@@ -98,11 +119,17 @@ const SubUser = () => {
 
   // ========== Submit Email 2 ==========
   const onSubmitEmail2 = async (data) => {
+    if (hasUser2) {
+      return Swal.fire({
+        icon: "info",
+        title: "Already Exists",
+        text: "Sub User 2 is already created. You cannot create it again.",
+      });
+    }
+
     try {
-      // Create Firebase user
       await createUser(data.email2, data.password2);
 
-      // Update in database
       await axiosInstance.patch(`/users/${subUsers._id}`, {
         email2: data.email2,
         password2: data.password2,
@@ -136,7 +163,7 @@ const SubUser = () => {
     }
   };
 
-  if (hotelLoading || subUsersLoading) {
+  if (statusLoading || hotelLoading || subUsersLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
@@ -189,7 +216,14 @@ const SubUser = () => {
           onSubmit={handleSubmit1(onSubmitEmail1)}
           className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
         >
-          <h3 className="text-lg font-bold text-rose-900 mb-6">Sub User 1</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-rose-900">Sub User 1</h3>
+            {hasUser1 && (
+              <span className="badge bg-emerald-100 text-emerald-700 border-none">
+                Active
+              </span>
+            )}
+          </div>
 
           <div className="space-y-4">
             <div className="form-control">
@@ -200,6 +234,7 @@ const SubUser = () => {
                 type="email"
                 placeholder="user1@example.com"
                 className="input input-bordered w-full bg-white"
+                disabled={hasUser1}
                 {...register1("email1", { required: true })}
               />
             </div>
@@ -210,20 +245,34 @@ const SubUser = () => {
               </label>
               <input
                 type="password"
-                placeholder="Enter password"
+                placeholder={
+                  hasUser1
+                    ? "Password is already set (hidden for security)"
+                    : "Enter password"
+                }
                 className="input input-bordered w-full bg-white"
-                {...register1("password1", { required: true })}
+                disabled={hasUser1}
+                {...register1("password1", { required: !hasUser1 })}
               />
+              {hasUser1 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Password cannot be shown because it is encrypted.
+                </p>
+              )}
             </div>
           </div>
 
           <div className="flex justify-end mt-8">
             <button
               type="submit"
-              disabled={isSubmitting1}
-              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
+              disabled={isSubmitting1 || hasUser1}
+              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting1 ? "Saving..." : "Save User 1"}
+              {hasUser1
+                ? "Already Created"
+                : isSubmitting1
+                  ? "Saving..."
+                  : "Save User 1"}
             </button>
           </div>
         </form>
@@ -233,7 +282,14 @@ const SubUser = () => {
           onSubmit={handleSubmit2(onSubmitEmail2)}
           className="bg-white rounded-2xl shadow-md border border-gray-100 p-6"
         >
-          <h3 className="text-lg font-bold text-rose-900 mb-6">Sub User 2</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-rose-900">Sub User 2</h3>
+            {hasUser2 && (
+              <span className="badge bg-emerald-100 text-emerald-700 border-none">
+                Active
+              </span>
+            )}
+          </div>
 
           <div className="space-y-4">
             <div className="form-control">
@@ -244,6 +300,7 @@ const SubUser = () => {
                 type="email"
                 placeholder="user2@example.com"
                 className="input input-bordered w-full bg-white"
+                disabled={hasUser2}
                 {...register2("email2", { required: true })}
               />
             </div>
@@ -254,20 +311,34 @@ const SubUser = () => {
               </label>
               <input
                 type="password"
-                placeholder="Enter password"
+                placeholder={
+                  hasUser2
+                    ? "Password is already set (hidden for security)"
+                    : "Enter password"
+                }
                 className="input input-bordered w-full bg-white"
-                {...register2("password2", { required: true })}
+                disabled={hasUser2}
+                {...register2("password2", { required: !hasUser2 })}
               />
+              {hasUser2 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Password cannot be shown because it is encrypted.
+                </p>
+              )}
             </div>
           </div>
 
           <div className="flex justify-end mt-8">
             <button
               type="submit"
-              disabled={isSubmitting2}
-              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none"
+              disabled={isSubmitting2 || hasUser2}
+              className="btn bg-rose-900 hover:bg-[#BF1E2E] text-white border-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting2 ? "Saving..." : "Save User 2"}
+              {hasUser2
+                ? "Already Created"
+                : isSubmitting2
+                  ? "Saving..."
+                  : "Save User 2"}
             </button>
           </div>
         </form>

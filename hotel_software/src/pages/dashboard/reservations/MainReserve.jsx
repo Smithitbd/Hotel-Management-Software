@@ -4,23 +4,23 @@ import { useQuery } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import useAxios from "../../../hooks/useAxios";
 import { LuBookImage } from "react-icons/lu";
-import useAuth from "../../../hooks/useAuth";
+import useUserStatus from "../../../hooks/useUserStatus";
 
 const MainReserve = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus(); // ← changed
+
   // Get data from previous page
   const room = location.state?.room || null;
   const selectedDate = searchParams.get("date") || location.state?.date || "";
 
   // Same base URL as your axiosInstance
-  const imageBaseURL = "http://localhost:3000";
+  const imageBaseURL = (
+    import.meta.env.VITE_API_URL || "http://localhost:3000"
+  ).replace(/\/$/, "");
 
   const {
     register,
@@ -44,19 +44,25 @@ const MainReserve = () => {
 
   // Check availability when dates change
   const { data: availability, isFetching } = useQuery({
-    queryKey: ["check-availability", arrivingDate, departureDate, room?._id],
+    queryKey: [
+      "check-availability",
+      arrivingDate,
+      departureDate,
+      room?._id,
+      hotelEmail,
+    ],
     queryFn: async () => {
       if (!arrivingDate || !departureDate || !room) return null;
       const res = await axiosInstance.get("/rooms/available", {
         params: {
           arriving: arrivingDate,
           departure: departureDate,
-          hotelEmail: user.email,
+          hotelEmail, // ← changed
         },
       });
       return res.data;
     },
-    enabled: !!arrivingDate && !!departureDate && !!room,
+    enabled: !!arrivingDate && !!departureDate && !!room && !!hotelEmail,
   });
 
   const isRoomAvailable = () => {
@@ -95,7 +101,7 @@ const MainReserve = () => {
     }
 
     const reservationData = {
-      hotelEmail: user.email,
+      hotelEmail, // ← changed
       guestName: data.guestName,
       contactNumber: data.contactNumber,
       arrivingDate: data.arrivingDate,
@@ -146,8 +152,30 @@ const MainReserve = () => {
     if (imagePath.startsWith("http")) {
       return imagePath;
     }
-    return `${imageBaseURL}${imagePath}`;
+    return `${imageBaseURL}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
   };
+
+  if (statusLoading) {
+    // ← changed
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    // ← added
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!room) {
     return (

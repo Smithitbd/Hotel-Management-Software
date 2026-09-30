@@ -12,42 +12,45 @@ import {
 import { MdPeople } from "react-icons/md";
 import useAxios from "../../../../hooks/useAxios";
 import { Link } from "react-router";
-import useAuth from "../../../../hooks/useAuth";
+
 import CheckoutInvoice from "../../../../components/CheckoutInvoice";
 import Swal from "sweetalert2";
 import { RiHome3Line } from "react-icons/ri";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const GuestHistory = () => {
   const axiosInstance = useAxios();
-  const { user, loading } = useAuth();
+  const { hotelEmail, statusLoading } = useUserStatus(); // ← changed
   const [selectedCheckout, setSelectedCheckout] = useState(null);
   const [showInvoice, setShowInvoice] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const imageBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const imageBaseUrl = (
+    import.meta.env.VITE_API_URL || "http://localhost:3000"
+  ).replace(/\/$/, "");
 
   // Unique guests
   const { data: guests = [], isLoading } = useQuery({
-    queryKey: ["unique-guests", user?.email],
+    queryKey: ["unique-guests", hotelEmail], // ← changed
     queryFn: async () => {
       const res = await axiosInstance.get("/unique-guests", {
-        params: { hotelEmail: user?.email },
+        params: { hotelEmail }, // ← changed
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail, // ← changed
   });
 
-  // Hotel info
+  // Hotel info (still needs the owner's email)
   const { data: hotelInfo } = useQuery({
-    queryKey: ["hotel-info", user?.email],
+    queryKey: ["hotel-info", hotelEmail], // ← changed
     queryFn: async () => {
       const res = await axiosInstance.get("/hotels/by-email", {
-        params: { email: user?.email },
+        params: { email: hotelEmail }, // ← changed
       });
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!hotelEmail, // ← changed
   });
 
   // Search filter: Name, NID, Contact Number, Room
@@ -76,7 +79,7 @@ const GuestHistory = () => {
     try {
       const res = await axiosInstance.get("/check-out/guest", {
         params: {
-          hotelEmail: user?.email,
+          hotelEmail, // ← changed
           contactNumber: guest.contactNumber,
           nidNumber: guest.nidNumber || "",
         },
@@ -141,10 +144,34 @@ const GuestHistory = () => {
     }
   };
 
-  if (loading || isLoading) {
+  // Better image URL helper
+  const getImageUrl = (path) => {
+    if (!path || typeof path !== "string") return null;
+    const trimmed = path.trim();
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    return `${imageBaseUrl}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
+  };
+
+  if (statusLoading || isLoading) {
+    // ← changed
     return (
       <div className="flex justify-center items-center min-h-96">
         <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    // ← added
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
       </div>
     );
   }
@@ -261,101 +288,107 @@ const GuestHistory = () => {
                 </td>
               </tr>
             ) : (
-              filteredGuests.map((guest) => (
-                <tr key={guest._id} className="hover text-center bg-white">
-                  {/* Guest + Image */}
-                  <td>
-                    <div className="flex items-center gap-3 justify-center sm:justify-start">
-                      <div className="avatar">
-                        <div className="w-12 h-12 rounded-full ring ring-rose-200 ring-offset-1">
-                          {guest.personImage ? (
-                            <img
-                              src={`${imageBaseUrl}${guest.personImage}`}
-                              alt={guest.guestName}
-                              className="object-cover"
-                              onError={(e) => {
-                                e.target.src =
-                                  "https://via.placeholder.com/48?text=N/A";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-900 font-bold text-lg">
-                              {guest.guestName?.charAt(0)?.toUpperCase() || "G"}
-                            </div>
-                          )}
+              filteredGuests.map((guest) => {
+                const imageUrl = getImageUrl(guest.personImage);
+
+                return (
+                  <tr key={guest._id} className="hover text-center bg-white">
+                    {/* Guest + Image */}
+                    <td>
+                      <div className="flex items-center gap-3 justify-center sm:justify-start">
+                        <div className="avatar">
+                          <div className="w-12 h-12 rounded-full ring ring-rose-200 ring-offset-1">
+                            {imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={guest.guestName}
+                                className="object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src =
+                                    "https://via.placeholder.com/48?text=N/A";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-rose-100 flex items-center justify-center text-rose-900 font-bold text-lg">
+                                {guest.guestName?.charAt(0)?.toUpperCase() ||
+                                  "G"}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-left">
+                          <div className="font-bold text-gray-800">
+                            {guest.guestName}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {guest.designation || "Guest"}
+                          </div>
                         </div>
                       </div>
-                      <div className="text-left">
-                        <div className="font-bold text-gray-800">
-                          {guest.guestName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {guest.designation || "Guest"}
-                        </div>
+                    </td>
+
+                    <td>
+                      <div className="flex items-center justify-center gap-1 text-sm">
+                        <FaPhone className="text-rose-600 text-xs" />
+                        {guest.contactNumber || "—"}
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td>
-                    <div className="flex items-center justify-center gap-1 text-sm">
-                      <FaPhone className="text-rose-600 text-xs" />
-                      {guest.contactNumber || "—"}
-                    </div>
-                  </td>
+                    <td>
+                      <div className="flex items-center justify-center gap-1 text-sm">
+                        <FaIdCard className="text-rose-600 text-xs" />
+                        {guest.nidNumber || "—"}
+                      </div>
+                    </td>
 
-                  <td>
-                    <div className="flex items-center justify-center gap-1 text-sm">
-                      <FaIdCard className="text-rose-600 text-xs" />
-                      {guest.nidNumber || "—"}
-                    </div>
-                  </td>
+                    <td>
+                      <span className="badge badge-ghost font-medium">
+                        {guest.totalStays}{" "}
+                        {guest.totalStays > 1 ? "times" : "time"}
+                      </span>
+                    </td>
 
-                  <td>
-                    <span className="badge badge-ghost font-medium">
-                      {guest.totalStays}{" "}
-                      {guest.totalStays > 1 ? "times" : "time"}
-                    </span>
-                  </td>
+                    <td>
+                      <div className="flex items-center justify-center gap-1 text-sm">
+                        <FaCalendarAlt className="text-rose-600 text-xs" />
+                        {guest.lastCheckoutDate
+                          ? new Date(guest.lastCheckoutDate).toLocaleDateString(
+                              "en-GB",
+                            )
+                          : "—"}
+                      </div>
+                    </td>
 
-                  <td>
-                    <div className="flex items-center justify-center gap-1 text-sm">
-                      <FaCalendarAlt className="text-rose-600 text-xs" />
-                      {guest.lastCheckoutDate
-                        ? new Date(guest.lastCheckoutDate).toLocaleDateString(
-                            "en-GB",
-                          )
-                        : "—"}
-                    </div>
-                  </td>
+                    <td>
+                      <div className="flex items-center justify-center gap-1 text-sm font-semibold">
+                        <FaBed className="text-rose-600 text-xs" />
+                        Room {guest.lastRoomNumber || "—"}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {guest.lastRoomVariant || ""}
+                      </div>
+                    </td>
 
-                  <td>
-                    <div className="flex items-center justify-center gap-1 text-sm font-semibold">
-                      <FaBed className="text-rose-600 text-xs" />
-                      Room {guest.lastRoomNumber || "—"}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {guest.lastRoomVariant || ""}
-                    </div>
-                  </td>
+                    <td>
+                      <div className="flex items-center justify-center gap-1 font-bold text-rose-900">
+                        <FaMoneyBillWave className="text-xs" />৳
+                        {(guest.totalSpent || 0).toLocaleString()}
+                      </div>
+                    </td>
 
-                  <td>
-                    <div className="flex items-center justify-center gap-1 font-bold text-rose-900">
-                      <FaMoneyBillWave className="text-xs" />৳
-                      {(guest.totalSpent || 0).toLocaleString()}
-                    </div>
-                  </td>
-
-                  <td>
-                    <button
-                      onClick={() => handlePrintInvoice(guest)}
-                      className="btn btn-sm bg-rose-900 hover:bg-rose-800 text-white border-none gap-1"
-                      title="Print Invoice"
-                    >
-                      <FaPrint /> Print
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    <td>
+                      <button
+                        onClick={() => handlePrintInvoice(guest)}
+                        className="btn btn-sm bg-rose-900 hover:bg-rose-800 text-white border-none gap-1"
+                        title="Print Invoice"
+                      >
+                        <FaPrint /> Print
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

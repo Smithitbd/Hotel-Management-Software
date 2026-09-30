@@ -8,15 +8,12 @@ import { IoFastFoodSharp } from "react-icons/io5";
 import { Link, useNavigate } from "react-router";
 import useAxios from "../../../../hooks/useAxios";
 import Swal from "sweetalert2";
-import useAuth from "../../../../hooks/useAuth";
+import useUserStatus from "../../../../hooks/useUserStatus";
 
 const RestaurantOrders = () => {
   const axiosInstance = useAxios();
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  if (loading) {
-    return <span className="loading loading-spinner text-error"></span>;
-  }
+  const { hotelEmail, statusLoading } = useUserStatus();
 
   const {
     register,
@@ -35,29 +32,30 @@ const RestaurantOrders = () => {
 
   // Get current check-in guests
   const { data: checkIns = [], isLoading } = useQuery({
-    queryKey: ["check-ins"],
+    queryKey: ["check-ins", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/check-in", {
         params: {
-          hotelEmail: user.email,
+          hotelEmail,
         },
       });
-
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
   // Fetch food menu
   const { data: menuItems = [] } = useQuery({
-    queryKey: ["food-menu"],
+    queryKey: ["food-menu", hotelEmail],
     queryFn: async () => {
       const res = await axiosInstance.get("/food-menu", {
         params: {
-          hotelEmail: user.email,
+          hotelEmail,
         },
       });
       return res.data;
     },
+    enabled: !!hotelEmail,
   });
 
   const handleRoomChange = (e) => {
@@ -111,7 +109,7 @@ const RestaurantOrders = () => {
       foodItems,
       totalAmount,
       checkInInfo: selectedCheckIn || null,
-      hotelEmail: user.email,
+      hotelEmail,
     };
 
     const res = await axiosInstance.post("/restaurant-orders", orderData);
@@ -126,6 +124,26 @@ const RestaurantOrders = () => {
       navigate("/dashboard/services");
     }
   };
+
+  if (statusLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-96">
+        <span className="loading loading-spinner loading-lg text-rose-900"></span>
+      </div>
+    );
+  }
+
+  if (!hotelEmail) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            No hotel linked to this account. Please complete hotel registration.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto p-6">
