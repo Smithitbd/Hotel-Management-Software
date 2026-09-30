@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { AuthContext } from "./AuthContext";
 import { auth } from "../firebase/firebase.init";
 import {
@@ -7,7 +8,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  verifyBeforeUpdateEmail, // ← changed (was updateEmail)
+  verifyBeforeUpdateEmail,
   updatePassword,
   updateProfile,
 } from "firebase/auth";
@@ -16,52 +17,62 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Create new user
   const createUser = (email, password) => {
     setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
-  // Sign in existing user
   const signIn = (email, password) => {
     setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  // Update user profile (name, photo, etc.)
   const updateUserProfile = (profileInfo) => {
     setLoading(true);
     return updateProfile(auth.currentUser, profileInfo);
   };
 
-  // Update user password
   const updateUserPassword = (newPassword) => {
     setLoading(true);
     return updatePassword(auth.currentUser, newPassword);
   };
 
-  // Update user email (sends verification link to the NEW email)
   const updateUserEmail = (newEmail) => {
     setLoading(true);
     return verifyBeforeUpdateEmail(auth.currentUser, newEmail);
   };
 
-  // Logout
   const logOut = () => {
     setLoading(true);
+    localStorage.removeItem("access-token");
     return signOut(auth);
   };
 
   const deleteUserInfo = () => {
     setLoading(true);
+    localStorage.removeItem("access-token");
     return deleteUser(auth.currentUser);
   };
 
-  // Observe auth state
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unSubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       console.log("user status changed ", currentUser);
+
+      if (currentUser?.email) {
+        try {
+          const res = await axios.post("http://localhost:3000/jwt", {
+            email: currentUser.email,
+          });
+          localStorage.setItem("access-token", res.data.token);
+        } catch (error) {
+          console.error("JWT error:", error);
+          localStorage.removeItem("access-token");
+        }
+      } else {
+        localStorage.removeItem("access-token");
+      }
+
       setLoading(false);
     });
 
