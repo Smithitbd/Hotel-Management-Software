@@ -6,7 +6,7 @@ import smithLogo from "../../assets/logo_smith.png";
 import { useState } from "react";
 
 const Login = () => {
-  const { signIn } = useAuth();
+  const { signIn, forgotPassword } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -54,6 +54,58 @@ const Login = () => {
     }
   };
 
+  // ===================== FORGOT PASSWORD =====================
+  const handleForgotPassword = async () => {
+    const { value: email } = await Swal.fire({
+      title: "Forgot Password?",
+      input: "email",
+      inputLabel: "Enter your email address",
+      inputPlaceholder: "your-email@example.com",
+      confirmButtonText: "Send Reset Link",
+      confirmButtonColor: "#0d9488",
+      showCancelButton: true,
+      cancelButtonColor: "#6b7280",
+      inputValidator: (value) => {
+        if (!value) {
+          return "Email is required";
+        }
+        if (!/^\S+@\S+$/i.test(value)) {
+          return "Please enter a valid email";
+        }
+      },
+    });
+
+    if (!email) return;
+
+    try {
+      Swal.fire({
+        title: "Sending...",
+        text: "Please wait",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      await forgotPassword(email); // ← uses AuthProvider
+
+      Swal.fire({
+        icon: "success",
+        title: "Check Your Email",
+        text: "If this email exists in our system, a password reset link has been sent.",
+        confirmButtonColor: "#0d9488",
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Something went wrong",
+        text: "Failed to send reset link. Please try again later.",
+        confirmButtonColor: "#0d9488",
+      });
+    }
+  };
+
   return (
     <div className="w-full max-w-md mx-auto">
       {/* Header */}
@@ -95,7 +147,17 @@ const Login = () => {
             <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
+
+            {/* ===== FORGOT PASSWORD LINK ===== */}
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-sm text-teal-600 hover:text-teal-700 hover:underline font-medium"
+            >
+              Forgot Password?
+            </button>
           </div>
+
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -116,7 +178,6 @@ const Login = () => {
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                // Eye-off icon
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -132,7 +193,6 @@ const Login = () => {
                   />
                 </svg>
               ) : (
-                // Eye icon
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"

@@ -75,6 +75,8 @@ import MainReserve from "../pages/dashboard/reservations/MainReserve";
 import ChangeRoom from "../pages/dashboard/rooms/change-room/ChangeRoom";
 import SubUser from "../pages/dashboard/settings/sub-user/SubUser";
 import EditRoom from "../pages/dashboard/rooms/all-rooms/edit-room/EditRoom";
+import ResetPassword from "../pages/reset-password/ResetPassword";
+
 const Router = createBrowserRouter([
   {
     path: "/",
@@ -90,6 +92,7 @@ const Router = createBrowserRouter([
       },
       { path: "under_preview", Component: UnderPreview },
       { path: "under_due", Component: UnderDue },
+      { path: "reset-password", Component: ResetPassword },
     ],
   },
 
