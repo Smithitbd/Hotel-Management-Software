@@ -38,15 +38,15 @@ const auth = getAuth();
 // });
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.zoho.com",
-  port: 465,
-  secure: true,
+  host: "mail.smithit.com.bd", // ← most common. Check your exact host below
+  port: 465, // or try 587
+  secure: true, // true for 465, false for 587
   auth: {
-    user: "security@smithit.com.bd", // full email
-    pass: process.env.EMAIL_PASSWORD,
+    user: process.env.EMAIL_USER, // full email: security@smithit.com.bd
+    pass: process.env.EMAIL_PASSWORD, // the mailbox password
   },
   tls: {
-    rejectUnauthorized: false,
+    rejectUnauthorized: false, // often needed on shared hosting
   },
 });
 
