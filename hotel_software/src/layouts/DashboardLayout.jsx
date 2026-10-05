@@ -11,19 +11,6 @@ import useUserStatus from "../hooks/useUserStatus";
 const DashboardLayout = () => {
   const { status, statusLoading, type } = useUserStatus();
 
-  if (statusLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-lg text-rose-900"></span>
-      </div>
-    );
-  }
-
-  if (status) {
-    console.log(status);
-    console.log(type);
-  }
-
   return (
     <div className="drawer lg:drawer-open min-h-screen bg-gray-100">
       <input id="dashboard-drawer" type="checkbox" className="drawer-toggle" />
@@ -46,16 +33,20 @@ const DashboardLayout = () => {
         <div className="flex flex-col flex-1">
           {/* Main content grows */}
           <div className="flex-1 p-6">
-            <Outlet />
+            {statusLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <span className="loading loading-spinner loading-lg text-rose-900"></span>
+              </div>
+            ) : (
+              <Outlet />
+            )}
           </div>
 
-          {/* ===== FOOTER (Smith IT style) ===== */}
+          {/* ===== FOOTER ===== */}
           <footer className="px-6 py-5 mt-auto border-t border-gray-200 bg-white">
             <div className="flex flex-col items-center gap-3">
-              {/* Smith IT Logo */}
               <div className="flex items-center gap-1.5"></div>
 
-              {/* Copyright text */}
               <p className="text-xs text-gray-500 text-center">
                 © All Rights Reserved. Obokash is a product of{" "}
                 <Link
@@ -82,8 +73,15 @@ const DashboardLayout = () => {
           </div>
 
           <ul className="menu gap-2">
-            {/* ===== Approved users ===== */}
-            {status === "Approved" && (
+            {statusLoading ? (
+              // Skeleton while status is loading
+              Array.from({ length: 6 }).map((_, i) => (
+                <li
+                  key={i}
+                  className="h-10 bg-rose-800/50 rounded animate-pulse mx-2 my-1"
+                />
+              ))
+            ) : status === "Approved" ? (
               <>
                 <li>
                   <NavLink className="text-lg" to="/dashboard">
@@ -143,10 +141,7 @@ const DashboardLayout = () => {
                   </NavLink>
                 </li>
               </>
-            )}
-
-            {/* ===== Admin users ===== */}
-            {status === "Admin" && (
+            ) : status === "Admin" ? (
               <>
                 <li>
                   <NavLink className="text-lg" to="/dashboard/settings">
@@ -154,7 +149,7 @@ const DashboardLayout = () => {
                   </NavLink>
                 </li>
               </>
-            )}
+            ) : null}
           </ul>
         </aside>
       </div>
